@@ -24,13 +24,13 @@ export function cleanRow(r) {
   };
 }
 
-// Satu INSERT untuk banyak baris (JSON -> recordset), jauh lebih cepat daripada insert per baris.
-export function insertQuery(cleanRows) {
+// Satu INSERT untuk banyak baris (JSON -> recordset) ke dataset tertentu.
+export function insertQuery(datasetId, cleanRows) {
   const payload = JSON.stringify(cleanRows);
   return sql`
-    INSERT INTO orders (order_id, status, created_at, payment_method, product, variation,
+    INSERT INTO orders (dataset_id, order_id, status, created_at, payment_method, product, variation,
                         price, qty, subtotal, total_payment, city, province, customer_id)
-    SELECT order_id, status, created_at, payment_method, product, variation,
+    SELECT ${datasetId}, order_id, status, created_at, payment_method, product, variation,
            price, qty, subtotal, total_payment, city, province, customer_id
     FROM jsonb_to_recordset(${payload}::jsonb) AS t(
       order_id text, status text, created_at timestamp, payment_method text, product text,

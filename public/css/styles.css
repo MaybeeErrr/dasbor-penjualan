@@ -477,3 +477,59 @@ footer.app-footer { padding: 26px 0 40px; font-size: 12px; color: var(--ink-mute
   .panel-head input.search-box { width: 100%; }
   .app-topbar-title { display: none; }
 }
+
+/* ================= Akun (auth gate) ================= */
+.auth-overlay { position: fixed; inset: 0; background: var(--bg); z-index: 500; display: flex; align-items: center; justify-content: center; padding: 20px; }
+.auth-overlay.hidden { display: none; }
+.auth-box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-xl); box-shadow: var(--shadow-md); padding: 30px 28px 26px; max-width: 380px; width: 100%; }
+.auth-box .brand-mark { font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 15px; display: flex; align-items: center; gap: 8px; margin-bottom: 18px; }
+.auth-box h2 { margin: 0 0 6px; font-size: 19px; font-weight: 600; letter-spacing: -0.01em; }
+.auth-box .sub { font-size: 13px; color: var(--ink-muted); margin: 0 0 20px; line-height: 1.55; }
+.field-group { margin-bottom: 14px; }
+.field-group label { display: block; font-size: 11.5px; font-weight: 600; color: var(--ink-muted); text-transform: uppercase; letter-spacing: 0.03em; margin-bottom: 6px; }
+.field-group .search-box { width: 100%; min-width: 0; }
+.auth-error { font-size: 12.5px; color: var(--brick); margin: 2px 0 12px; display: none; line-height: 1.5; }
+.auth-error.show { display: block; }
+.auth-switch { text-align: center; margin-top: 16px; font-size: 12.5px; color: var(--ink-muted); }
+.auth-switch button { background: none; border: none; color: var(--brand); font-weight: 600; cursor: pointer; font-size: 12.5px; padding: 0; font-family: inherit; }
+.auth-box .btn { width: 100%; }
+
+/* ================= Dataset manager ================= */
+.dataset-panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 18px 18px 16px; box-shadow: var(--shadow-md); margin-bottom: 22px; }
+.dataset-panel-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
+.dataset-panel-head h3 { margin: 0; font-size: 14.5px; font-weight: 600; }
+.dataset-list { display: flex; flex-direction: column; gap: 8px; max-height: 280px; overflow-y: auto; }
+.dataset-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface-2); cursor: pointer; transition: border-color .15s ease, background .15s ease; }
+.dataset-item:hover { border-color: color-mix(in srgb, var(--brand) 40%, var(--border)); }
+.dataset-item.active { border-color: var(--brand); background: color-mix(in srgb, var(--brand) 10%, var(--surface-2)); }
+.dataset-item-main { flex: 1; min-width: 0; }
+.dataset-item-name { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dataset-item-meta { font-size: 11.5px; color: var(--ink-muted); margin-top: 2px; }
+.dataset-item-actions { display: flex; gap: 4px; flex-shrink: 0; }
+.dataset-item-actions button { background: none; border: 1px solid var(--border); color: var(--ink-muted); border-radius: var(--radius-sm); width: 26px; height: 26px; cursor: pointer; font-size: 12px; display: inline-flex; align-items: center; justify-content: center; }
+.dataset-item-actions button:hover { border-color: color-mix(in srgb, var(--brick) 50%, var(--border)); color: var(--brick); }
+.dataset-empty { font-size: 12.5px; color: var(--ink-muted); padding: 10px 2px; }
+.dataset-add-btn { width: 100%; margin-top: 12px; }
+.sidebar .dataset-panel { margin: 6px 12px 14px; padding: 14px; }
+.sidebar .dataset-list { max-height: 180px; }
+
+/* ================= Modal unggah dataset (pratinjau) ================= */
+.modal-box.wide { max-width: 480px; text-align: left; }
+.modal-box.wide h3 { margin-bottom: 4px; }
+.modal-box .upload-preview-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 16px 0; }
+.modal-box .upload-preview-stats .mini-stat { background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px 10px 8px; }
+.modal-box .upload-preview-stats .mini-stat .num { font-size: 16px; font-weight: 700; font-family: 'Space Grotesk', sans-serif; }
+.modal-box .upload-preview-stats .mini-stat .lbl { font-size: 10.5px; color: var(--ink-muted); margin-top: 2px; }
+
+/* ================= Mode perbandingan ================= */
+.compare-picker { display: flex; flex-direction: column; gap: 8px; margin-bottom: 18px; }
+.compare-check-row { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface-2); cursor: pointer; }
+.compare-check-row input { width: 16px; height: 16px; accent-color: var(--brand); flex-shrink: 0; }
+.compare-check-row .name { font-size: 13px; font-weight: 600; flex: 1; min-width: 0; }
+.compare-check-row .meta { font-size: 11.5px; color: var(--ink-muted); }
+.compare-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-bottom: 18px; }
+.compare-card { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--chart-2, var(--brand)); border-radius: var(--radius-md); padding: 16px 18px; box-shadow: var(--shadow-sm); }
+.compare-card h4 { margin: 0 0 10px; font-size: 13.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.compare-card .row { display: flex; justify-content: space-between; font-size: 12.5px; padding: 5px 0; border-top: 1px dashed var(--border); }
+.compare-card .row:first-of-type { border-top: none; }
+.compare-card .row .v { font-weight: 600; }

@@ -49,7 +49,7 @@
   }
 
   /* ---------------- Show app shell once data is loaded ---------------- */
-  // The core script toggles the "show" class on #dashboard (setRecords / btnClear).
+  // The core script toggles the "show" class on #dashboard (setRecords / dataset switch).
   // We mirror that into the landing page's visibility without touching that logic.
   var dashboardEl = document.getElementById('dashboard');
   var landingWrap = document.getElementById('landingWrap');
@@ -63,14 +63,9 @@
   if(dashboardEl && window.MutationObserver){
     new MutationObserver(syncShellVisibility).observe(dashboardEl, {attributes:true, attributeFilter:['class']});
   }
-  var btnClearApp = document.getElementById('btnClearApp');
-  if(btnClearApp){
-    btnClearApp.addEventListener('click', function(){
-      document.getElementById('btnClear').click();
-      syncShellVisibility();
-      activateView('dashboard');
-    });
-  }
+  // Tombol "Ganti dataset" (id btnBackToDatasets) ditangani di data/datasets-ui.js;
+  // MutationObserver di bawah ini otomatis menampilkan kembali halaman landing
+  // begitu class "show" pada #dashboard dilepas.
   syncShellVisibility();
 
   /* ---------------- Mirror status pill + theme button (landing vs sidebar) ---------------- */

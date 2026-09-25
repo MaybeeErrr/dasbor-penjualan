@@ -95,8 +95,9 @@ sistem yang sudah di-deploy.
 | BB-02 | Unggah data | Unggah berkas dengan kolom tidak lengkap | Unggah berkas yang tidak memiliki kolom tanggal pesanan | Berkas tanpa kolom tanggal | Sistem menampilkan pesan bahwa baris tanpa tanggal valid dihapus/tidak dapat diproses, bukan error yang tidak jelas |
 | BB-03 | Unggah data | Unggah berkas format tidak didukung | Unggah berkas berformat selain .xlsx/.csv (mis. .pdf) | Berkas .pdf | Sistem menolak dengan pesan kesalahan yang jelas, tidak crash |
 | BB-04 | Pemetaan kolom | Header kolom berbeda dari nama standar | Unggah berkas dengan penamaan header yang sedikit berbeda (mis. "Tgl Pesanan" vs "Waktu Pesanan Dibuat") | Berkas dengan variasi header | Pemetaan otomatis berhasil mengenali kolom yang relevan, atau menampilkan opsi pemetaan manual |
-| BB-05 | Autentikasi | Password salah saat menyimpan data | Masukkan `APP_PASSWORD` yang salah saat upload | Password acak | Permintaan ditolak (401), data tidak tersimpan ke database |
-| BB-06 | Autentikasi | Password benar | Masukkan `APP_PASSWORD` yang sesuai | Password valid | Data berhasil tersimpan ke database Neon |
+| BB-05 | Autentikasi | Masuk dengan kata sandi salah | Masukkan nama akun benar tapi kata sandi salah saat login | Kata sandi acak | Permintaan ditolak (401), pesan "Nama akun atau kata sandi salah." |
+| BB-06 | Autentikasi | Masuk dengan kredensial benar | Masukkan nama akun & kata sandi yang sesuai | Kredensial valid | Token sesi diterbitkan, dasbor akun tersebut (dan dataset miliknya saja) dapat diakses |
+| BB-06b | Autentikasi | Akun lain tidak bisa melihat dataset akun ini | Masuk sebagai akun B, coba akses `datasetId` milik akun A | id dataset akun A | API mengembalikan 404 (bukan data akun A), membuktikan isolasi antar akun |
 | BB-07 | Filter | Filter status pesanan | Pilih filter status "Selesai" saja | — | KPI, chart, dan tabel hanya menghitung transaksi berstatus selesai |
 | BB-08 | Filter | Filter provinsi | Pilih salah satu provinsi pada filter | — | Seluruh dasbor (KPI, RFM, forecasting) menyesuaikan hanya data provinsi terpilih |
 | BB-09 | Forecasting | Ubah horizon prediksi | Ganti horizon dari 7 ke 14 dan 30 hari | — | Nilai total & rata-rata prediksi, serta grafik, berubah konsisten sesuai horizon |
@@ -106,7 +107,8 @@ sistem yang sudah di-deploy.
 | BB-13 | RFM | Data tanpa identitas pelanggan | Unggah data tanpa kolom identitas pelanggan | Berkas tanpa Username Pembeli | Analisis RFM menampilkan pesan bahwa kolom identitas pelanggan tidak ditemukan (tidak membuat ID fiktif) |
 | BB-14 | Market Basket Analysis | Transaksi cukup multi-produk | Unggah data dengan banyak pesanan berisi ≥2 produk | — | Frequent itemset (1–3 produk) dan aturan asosiasi (support/confidence/lift) tampil |
 | BB-15 | Market Basket Analysis | Transaksi mayoritas 1 produk | Unggah/filter data hingga pesanan multi-produk < `MBA_MIN_MULTI_ITEM` | — | Sistem menampilkan pesan bahwa data tidak cukup untuk MBA, bukan hasil kosong yang membingungkan |
-| BB-16 | Hapus data | Hapus seluruh data pesanan | Klik tombol hapus data pada dasbor | — | Seluruh tabel `orders` di database terhapus, dasbor kembali ke status "Belum ada data" |
+| BB-16 | Hapus data | Hapus satu dataset | Klik tombol hapus (✕) pada salah satu dataset di daftar | — | Seluruh baris `orders` milik dataset tersebut terhapus dari database; dataset lain tidak terpengaruh |
+| BB-16b | Perbandingan dataset | Bandingkan ≥2 dataset | Buka menu "Perbandingan Dataset", centang 2 dataset atau lebih, klik "Bandingkan" | 2+ dataset milik akun yang sama | Kartu ringkasan & grafik tren tampil berdampingan per dataset, dengan warna berbeda |
 | BB-17 | Ekspor/tampilan | Beralih tema terang/gelap (jika tersedia) | Klik toggle tema | — | Seluruh chart & tabel tetap terbaca pada kedua tema |
 | BB-18 | Responsivitas | Buka dasbor pada layar kecil | Buka pada perangkat/lebar layar mobile | — | Layout tetap dapat digunakan (scroll, tabel tidak terpotong secara fatal) |
 
@@ -125,17 +127,19 @@ Poin-poin berikut sebaiknya dicantumkan eksplisit sebagai batasan sistem pada
 laporan, supaya tidak menimbulkan pertanyaan kritis saat sidang tanpa jawaban
 yang siap:
 
-1. **Autentikasi tunggal, bukan multi-pengguna.** Sistem memakai satu
-   `APP_PASSWORD` bersama (dibandingkan dengan *timing-safe comparison* di
-   `api/_lib/auth.js`) untuk melindungi endpoint `/api/orders`, bukan akun
-   per pengguna dengan peran (role) berbeda. Ini memadai untuk skala
-   satu UMKM/satu operator, tapi bukan desain multi-tenant. Pengembangan
-   lanjutan: autentikasi berbasis akun (mis. Auth.js/Clerk) dan kolom
-   `user_id` per baris data.
-2. **Mode unggah bersifat "ganti seluruh data" (replace), bukan tambah
-   (append) secara default.** Ini desain yang disengaja agar data selalu
-   konsisten dengan berkas sumber terbaru, tapi perlu dijelaskan eksplisit
-   agar tidak disalahartikan sebagai bug saat demo.
+1. **Autentikasi berbasis akun per pengguna, tanpa peran (role) berbeda.**
+   Sistem memakai akun (nama akun + kata sandi ter-hash dengan `scrypt`) dan
+   token sesi yang ditandatangani dengan `SESSION_SECRET`
+   (`api/_lib/auth.js`), sehingga setiap akun hanya bisa mengakses dataset
+   miliknya sendiri — tapi semua akun punya hak yang sama (tidak ada
+   admin/operator/viewer terpisah). Pengembangan lanjutan: peran (role)
+   per akun, verifikasi email, atau login pihak ketiga (mis. Google/Auth.js).
+2. **Mode unggah selalu membuat dataset baru, bukan menambah (append) ke
+   dataset yang sudah ada.** Ini desain yang disengaja agar tiap dataset
+   tetap konsisten dengan satu berkas sumber dan mudah dibandingkan satu
+   sama lain, tapi perlu dijelaskan eksplisit agar tidak disalahartikan
+   sebagai bug saat demo (mengunggah berkas kedua tidak menimpa yang
+   pertama — keduanya tersimpan sebagai dataset terpisah).
 3. **Perhitungan analitik (forecasting, K-Means, Apriori) berjalan di sisi
    klien (peramban), bukan di server.** Konsekuensinya: performa bergantung
    pada perangkat pengguna, dan karena itu ada batas jumlah kandidat/produk
@@ -146,5 +150,12 @@ yang siap:
    bagian 2.1.
 5. **Data disimpan di database Neon milik pengguna sendiri** — bukan
    dikelola pihak ketiga di luar kendali pemilik data, tapi tetap perlu
-   dijaga kerahasiaan `DATABASE_URL` dan `APP_PASSWORD` (jangan ikut
+   dijaga kerahasiaan `DATABASE_URL` dan `SESSION_SECRET` (jangan ikut
    ter-commit ke repository publik).
+6. **Mode Perbandingan menghitung metrik ringkasan saja** (total
+   pendapatan, jumlah pesanan, rata-rata nilai pesanan, produk terlaris,
+   tren harian) per dataset yang dipilih — bukan menjalankan seluruh
+   pipeline analitik (RFM, K-Means, forecasting, Apriori) secara paralel
+   untuk tiap dataset sekaligus, karena itu akan sangat berat dijalankan
+   di peramban. Analisis mendalam tetap dilakukan satu dataset pada satu
+   waktu lewat menu-menu utama.

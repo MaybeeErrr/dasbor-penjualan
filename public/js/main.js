@@ -1,28 +1,20 @@
 "use strict";
 
-// Init: hitung statistik data contoh (statis), lalu muat data tersimpan dari database Neon.
+// Init: hitung statistik data contoh (statis) untuk ditampilkan di halaman
+// landing sebelum pengguna masuk. Pemuatan dataset sungguhan terjadi setelah
+// login berhasil (lihat event "auth:ready" di data/datasets-ui.js).
 (function init(){
-  setStatusPill(false, 'Memuat data…');
   Api.loadDemo()
     .then(function(raw){
+      // normalizeDemoRecords menulis ke state.preprocessing sebagai efek samping;
+      // simpan & pulihkan supaya tidak menimpa status dataset yang sedang aktif.
+      var savedPreprocessing = state.preprocessing;
       var demoRecords = normalizeDemoRecords(raw);
+      state.preprocessing = savedPreprocessing;
       var demoOrders = uniqueOrders(demoRecords);
       var demoDays = Object.keys(groupByDay(demoOrders)).length;
       document.getElementById('heroDemoOrders').textContent = demoOrders.length.toLocaleString('id-ID');
       document.getElementById('heroDemoDays').textContent = demoDays;
     })
-    .catch(function(){ /* data contoh opsional */ })
-    .then(function(){ return Api.loadOrders(); })
-    .then(function(res){
-      if(res && res.records.length){
-        state.preprocessing = { totalRawRows: res.records.length, missingDateDropped:0, duplicatesRemoved:0, validRows: res.records.length, colMap:null, restored:true };
-        setRecords(res.records, (res.source || 'Data tersimpan') + ' (dari database)');
-      } else {
-        setStatusPill(false, 'Belum ada data');
-      }
-    })
-    .catch(function(err){
-      setStatusPill(false, 'Belum ada data');
-      showError('Tidak dapat memuat data dari database: ' + err.message);
-    });
+    .catch(function(){ /* data contoh opsional */ });
 })();

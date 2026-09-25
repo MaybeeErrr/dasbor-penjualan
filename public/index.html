@@ -20,6 +20,8 @@
     <div class="brand-mark"><span class="brand-dot"></span> Dasbor Penjualan</div>
     <div class="topbar-actions">
       <span class="status-pill" id="dataStatusPillLanding"><span class="dot"></span><span id="dataStatusTxtLanding">Belum ada data</span></span>
+      <span style="font-size:12.5px;color:var(--ink-muted);white-space:nowrap;">👤 <b id="accountNameLanding">—</b></span>
+      <button class="ghost-btn" id="btnLogoutLanding" type="button">Keluar</button>
       <button class="theme-toggle" id="themeToggleLanding" type="button" aria-label="Ganti tema">☾</button>
     </div>
   </div>
@@ -43,17 +45,20 @@
       </div>
 
       <div class="upload-card">
-        <h3>Unggah data pesanan</h3>
-        <p class="hint">Format .xlsx atau .csv, hasil unduhan dari sistem penjualan Anda.</p>
+        <div class="dataset-panel" id="datasetPanelLanding" style="box-shadow:none;border:none;padding:0;margin-bottom:18px;">
+          <div class="dataset-panel-head"><h3>Dataset Anda</h3></div>
+          <div class="dataset-list" id="datasetListLanding"></div>
+        </div>
+        <h3>Tambah dataset baru</h3>
+        <p class="hint">Format .xlsx atau .csv. Setiap berkas yang diunggah menjadi dataset terpisah — data lain tidak akan tertimpa.</p>
         <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="Unggah berkas data pesanan">
           <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M12 16V4M12 4L7 9M12 4L17 9" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 16V18C4 19.1 4.9 20 6 20H18C19.1 20 20 19.1 20 18V16" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
           <div class="main-txt" id="dropzoneMainTxt">Seret berkas ke sini, atau klik untuk memilih</div>
-          <div class="sub-txt">.xlsx / .csv — diproses langsung di perangkat ini</div>
+          <div class="sub-txt">.xlsx / .csv — diproses langsung di perangkat ini, muncul pratinjau sebelum disimpan</div>
           <input type="file" id="fileInput" accept=".xlsx,.xls,.csv">
         </div>
         <div class="upload-row">
-          <button class="btn btn-primary" id="btnDemo" type="button">Lihat data contoh</button>
-          <button class="btn btn-secondary" id="btnClear" type="button">Bersihkan</button>
+          <button class="btn btn-secondary" id="btnDemo" type="button">Lihat data contoh (pratinjau)</button>
         </div>
         <div class="upload-error" id="uploadError"></div>
         <div class="upload-cols">
@@ -69,6 +74,12 @@
   <div class="sidebar-scrim" id="sidebarScrim"></div>
   <nav class="sidebar" id="sidebar">
     <div class="sidebar-brand"><span class="brand-dot"></span> Dasbor Penjualan <button class="sidebar-close" id="sidebarClose" type="button" aria-label="Tutup menu">✕</button></div>
+
+    <div class="dataset-panel" id="datasetPanelSidebar">
+      <div class="dataset-panel-head"><h3>Dataset Anda</h3></div>
+      <div class="dataset-list" id="datasetListSidebar"></div>
+      <button class="btn btn-secondary dataset-add-btn" id="btnAddDatasetSidebar" type="button">+ Tambah dataset baru</button>
+    </div>
 
     <div class="nav-section">
       <div class="nav-section-title">Utama</div>
@@ -104,6 +115,10 @@
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1.5" y="2.5" width="13" height="11" rx="1.6" stroke="currentColor" stroke-width="1.4"/><path d="M1.5 6H14.5" stroke="currentColor" stroke-width="1.3"/><path d="M4.5 9H11.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><path d="M4.5 11.3H9" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
         Data Transaksi
       </button>
+      <button class="nav-btn" type="button" data-view="compare">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4.5 1.5V14.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><path d="M11.5 1.5V14.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><path d="M1.5 6L4.5 4L7.5 6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/><path d="M8.5 10L11.5 12L14.5 10" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Perbandingan Dataset
+      </button>
     </div>
 
     <div class="nav-section">
@@ -131,10 +146,14 @@
     </div>
 
     <div class="sidebar-foot">
+      <div class="dataset-item-meta" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <span>Masuk sebagai <b id="accountName">—</b></span>
+        <button class="ghost-btn" id="btnLogout" type="button" style="padding:4px 10px;font-size:11px;">Keluar</button>
+      </div>
       <span class="status-pill" id="dataStatusPill"><span class="dot"></span><span id="dataStatusTxt">Belum ada data</span></span>
       <div class="sidebar-foot-actions">
         <button class="ghost-btn" id="themeToggle" type="button" style="flex:0 0 auto;" aria-label="Ganti tema">☾</button>
-        <button class="ghost-btn" id="btnClearApp" type="button" style="flex:1;">Data baru</button>
+        <button class="ghost-btn" id="btnBackToDatasets" type="button" style="flex:1;">Ganti dataset</button>
       </div>
     </div>
   </nav>
@@ -546,6 +565,37 @@
         </div>
       </section>
 
+      <!-- ============ VIEW: Perbandingan Dataset ============ -->
+      <section class="view-plane" id="view-compare" data-view-name="Perbandingan Dataset">
+        <div class="panel">
+          <div class="panel-head">
+            <div>
+              <h3>Bandingkan beberapa dataset</h3>
+              <div class="desc">Pilih minimal dua dataset untuk melihat perbandingan total pendapatan, jumlah pesanan, rata-rata nilai pesanan, produk terlaris, dan tren pendapatan harian.</div>
+            </div>
+          </div>
+          <div class="compare-picker" id="comparePickerList"></div>
+          <button class="btn btn-primary" id="btnRunCompare" type="button" style="max-width:240px;">Bandingkan dataset terpilih</button>
+          <div class="state-empty" id="compareEmpty" style="margin-top:14px;">Pilih minimal 2 dataset untuk dibandingkan.</div>
+        </div>
+        <div id="compareResults" style="display:none;">
+          <div class="compare-cards" id="compareCards"></div>
+          <div class="panel">
+            <div class="panel-head"><div><h3>Tren pendapatan harian</h3><div class="desc">Garis terpisah per dataset agar mudah dibandingkan.</div></div></div>
+            <div class="chart-scroll"><div class="chart-box"><canvas id="compareChart"></canvas></div></div>
+          </div>
+          <div class="panel">
+            <div class="panel-head"><div><h3>Tabel ringkasan perbandingan</h3></div></div>
+            <div class="table-scroll">
+              <table>
+                <thead><tr><th>Dataset</th><th>Total Pendapatan</th><th>Total Pesanan</th><th>Rata-rata Nilai Pesanan</th><th>Produk Terlaris</th></tr></thead>
+                <tbody id="compareTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <!-- ============ VIEW: Model Evaluation ============ -->
       <section class="view-plane" id="view-evaluation" data-view-name="Model Evaluation">
         <div class="panel">
@@ -639,6 +689,51 @@
   </div>
 </div>
 
+<div class="modal-overlay" id="newDatasetModalOverlay" role="dialog" aria-modal="true" aria-labelledby="newDatasetModalTitle">
+  <div class="modal-box wide">
+    <h3 id="newDatasetModalTitle">Simpan sebagai dataset baru</h3>
+    <p>Berkas berhasil dibaca dan divalidasi di peramban ini. Beri nama dataset ini, lalu simpan — dataset lain yang sudah ada tidak akan berubah.</p>
+    <div class="upload-preview-stats">
+      <div class="mini-stat"><div class="num tabular" id="newDatasetStatRows">0</div><div class="lbl">baris valid</div></div>
+      <div class="mini-stat"><div class="num tabular" id="newDatasetStatStart">—</div><div class="lbl">tanggal awal</div></div>
+      <div class="mini-stat"><div class="num tabular" id="newDatasetStatEnd">—</div><div class="lbl">tanggal akhir</div></div>
+    </div>
+    <div class="field-group">
+      <label for="newDatasetName">Nama dataset</label>
+      <input class="search-box" id="newDatasetName" type="text" placeholder="mis. Penjualan Toko A — Januari 2026">
+    </div>
+    <div class="auth-error" id="newDatasetError"></div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" id="newDatasetCancel" type="button">Batal</button>
+      <button class="btn btn-primary" id="newDatasetConfirm" type="button">Simpan sebagai dataset baru</button>
+    </div>
+  </div>
+</div>
+
+<div class="auth-overlay hidden" id="authOverlay">
+  <div class="auth-box">
+    <div class="brand-mark"><span class="brand-dot"></span> Dasbor Penjualan</div>
+    <h2 id="authTitle">Masuk ke akun Anda</h2>
+    <p class="sub" id="authSub">Dataset penjualan Anda tersimpan aman per akun.</p>
+    <div class="auth-error" id="authError"></div>
+    <form id="authFormLogin">
+      <div class="field-group"><label for="loginUsername">Nama akun</label><input class="search-box" id="loginUsername" type="text" autocomplete="username" required></div>
+      <div class="field-group"><label for="loginPassword">Kata sandi</label><input class="search-box" id="loginPassword" type="password" autocomplete="current-password" required></div>
+      <button class="btn btn-primary" type="submit">Masuk</button>
+    </form>
+    <form id="authFormRegister" style="display:none;">
+      <div class="field-group"><label for="registerUsername">Nama akun</label><input class="search-box" id="registerUsername" type="text" autocomplete="username" required placeholder="huruf, angka, titik, strip"></div>
+      <div class="field-group"><label for="registerPassword">Kata sandi</label><input class="search-box" id="registerPassword" type="password" autocomplete="new-password" required minlength="6"></div>
+      <div class="field-group"><label for="registerPassword2">Ulangi kata sandi</label><input class="search-box" id="registerPassword2" type="password" autocomplete="new-password" required minlength="6"></div>
+      <button class="btn btn-primary" type="submit">Daftar</button>
+    </form>
+    <div class="auth-switch">
+      <span id="authSwitchToRegisterWrap">Belum punya akun? <button type="button" id="authToRegister">Daftar</button></span>
+      <span id="authSwitchToLoginWrap" style="display:none;">Sudah punya akun? <button type="button" id="authToLogin">Masuk</button></span>
+    </div>
+  </div>
+</div>
+
 
 <script src="/js/core/theme.js"></script>
 <script src="/js/core/utils.js"></script>
@@ -655,6 +750,9 @@
 <script src="/js/sections/insight.js"></script>
 <script src="/js/sections/basket.js"></script>
 <script src="/js/sections/evaluation.js"></script>
+<script src="/js/sections/compare.js"></script>
+<script src="/js/data/datasets-ui.js"></script>
+<script src="/js/core/auth-ui.js"></script>
 <script src="/js/main.js"></script>
 <script src="/js/navigation.js"></script>
 </body>

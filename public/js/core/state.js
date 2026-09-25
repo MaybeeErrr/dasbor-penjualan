@@ -4,6 +4,8 @@
 var state = {
   records: [],      // normalized line-item records
   filtered: [],
+  datasets: [],           // daftar dataset milik akun yang sedang login
+  activeDatasetId: null,  // id dataset yang sedang ditampilkan di dashboard
   horizon: 7,
   tablePage: 0,
   tablePageSize: 10,

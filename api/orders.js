@@ -1,19 +1,27 @@
 import { sql } from './_lib/db.js';
-import { isAuthorized } from './_lib/auth.js';
+import { getUserId } from './_lib/auth.js';
 import { cleanRow, insertQuery } from './_lib/orders-sql.js';
 
 const MAX_LIMIT = 5000;
 const MAX_BATCH = 5000;
 
+// Semua endpoint di bawah ini beroperasi pada SATU dataset (?datasetId=123),
+// dan dataset itu harus milik akun yang sedang login.
 export default async function handler(req, res) {
   res.setHeader('Cache-Control', 'no-store');
-  if (!isAuthorized(req)) {
-    return res.status(401).json({ error: 'Kata sandi salah atau belum diisi.' });
-  }
+  const userId = getUserId(req);
+  if (!userId) return res.status(401).json({ error: 'Sesi tidak valid. Silakan masuk kembali.' });
+
+  const datasetId = parseInt(req.query.datasetId, 10);
+  if (!datasetId) return res.status(400).json({ error: 'Parameter datasetId wajib diisi.' });
+
   try {
-    if (req.method === 'GET') return await list(req, res);
-    if (req.method === 'POST') return await insert(req, res);
-    if (req.method === 'DELETE') return await clear(res);
+    const owns = await sql`SELECT id FROM datasets WHERE id = ${datasetId} AND user_id = ${userId}`;
+    if (!owns.length) return res.status(404).json({ error: 'Dataset tidak ditemukan.' });
+
+    if (req.method === 'GET') return await list(datasetId, req, res);
+    if (req.method === 'POST') return await insert(datasetId, req, res);
+    if (req.method === 'DELETE') return await clear(datasetId, res);
     res.setHeader('Allow', 'GET, POST, DELETE');
     return res.status(405).json({ error: 'Metode tidak didukung.' });
   } catch (err) {
@@ -22,7 +30,7 @@ export default async function handler(req, res) {
   }
 }
 
-async function list(req, res) {
+async function list(datasetId, req, res) {
   const offset = Math.max(0, parseInt(req.query.offset, 10) || 0);
   const limit = Math.min(MAX_LIMIT, Math.max(1, parseInt(req.query.limit, 10) || MAX_LIMIT));
 
@@ -31,20 +39,20 @@ async function list(req, res) {
                to_char(created_at, 'YYYY-MM-DD"T"HH24:MI:SS') AS created_at,
                payment_method, product, variation, price, qty, subtotal,
                total_payment, city, province, customer_id
-        FROM orders ORDER BY id LIMIT ${limit} OFFSET ${offset}`,
-    sql`SELECT count(*)::int AS n FROM orders`,
-    sql`SELECT source_name, updated_at FROM dataset_info WHERE id = 1`,
+        FROM orders WHERE dataset_id = ${datasetId} ORDER BY id LIMIT ${limit} OFFSET ${offset}`,
+    sql`SELECT count(*)::int AS n FROM orders WHERE dataset_id = ${datasetId}`,
+    sql`SELECT name, source_name, updated_at FROM datasets WHERE id = ${datasetId}`,
   ]);
 
   return res.status(200).json({
     rows,
     total: counts[0].n,
-    source: meta[0]?.source_name ?? null,
+    source: meta[0]?.source_name ?? meta[0]?.name ?? null,
     updatedAt: meta[0]?.updated_at ?? null,
   });
 }
 
-async function insert(req, res) {
+async function insert(datasetId, req, res) {
   const { rows, replace = false, source = null } = req.body || {};
   if (!Array.isArray(rows) || rows.length === 0 || rows.length > MAX_BATCH) {
     return res.status(400).json({ error: `Kirim 1–${MAX_BATCH} baris per permintaan.` });
@@ -55,20 +63,23 @@ async function insert(req, res) {
   }
 
   const queries = [];
-  if (replace) queries.push(sql`TRUNCATE orders RESTART IDENTITY`);
-  queries.push(insertQuery(clean));
+  if (replace) queries.push(sql`DELETE FROM orders WHERE dataset_id = ${datasetId}`);
+  queries.push(insertQuery(datasetId, clean));
   queries.push(sql`
-    INSERT INTO dataset_info (id, source_name, updated_at)
-    VALUES (1, ${source ? String(source).slice(0, 200) : null}, now())
-    ON CONFLICT (id) DO UPDATE
-      SET source_name = CASE WHEN ${replace} THEN EXCLUDED.source_name ELSE dataset_info.source_name END,
-          updated_at = now()`);
+    UPDATE datasets SET
+      source_name = CASE WHEN ${source !== null} THEN ${source ? String(source).slice(0, 200) : null} ELSE source_name END,
+      row_count = (SELECT count(*)::int FROM orders WHERE dataset_id = ${datasetId}),
+      updated_at = now()
+    WHERE id = ${datasetId}`);
 
   await sql.transaction(queries); // atomik per permintaan
   return res.status(200).json({ inserted: clean.length, skipped: rows.length - clean.length });
 }
 
-async function clear(res) {
-  await sql.transaction([sql`TRUNCATE orders RESTART IDENTITY`, sql`DELETE FROM dataset_info`]);
+async function clear(datasetId, res) {
+  await sql.transaction([
+    sql`DELETE FROM orders WHERE dataset_id = ${datasetId}`,
+    sql`UPDATE datasets SET row_count = 0, updated_at = now() WHERE id = ${datasetId}`,
+  ]);
   return res.status(200).json({ cleared: true });
 }

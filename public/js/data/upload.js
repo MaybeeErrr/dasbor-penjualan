@@ -14,7 +14,7 @@ function clearError(){
   uploadError.textContent = '';
 }
 
-/* ---------------- Confirm modal (dipakai sebelum menghapus/mengganti data) ---------------- */
+/* ---------------- Confirm modal (dipakai untuk hapus dataset, dsb.) ---------------- */
 var confirmModalOverlay = document.getElementById('confirmModalOverlay');
 var confirmModalTitle = document.getElementById('confirmModalTitle');
 var confirmModalDesc = document.getElementById('confirmModalDesc');
@@ -58,17 +58,6 @@ function showConfirmModal(opts){
   });
 }
 
-// Jika sudah ada data yang dimuat, minta konfirmasi sebelum menjalankan
-// aksi yang akan menggantikan/menghapusnya (unggah berkas baru, muat data
-// contoh, atau bersihkan data) — supaya tidak langsung hilang tanpa sengaja.
-function withReplaceConfirm(action, opts){
-  if(state.records && state.records.length){
-    showConfirmModal(opts).then(function(ok){ if(ok) action(); else if(opts.onCancel) opts.onCancel(); });
-  } else {
-    action();
-  }
-}
-
 dropzone.addEventListener('click', function(){ fileInput.click(); });
 dropzone.addEventListener('keydown', function(e){ if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); fileInput.click(); } });
 ['dragenter','dragover'].forEach(function(evt){
@@ -80,52 +69,23 @@ dropzone.addEventListener('keydown', function(e){ if(e.key === 'Enter' || e.key 
 dropzone.addEventListener('drop', function(e){
   var f = e.dataTransfer.files && e.dataTransfer.files[0];
   if(!f) return;
-  withReplaceConfirm(function(){ handleFile(f); }, {
-    title: 'Ganti data yang sudah dimuat?',
-    desc: 'Anda sudah memiliki data pesanan aktif di dasbor ini. Mengunggah "' + f.name + '" akan menggantikan data tersebut sepenuhnya, dan tidak bisa dibatalkan setelah diproses.',
-    confirmText: 'Ya, ganti data',
-    cancelText: 'Batal',
-    danger: true,
-    onCancel: function(){ fileInput.value = ''; }
-  });
+  handleFile(f);
 });
 fileInput.addEventListener('change', function(e){
   var f = e.target.files && e.target.files[0];
   if(!f) return;
-  withReplaceConfirm(function(){ handleFile(f); }, {
-    title: 'Ganti data yang sudah dimuat?',
-    desc: 'Anda sudah memiliki data pesanan aktif di dasbor ini. Mengunggah "' + f.name + '" akan menggantikan data tersebut sepenuhnya, dan tidak bisa dibatalkan setelah diproses.',
-    confirmText: 'Ya, ganti data',
-    cancelText: 'Batal',
-    danger: true,
-    onCancel: function(){ fileInput.value = ''; }
-  });
+  handleFile(f);
 });
 
 function setProcessing(active){
   var dz = document.getElementById('dropzone');
   var txt = document.getElementById('dropzoneMainTxt');
-  var pill = document.getElementById('dataStatusPill');
-  var pillTxt = document.getElementById('dataStatusTxt');
   if(dz) dz.classList.toggle('busy', !!active);
-  if(txt) txt.textContent = active ? 'Memproses berkas…' : 'Seret berkas ke sini, atau klik untuk memilih';
-  if(active && pill && pillTxt){ pill.classList.add('busy'); pillTxt.textContent = 'Memproses data…'; }
-  else if(pill){ pill.classList.remove('busy'); }
+  if(txt) txt.textContent = active ? 'Membaca berkas…' : 'Seret berkas ke sini, atau klik untuk memilih';
 }
 
-// Simpan hasil unggahan ke database Neon (lewat /api/orders), dikirim per potongan.
-function persistRecords(records, source){
-  setStatusPill(true, source + ' — menyimpan ke database…');
-  Api.saveOrders(records, source, function(done, total){
-    setStatusPill(true, source + ' — menyimpan ' + done + '/' + total + '…');
-  }).then(function(){
-    setStatusPill(true, source + ' — tersimpan di database');
-  }).catch(function(err){
-    setStatusPill(true, source);
-    showError('Data tampil di dasbor, tetapi gagal disimpan ke database: ' + err.message);
-  });
-}
-
+// Membaca & memetakan berkas, lalu membuka popup pratinjau (belum disimpan
+// ke database sampai pengguna menekan "Simpan sebagai dataset baru").
 function handleFile(file){
   clearError();
   setProcessing(true);
@@ -146,12 +106,12 @@ function handleFile(file){
       var rows = XLSX.utils.sheet_to_json(sheet, {defval:''});
       var records = mapRowsToRecords(rows);
       if(!records.length) throw new Error('Tidak ada baris data yang valid ditemukan setelah membaca berkas.');
-      setRecords(records, file.name);
-      persistRecords(records, file.name);
+      openNewDatasetModal(records, file.name);
     } catch(err){
       showError(err.message || 'Format berkas tidak dikenali. Periksa kembali kolom pada berkas Anda.');
     } finally {
       setProcessing(false);
+      fileInput.value = '';
     }
   };
   if(isCsv) reader.readAsText(file); else reader.readAsArrayBuffer(file);
@@ -159,36 +119,12 @@ function handleFile(file){
 
 document.getElementById('btnDemo').addEventListener('click', function(){
   clearError();
-  function loadDemo(){
-    Api.loadDemo().then(function(raw){
-      setRecords(normalizeDemoRecords(raw), 'Data contoh — rekap pesanan Januari 2026');
-    }).catch(function(err){ showError('Gagal memuat data contoh: ' + err.message); });
-  }
-  withReplaceConfirm(loadDemo, {
-    title: 'Ganti dengan data contoh?',
-    desc: 'Anda sudah memiliki data pesanan aktif di dasbor ini. Memuat data contoh akan menggantikan tampilan data tersebut. Data yang tersimpan di database tidak diubah.',
-    confirmText: 'Ya, pakai data contoh',
-    cancelText: 'Batal',
-    danger: true
-  });
-});
-function performClearData(){
-  clearError();
-  fileInput.value = '';
-  state.records = [];
-  document.getElementById('dashboard').classList.remove('show');
-  setStatusPill(false, 'Belum ada data');
-  Api.clearOrders().catch(function(err){ showError('Gagal menghapus data di database: ' + err.message); });
-}
-document.getElementById('btnClear').addEventListener('click', function(){
-  if(!state.records || !state.records.length){ performClearData(); return; }
-  showConfirmModal({
-    title: 'Hapus data saat ini?',
-    desc: 'Data pesanan yang sudah dimuat akan dihapus dari dasbor ini (termasuk dari database Neon). Tindakan ini tidak bisa dibatalkan.',
-    confirmText: 'Ya, hapus data',
-    cancelText: 'Batal',
-    danger: true
-  }).then(function(ok){ if(ok) performClearData(); });
+  Api.loadDemo().then(function(raw){
+    state.activeDatasetId = null;
+    state.preprocessing = null;
+    setActiveDatasetLabel(null);
+    setRecords(normalizeDemoRecords(raw), 'Data contoh — rekap pesanan Januari 2026 (pratinjau, tidak disimpan)');
+  }).catch(function(err){ showError('Gagal memuat data contoh: ' + err.message); });
 });
 
 function setStatusPill(active, text){
