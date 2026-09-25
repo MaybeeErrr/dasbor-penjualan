@@ -120,9 +120,12 @@ vercel --prod                # deploy produksi
 
 ## Keamanan
 
-- `APP_PASSWORD` melindungi semua endpoint `/api/orders`. Tanpanya, siapa pun yang tahu URL bisa membaca/menghapus data. **Selalu isi di produksi.**
+- `APP_PASSWORD` melindungi semua endpoint `/api/orders` lewat perbandingan *timing-safe* (`api/_lib/auth.js`). Tanpanya, siapa pun yang tahu URL bisa membaca/menghapus data. **Selalu isi di produksi.**
+- Ini autentikasi **satu password bersama**, bukan akun per pengguna dengan peran berbeda — memadai untuk satu UMKM/satu operator, tapi bukan desain multi-tenant. Untuk akses multi-pengguna dengan login sungguhan, tambahkan autentikasi (mis. Auth.js / Clerk) dan kolom `user_id` pada tabel.
 - Data pesanan bisa memuat kota/pelanggan; jaga repo GitHub tetap *private* dan jangan commit `.env`.
-- Untuk akses multi-pengguna dengan login sungguhan, tambahkan autentikasi (mis. Auth.js / Clerk) dan kolom `user_id` pada tabel.
+- Seluruh perhitungan analitik (forecasting, K-Means, Apriori) berjalan di sisi klien/peramban, bukan di server — lihat batasan skalabilitas terkait di `docs/metodologi-dan-pengujian.md`.
+
+> Untuk justifikasi pemilihan tiap algoritma (kenapa regresi linier, K-Means, dan Apriori — bukan alternatif lain), peta metodologi CRISP-DM, serta rencana pengujian black-box, lihat **`docs/metodologi-dan-pengujian.md`**. Dokumen itu dirancang untuk dikutip langsung ke bab Metodologi Penelitian dan bab Pengujian pada laporan skripsi.
 
 ## Pemecahan masalah
 
@@ -140,4 +143,8 @@ vercel --prod                # deploy produksi
 
 - Setiap unggahan **mengganti** seluruh data (bukan menambah). Untuk mode tambah, kirim `replace: false` dari `saveOrders` di `api.js`.
 - Silhouette Score dilewati bila pelanggan > 1.500 (batas asli dasbor agar tetap responsif).
+- Market Basket Analysis (Apriori) dibatasi ke produk terpopuler (`MBA_MAX_PRODUCTS`) dan itemset maksimum 3 produk (`MBA_MAX_ITEMSET_SIZE`) agar tetap responsif di peramban pada data besar.
+- Model forecasting (regresi linier) tidak menangani pola musiman.
 - Seluruh perhitungan analitik tetap berjalan di peramban; database hanya menyimpan/menyajikan data mentah.
+
+Rincian justifikasi tiap batasan ini ada di `docs/metodologi-dan-pengujian.md`.

@@ -598,12 +598,12 @@
       <!-- ============ VIEW: Market Basket Analysis ============ -->
       <section class="view-plane" id="view-basket" data-view-name="Market Basket Analysis">
         <div class="panel">
-          <div class="panel-head"><div><h3>Market Basket Analysis (Apriori sederhana)</h3><div class="desc">Menemukan produk yang sering dibeli bersamaan dalam satu pesanan (No. Pesanan) pada transaksi selesai di filter aktif</div></div></div>
+          <div class="panel-head"><div><h3>Market Basket Analysis (Algoritma Apriori)</h3><div class="desc">Menemukan kombinasi produk (1 sampai 3 produk sekaligus) yang sering dibeli bersamaan dalam satu pesanan (No. Pesanan) pada transaksi selesai di filter aktif, menggunakan Apriori berjenjang (candidate generation + pruning) — bukan hanya pasangan dua produk</div></div></div>
           <div class="kpi-grid compact" id="mbaSummary"></div>
           <div class="state-empty" id="mbaEmpty" style="display:none;margin-top:14px;"></div>
         </div>
         <div class="panel" id="mbaItemsetsPanel" style="display:none;">
-          <div class="panel-head"><div><h3>Frequent Itemsets</h3><div class="desc">Produk tunggal dengan dukungan (support) tertinggi di atas ambang minimum</div></div></div>
+          <div class="panel-head"><div><h3>Frequent Itemsets</h3><div class="desc">Itemset (1, 2, atau 3 produk) dengan dukungan (support) tertinggi di atas ambang minimum</div></div></div>
           <div class="bar-list" id="mbaItemsets"></div>
         </div>
         <div class="panel" id="mbaRulesPanel" style="display:none;">
