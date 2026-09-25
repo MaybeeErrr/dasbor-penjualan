@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Dasbor Analitik Penjualan</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E📊%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+
+<div class="topbar-landing" id="landingTopbar">
+  <div class="wrap topbar-inner">
+    <div class="brand-mark"><span class="brand-dot"></span> Dasbor Penjualan</div>
+    <div class="topbar-actions">
+      <span class="status-pill" id="dataStatusPillLanding"><span class="dot"></span><span id="dataStatusTxtLanding">Belum ada data</span></span>
+      <button class="theme-toggle" id="themeToggleLanding" type="button" aria-label="Ganti tema">☾</button>
+    </div>
+  </div>
+</div>
+
+<div id="landingWrap" class="wrap">
+  <section class="hero">
+    <div class="hero-grid">
+      <div>
+        <div class="eyebrow-line">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 12L6 7L9 10L14 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Analitik penjualan, dari satu layar
+        </div>
+        <h1 class="headline">Pantau performa toko Anda, lalu lihat ke mana arahnya.</h1>
+        <p class="sub">Unggah rekap pesanan dari toko online Anda dan dasbor ini akan merapikan pendapatan, produk terlaris, hingga sebaran wilayah pembeli — lengkap dengan proyeksi penjualan ke depan.</p>
+        <div class="hero-stats">
+          <div class="hero-stat"><span class="num tabular" id="heroDemoOrders">—</span><span class="label">pesanan pada data contoh</span></div>
+          <div class="hero-stat"><span class="num tabular" id="heroDemoDays">—</span><span class="label">hari transaksi tercakup</span></div>
+          <div class="hero-stat"><span class="num tabular">Neon Postgres</span><span class="label">data tersimpan di database Anda</span></div>
+        </div>
+      </div>
+
+      <div class="upload-card">
+        <h3>Unggah data pesanan</h3>
+        <p class="hint">Format .xlsx atau .csv, hasil unduhan dari sistem penjualan Anda.</p>
+        <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="Unggah berkas data pesanan">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M12 16V4M12 4L7 9M12 4L17 9" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 16V18C4 19.1 4.9 20 6 20H18C19.1 20 20 19.1 20 18V16" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <div class="main-txt" id="dropzoneMainTxt">Seret berkas ke sini, atau klik untuk memilih</div>
+          <div class="sub-txt">.xlsx / .csv — diproses langsung di perangkat ini</div>
+          <input type="file" id="fileInput" accept=".xlsx,.xls,.csv">
+        </div>
+        <div class="upload-row">
+          <button class="btn btn-primary" id="btnDemo" type="button">Lihat data contoh</button>
+          <button class="btn btn-secondary" id="btnClear" type="button">Bersihkan</button>
+        </div>
+        <div class="upload-error" id="uploadError"></div>
+        <div class="upload-cols">
+          Kolom yang dikenali otomatis: <code>Waktu Pesanan Dibuat</code>, <code>Status Pesanan</code>, <code>Nama Produk</code>, <code>Jumlah</code>, <code>Subtotal Pesanan</code>, <code>Total Pembayaran</code>, <code>Metode Pembayaran</code>, <code>Kota/Kabupaten</code>, <code>Provinsi</code> — cocok dengan berkas rekap pesanan gaya Shopee/marketplace. Kolom identitas pelanggan seperti <code>Username (Pembeli)</code> bersifat opsional, tetapi diperlukan untuk analisis Customer Analytics (RFM).
+        </div>
+      </div>
+    </div>
+  </section>
+  <footer class="landing-footer">Dasbor ini menyimpan data pesanan di database Neon milik Anda dan menampilkannya langsung di peramban.</footer>
+</div>
+
+<div id="dashboard">
+  <div class="sidebar-scrim" id="sidebarScrim"></div>
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-brand"><span class="brand-dot"></span> Dasbor Penjualan <button class="sidebar-close" id="sidebarClose" type="button" aria-label="Tutup menu">✕</button></div>
+
+    <div class="nav-section">
+      <div class="nav-section-title">Utama</div>
+      <button class="nav-btn active" type="button" data-view="dashboard">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1.5" y="1.5" width="6" height="6" rx="1.3" stroke="currentColor" stroke-width="1.4"/><rect x="8.5" y="1.5" width="6" height="4" rx="1.3" stroke="currentColor" stroke-width="1.4"/><rect x="8.5" y="7.5" width="6" height="7" rx="1.3" stroke="currentColor" stroke-width="1.4"/><rect x="1.5" y="9.5" width="6" height="5" rx="1.3" stroke="currentColor" stroke-width="1.4"/></svg>
+        Dashboard Utama
+      </button>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-section-title">Analisis</div>
+      <button class="nav-btn" type="button" data-view="sales">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M1.5 14.5V1.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><path d="M1.5 14.5H14.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><path d="M4 11.5V8.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M7.5 11.5V6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M11 11.5V3.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        Analisis Penjualan
+      </button>
+      <button class="nav-btn" type="button" data-view="customer">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="6" cy="5" r="2.5" stroke="currentColor" stroke-width="1.4"/><path d="M1.5 14c0-2.6 2-4.2 4.5-4.2S10.5 11.4 10.5 14" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><circle cx="11.5" cy="5.5" r="1.9" stroke="currentColor" stroke-width="1.3"/><path d="M10.7 9.9c1.9.15 3.3 1.5 3.3 4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+        Customer Analytics
+      </button>
+      <button class="nav-btn" type="button" data-view="product">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M1.8 4.6L8 1.5l6.2 3.1v6.8L8 14.5l-6.2-3.1V4.6z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M1.8 4.6L8 7.7l6.2-3.1" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M8 7.7v6.8" stroke="currentColor" stroke-width="1.4"/></svg>
+        Product Analytics
+      </button>
+      <button class="nav-btn" type="button" data-view="forecast">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M1.5 12.5L5.5 7.5L8.5 10.5L14.5 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M10.5 3H14.5V7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="2.4 2.2"/></svg>
+        Forecasting
+      </button>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-section-title">Data</div>
+      <button class="nav-btn" type="button" data-view="transactions">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1.5" y="2.5" width="13" height="11" rx="1.6" stroke="currentColor" stroke-width="1.4"/><path d="M1.5 6H14.5" stroke="currentColor" stroke-width="1.3"/><path d="M4.5 9H11.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><path d="M4.5 11.3H9" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+        Data Transaksi
+      </button>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-section-title">Kecerdasan Bisnis</div>
+      <button class="nav-btn" type="button" data-view="evaluation">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.3" stroke="currentColor" stroke-width="1.4"/><path d="M5.3 8.2l1.9 1.9 3.5-4.1" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Model Evaluation
+      </button>
+      <button class="nav-btn" type="button" data-view="insight">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1.7c-2.4 0-4.3 1.9-4.3 4.2 0 1.5.7 2.5 1.6 3.4.5.5.8 1 .9 1.7h3.6c.1-.7.4-1.2.9-1.7.9-.9 1.6-1.9 1.6-3.4 0-2.3-1.9-4.2-4.3-4.2z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M6.3 13.1h3.4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><path d="M6.7 14.6h2.6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+        Intelligent Business Insight
+      </button>
+      <button class="nav-btn" type="button" data-view="recommendation">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.3" stroke="currentColor" stroke-width="1.3"/><circle cx="8" cy="8" r="3.4" stroke="currentColor" stroke-width="1.3"/><circle cx="8" cy="8" r="0.9" fill="currentColor"/></svg>
+        Business Recommendation
+      </button>
+      <button class="nav-btn" type="button" data-view="basket">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2.2 6.2h11.6l-1 7.1a1.3 1.3 0 0 1-1.28 1.1H4.48A1.3 1.3 0 0 1 3.2 13.3l-1-7.1z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M5.3 6.2V5a2.7 2.7 0 0 1 5.4 0v1.2" stroke="currentColor" stroke-width="1.3"/></svg>
+        Market Basket Analysis
+      </button>
+      <button class="nav-btn" type="button" data-view="summary">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2.7" y="1.6" width="10.6" height="12.8" rx="1.4" stroke="currentColor" stroke-width="1.3"/><path d="M5.2 5.1h5.6" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><path d="M5.2 7.6h5.6" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><path d="M5.2 10.1h3.6" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+        Executive Summary
+      </button>
+    </div>
+
+    <div class="sidebar-foot">
+      <span class="status-pill" id="dataStatusPill"><span class="dot"></span><span id="dataStatusTxt">Belum ada data</span></span>
+      <div class="sidebar-foot-actions">
+        <button class="ghost-btn" id="themeToggle" type="button" style="flex:0 0 auto;" aria-label="Ganti tema">☾</button>
+        <button class="ghost-btn" id="btnClearApp" type="button" style="flex:1;">Data baru</button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="main-content">
+    <div class="app-topbar">
+      <button class="menu-toggle" id="menuToggle" type="button" aria-label="Buka menu">☰</button>
+      <div class="app-topbar-title" id="appTopbarTitle">Dashboard Utama</div>
+      <div class="app-topbar-spacer"></div>
+    </div>
+
+    <div class="main-inner">
+      <div class="content-header">
+        <div>
+          <h2 id="dashTitle">Ringkasan performa</h2>
+          <div class="sub" id="dashSub">—</div>
+        </div>
+        <div class="filters">
+          <div class="filter-field">
+            <label class="filter-label" for="filterStatus">Status</label>
+            <select id="filterStatus"></select>
+          </div>
+          <div class="filter-field">
+            <label class="filter-label" for="filterProvince">Provinsi</label>
+            <select id="filterProvince"></select>
+          </div>
+          <button class="ghost-btn btn-reset" id="btnResetFilter" type="button">↺ Reset Filter</button>
+        </div>
+      </div>
+
+      <!-- ============ VIEW: Dashboard Utama ============ -->
+      <section class="view-plane active" id="view-dashboard" data-view-name="Dashboard Utama">
+        <div class="kpi-grid" id="kpiGrid"></div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <div>
+              <h3>Tren pendapatan harian</h3>
+              <div class="desc">Garis padat: pendapatan aktual. Garis putus-putus: proyeksi berdasarkan tren.</div>
+            </div>
+            <div class="legend-row">
+              <span><i style="background:var(--chart-line)"></i>Aktual</span>
+              <span id="legendProyeksi"><i style="background:var(--chart-forecast); background-image:none;"></i>Proyeksi</span>
+            </div>
+          </div>
+          <div class="chart-scroll"><div class="chart-box"><canvas id="revenueChart"></canvas></div></div>
+        </div>
+
+        <div class="grid-3">
+          <div class="summary-card">
+            <div class="summary-card-head">
+              <div class="summary-card-icon amber">
+                <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M1.5 12.5L5.5 7.5L8.5 10.5L14.5 3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </div>
+              <div><h4>Ringkasan forecasting</h4><div class="desc">Proyeksi penjualan ke depan</div></div>
+            </div>
+            <div class="forecast-grid" id="forecastGrid">
+              <div class="forecast-item"><div class="lbl">Perkiraan total pendapatan</div><div class="big tabular" id="fcTotal">—</div></div>
+              <div class="forecast-item"><div class="lbl">Rata-rata per hari</div><div class="big tabular" id="fcAvg">—</div></div>
+              <div class="forecast-item"><div class="lbl">Arah tren</div><div class="big tabular" id="fcTrend">—</div></div>
+            </div>
+            <div class="forecast-empty" id="forecastEmpty">Data belum cukup untuk membuat prediksi.</div>
+            <div class="forecast-note" id="forecastNote">Proyeksi ini adalah perkiraan statistik sederhana berdasarkan pola data yang diunggah, bukan jaminan hasil. Semakin panjang cakupan data historis, semakin andal perkiraannya.</div>
+            <button class="summary-link" type="button" data-goto="forecast">Atur horizon &amp; lihat akurasi model →</button>
+          </div>
+
+          <div class="summary-card">
+            <div class="summary-card-head">
+              <div class="summary-card-icon brand">
+                <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M1.8 4.6L8 1.5l6.2 3.1v6.8L8 14.5l-6.2-3.1V4.6z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>
+              </div>
+              <div><h4>Performa produk</h4><div class="desc">Ringkasan Product Analytics</div></div>
+            </div>
+            <div class="kpi-grid compact" id="paSummary"></div>
+            <button class="summary-link" type="button" data-goto="product">Lihat Product Analytics →</button>
+          </div>
+
+          <div class="summary-card">
+            <div class="summary-card-head">
+              <div class="summary-card-icon blue">
+                <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><circle cx="6" cy="5" r="2.5" stroke="currentColor" stroke-width="1.4"/><path d="M1.5 14c0-2.6 2-4.2 4.5-4.2S10.5 11.4 10.5 14" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+              </div>
+              <div><h4>Customer Analytics</h4><div class="desc">Ringkasan RFM pelanggan</div></div>
+            </div>
+            <div class="kpi-grid compact" id="rfmSummary"></div>
+            <button class="summary-link" type="button" data-goto="customer">Lihat Customer Analytics →</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ VIEW: Analisis Penjualan ============ -->
+      <section class="view-plane" id="view-sales" data-view-name="Analisis Penjualan">
+        <div class="panel">
+          <div class="panel-head"><div><h3>Produk terlaris</h3><div class="desc">Berdasarkan total pendapatan (Subtotal Pesanan), transaksi selesai pada filter aktif</div></div></div>
+          <div class="bar-list" id="topProducts"></div>
+        </div>
+        <div class="grid-2">
+          <div class="panel">
+            <div class="panel-head"><div><h3>Metode pembayaran</h3><div class="desc">Berdasarkan jumlah pesanan</div></div></div>
+            <div class="chart-box" style="height:230px;"><canvas id="paymentChart"></canvas></div>
+          </div>
+          <div class="panel">
+            <div class="panel-head"><div><h3>Status pesanan</h3><div class="desc">Selesai vs dibatalkan</div></div></div>
+            <div class="chart-box" style="height:230px;"><canvas id="statusChart"></canvas></div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><div><h3>Sebaran wilayah pembeli</h3><div class="desc">Provinsi dengan pesanan terbanyak</div></div></div>
+          <div class="bar-list" id="topProvinces"></div>
+        </div>
+      </section>
+
+      <!-- ============ VIEW: Customer Analytics ============ -->
+      <section class="view-plane" id="view-customer" data-view-name="Customer Analytics">
+        <div class="panel" id="rfmPanel">
+          <div class="panel-head">
+            <div>
+              <h3>Customer Analytics (RFM)</h3>
+              <div class="desc">Analisis pelanggan berdasarkan Recency (kebaruan transaksi terakhir), Frequency (jumlah transaksi), dan Monetary (total nilai transaksi) — dihitung dari data yang diunggah dan mengikuti filter status/provinsi yang aktif di atas.</div>
+            </div>
+          </div>
+          <div class="forecast-empty" id="rfmEmpty">Analisis RFM membutuhkan kolom identitas pelanggan.</div>
+          <div id="rfmContent">
+            <div class="grid-2">
+              <div class="rfm-subpanel">
+                <div class="rfm-subhead">
+                  <h4>Frekuensi vs nilai transaksi pelanggan</h4>
+                  <div class="desc">Setiap bubble mewakili sekelompok pelanggan dengan jumlah transaksi (Frequency, sumbu mendatar) dan rentang nilai transaksi (Monetary, sumbu tegak) yang serupa. Semakin besar bubble, semakin banyak pelanggan pada kelompok tersebut — arahkan kursor untuk detail.</div>
+                </div>
+                <div class="chart-box" style="height:260px; min-width:0;"><canvas id="rfmScatterChart"></canvas></div>
+              </div>
+              <div class="rfm-subpanel">
+                <div class="rfm-subhead">
+                  <h4>Distribusi Recency pelanggan</h4>
+                  <div class="desc">Jumlah pelanggan berdasarkan lama sejak transaksi terakhirnya (hari).</div>
+                </div>
+                <div class="bar-list" id="rfmRecencyDist"></div>
+              </div>
+            </div>
+            <div class="rfm-table-wrap">
+              <div class="rfm-subhead">
+                <h4>Tabel RFM per pelanggan</h4>
+                <div class="desc" id="rfmTableDesc">—</div>
+              </div>
+              <div class="table-scroll">
+                <table>
+                  <thead><tr><th>Pelanggan</th><th>Recency (hari)</th><th>Frequency (transaksi)</th><th>Monetary</th></tr></thead>
+                  <tbody id="rfmTableBody"></tbody>
+                </table>
+              </div>
+              <div class="pager">
+                <span id="rfmPagerInfo">—</span>
+                <div class="pager-btns">
+                  <button id="rfmPagerPrev" type="button">← Sebelumnya</button>
+                  <button id="rfmPagerNext" type="button">Berikutnya →</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel" id="kmeansPanel">
+          <div class="panel-head">
+            <div>
+              <h3>Customer Segmentation (K-Means Clustering)</h3>
+              <div class="desc">Mengelompokkan pelanggan berdasarkan nilai Recency, Frequency, dan Monetary dari hasil analisis RFM di atas, dihitung langsung dari data yang diunggah dengan algoritma K-Means.</div>
+            </div>
+            <div class="horizon-tabs" id="kmeansKTabs">
+              <button data-k="2">K=2</button>
+              <button data-k="3" class="active">K=3</button>
+              <button data-k="4">K=4</button>
+              <button data-k="5">K=5</button>
+            </div>
+          </div>
+          <div class="forecast-empty" id="kmeansEmpty">Segmentasi K-Means membutuhkan hasil analisis RFM yang tersedia.</div>
+          <div id="kmeansContent">
+            <div class="rfm-subpanel" style="margin-bottom:18px;">
+              <div class="rfm-subhead">
+                <h4>Elbow Method</h4>
+                <div class="desc">Total within-cluster sum of squares (WCSS) untuk beberapa nilai K, dihitung dari data pelanggan saat ini — membantu memperkirakan jumlah cluster yang wajar. Titik dengan penanda lebih besar menunjukkan K yang sedang dipilih.</div>
+              </div>
+              <div class="chart-box" style="height:220px; min-width:0;"><canvas id="elbowChart"></canvas></div>
+            </div>
+            <div class="grid-2">
+              <div class="rfm-subpanel">
+                <div class="rfm-subhead">
+                  <h4>Visualisasi segmentasi pelanggan</h4>
+                  <div class="desc">Setiap bubble mewakili sekelompok pelanggan pada cluster yang sama (warna) dengan Frequency dan rentang Monetary yang serupa — ukuran bubble menunjukkan jumlah pelanggan. Bubble pada Frequency yang sama digeser sedikit per cluster agar tidak saling menutupi. Arahkan kursor untuk detail.</div>
+                </div>
+                <div class="chart-box" style="height:280px; min-width:0;"><canvas id="kmeansScatterChart"></canvas></div>
+              </div>
+              <div class="rfm-subpanel">
+                <div class="rfm-subhead">
+                  <h4>Evaluasi kualitas clustering</h4>
+                  <div class="desc">Silhouette Score mengukur seberapa baik pelanggan terbagi ke dalam cluster-nya masing-masing dibandingkan cluster lain.</div>
+                </div>
+                <div class="eval-grid" style="grid-template-columns:1fr;">
+                  <div class="eval-item">
+                    <div class="eval-lbl">Silhouette Score</div>
+                    <div class="eval-val tabular" id="kmeansSilhouette">—</div>
+                    <div class="eval-desc" id="kmeansSilhouetteNote"></div>
+                  </div>
+                </div>
+                <div class="sil-gauge-wrap" id="silGaugeWrap">
+                  <div class="sil-gauge-head">
+                    <span class="lbl">Skala kualitas</span>
+                    <span class="tag" id="silGaugeTag">—</span>
+                  </div>
+                  <div class="sil-gauge-track">
+                    <div class="zone weak"></div>
+                    <div class="zone fair"></div>
+                    <div class="zone good"></div>
+                    <div class="zone great"></div>
+                    <div class="sil-gauge-marker" id="silGaugeMarker" style="left:50%;"></div>
+                  </div>
+                  <div class="sil-gauge-ticks"><span>-1</span><span>0</span><span>0.5</span><span>1</span></div>
+                  <div class="sil-gauge-legend">
+                    <span><i class="weak"></i>Lemah (≤0.25)</span>
+                    <span><i class="fair"></i>Cukup (0.25–0.5)</span>
+                    <span><i class="good"></i>Baik (0.5–0.7)</span>
+                    <span><i class="great"></i>Sangat baik (&gt;0.7)</span>
+                  </div>
+                </div>
+                <div class="kpi-grid compact" id="kmeansExtraStats" style="margin-top:16px;"></div>
+              </div>
+            </div>
+            <div class="rfm-table-wrap">
+              <div class="rfm-subhead">
+                <h4>Ringkasan per cluster</h4>
+                <div class="desc">Karakteristik tiap cluster apa adanya berdasarkan data — bukan penilaian atau label otomatis. Interpretasikan sesuai konteks bisnis Anda.</div>
+              </div>
+              <div class="kpi-grid" id="kmeansClusterSummary"></div>
+            </div>
+            <div class="rfm-table-wrap">
+              <div class="rfm-subhead">
+                <h4>Tabel hasil segmentasi pelanggan</h4>
+                <div class="desc" id="kmeansTableDesc">—</div>
+              </div>
+              <div class="table-scroll">
+                <table>
+                  <thead><tr><th>Pelanggan</th><th>Recency (hari)</th><th>Frequency (transaksi)</th><th>Monetary</th><th>Cluster</th></tr></thead>
+                  <tbody id="kmeansTableBody"></tbody>
+                </table>
+              </div>
+              <div class="pager">
+                <span id="kmeansPagerInfo">—</span>
+                <div class="pager-btns">
+                  <button id="kmeansPagerPrev" type="button">← Sebelumnya</button>
+                  <button id="kmeansPagerNext" type="button">Berikutnya →</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ VIEW: Product Analytics ============ -->
+      <section class="view-plane" id="view-product" data-view-name="Product Analytics">
+        <div class="panel" id="productAnalyticsPanel">
+          <div class="panel-head">
+            <div>
+              <h3>Product Analytics</h3>
+              <div class="desc">Performa tiap produk berdasarkan Jumlah dan Subtotal Pesanan pada data transaksi berstatus selesai, mengikuti filter status/provinsi yang aktif di atas. Total Pembayaran per pesanan (termasuk kemungkinan diskon/ongkir) tetap tercermin pada KPI ringkasan di Dashboard Utama.</div>
+            </div>
+          </div>
+          <div class="forecast-empty" id="paEmpty">Belum ada data produk yang dapat dianalisis pada filter yang aktif.</div>
+          <div id="paContent">
+            <div class="grid-2">
+              <div class="rfm-subpanel">
+                <div class="rfm-subhead">
+                  <h4>Top Products berdasarkan pendapatan</h4>
+                  <div class="desc">10 produk dengan kontribusi pendapatan (Subtotal Pesanan) tertinggi.</div>
+                </div>
+                <div class="chart-scroll"><div class="chart-box" style="height:320px;"><canvas id="paRevenueChart"></canvas></div></div>
+              </div>
+              <div class="rfm-subpanel">
+                <div class="rfm-subhead">
+                  <h4>Top Products berdasarkan unit terjual</h4>
+                  <div class="desc">10 produk dengan jumlah unit (Jumlah) terjual terbanyak.</div>
+                </div>
+                <div class="chart-scroll"><div class="chart-box" style="height:320px;"><canvas id="paUnitsChart"></canvas></div></div>
+              </div>
+            </div>
+            <div class="grid-2">
+              <div class="rfm-subpanel">
+                <div class="rfm-subhead"><h4>Produk berperforma tertinggi</h4><div class="desc">5 produk dengan total pendapatan terbesar pada filter aktif.</div></div>
+                <div class="bar-list" id="paTopPerformers"></div>
+              </div>
+              <div class="rfm-subpanel">
+                <div class="rfm-subhead"><h4>Produk berperforma terendah</h4><div class="desc">5 produk dengan total pendapatan terkecil pada filter aktif.</div></div>
+                <div class="bar-list" id="paBottomPerformers"></div>
+              </div>
+            </div>
+            <div class="rfm-table-wrap">
+              <div class="panel-head" style="margin-bottom:14px;">
+                <div>
+                  <h4 style="margin:0 0 3px; font-size:13.5px; font-weight:600; letter-spacing:-0.005em;">Tabel detail produk</h4>
+                  <div class="desc" id="paTableDesc">—</div>
+                </div>
+                <input class="search-box" id="paSearch" type="text" placeholder="Cari nama produk…">
+              </div>
+              <div class="table-scroll">
+                <table>
+                  <thead><tr>
+                    <th class="pa-sortable" data-sort="name">Nama Produk</th>
+                    <th class="pa-sortable" data-sort="units">Unit Terjual</th>
+                    <th class="pa-sortable" data-sort="transactions">Jumlah Transaksi</th>
+                    <th class="pa-sortable" data-sort="revenue">Total Pendapatan</th>
+                    <th class="pa-sortable" data-sort="contribution">Kontribusi (%)</th>
+                  </tr></thead>
+                  <tbody id="paTableBody"></tbody>
+                </table>
+              </div>
+              <div class="pager">
+                <span id="paPagerInfo">—</span>
+                <div class="pager-btns">
+                  <button id="paPagerPrev" type="button">← Sebelumnya</button>
+                  <button id="paPagerNext" type="button">Berikutnya →</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ VIEW: Forecasting ============ -->
+      <section class="view-plane" id="view-forecast" data-view-name="Forecasting">
+        <div class="panel forecast-panel">
+          <div class="panel-head">
+            <div>
+              <h3>Prediksi penjualan ke depan</h3>
+              <div class="desc">Dihitung dari regresi linier atas tren pendapatan harian. Mengatur horizon di sini juga memperbarui ringkasan forecasting di Dashboard Utama.</div>
+            </div>
+            <div class="horizon-tabs" id="horizonTabs">
+              <button data-h="7">7 hari</button>
+              <button data-h="14">14 hari</button>
+              <button data-h="30">30 hari</button>
+            </div>
+          </div>
+
+          <div class="legend-row" style="margin-bottom:8px;">
+            <span><i style="background:var(--chart-line)"></i>Aktual</span>
+            <span id="legendProyeksiView"><i style="background:var(--chart-forecast); background-image:none;"></i>Proyeksi (<span id="legendProyeksiViewHorizon">7</span> hari ke depan)</span>
+          </div>
+          <div class="chart-scroll"><div class="chart-box" style="height:240px;"><canvas id="forecastViewChart"></canvas></div></div>
+          <div class="forecast-grid" id="forecastGridView">
+            <div class="forecast-item"><div class="lbl">Perkiraan total pendapatan</div><div class="big tabular" id="fcTotalView">—</div></div>
+            <div class="forecast-item"><div class="lbl">Rata-rata per hari</div><div class="big tabular" id="fcAvgView">—</div></div>
+            <div class="forecast-item"><div class="lbl">Arah tren</div><div class="big tabular" id="fcTrendView">—</div></div>
+          </div>
+          <div class="forecast-empty" id="forecastEmptyView">Data belum cukup untuk membuat prediksi.</div>
+          <div class="forecast-note" id="forecastNoteView">Proyeksi ini adalah perkiraan statistik sederhana berdasarkan pola data yang diunggah, bukan jaminan hasil. Semakin panjang cakupan data historis, semakin andal perkiraannya.</div>
+
+          <div class="eval-block" id="forecastEval">
+            <div class="eval-head">
+              <h4>Evaluasi akurasi model</h4>
+              <div class="desc">Model diuji dengan menyisihkan hari-hari transaksi terbaru sebagai data uji: model dilatih hanya pada data sebelumnya, lalu hasil prediksinya dibandingkan dengan penjualan aktual pada hari-hari yang disisihkan tersebut. <strong>Catatan:</strong> angka-angka di bawah ini memakai porsi data uji yang tetap (bukan mengikuti pilihan 7/14/30 hari di atas), agar akurasi model bisa dibandingkan secara konsisten antar filter — pilihan horizon di atas hanya memengaruhi grafik dan ringkasan proyeksi di atasnya.</div>
+            </div>
+            <div class="eval-grid" id="evalGrid">
+              <div class="eval-item">
+                <div class="eval-lbl">MAE <span class="eval-info" title="Mean Absolute Error: rata-rata selisih absolut antara prediksi dan penjualan aktual, dalam Rupiah.">?</span></div>
+                <div class="eval-val tabular" id="evalMae">—</div>
+                <div class="eval-desc">Rata-rata besar kesalahan prediksi, tanpa memandang arah (lebih tinggi/rendah).</div>
+              </div>
+              <div class="eval-item">
+                <div class="eval-lbl">RMSE <span class="eval-info" title="Root Mean Squared Error: akar dari rata-rata kuadrat selisih prediksi terhadap aktual. Lebih sensitif terhadap kesalahan besar dibanding MAE.">?</span></div>
+                <div class="eval-val tabular" id="evalRmse">—</div>
+                <div class="eval-desc">Mirip MAE, tapi memberi bobot lebih besar pada kesalahan prediksi yang besar.</div>
+              </div>
+              <div class="eval-item">
+                <div class="eval-lbl">MAPE <span class="eval-info" title="Mean Absolute Percentage Error: rata-rata persentase selisih prediksi terhadap nilai penjualan aktual.">?</span></div>
+                <div class="eval-val tabular" id="evalMape">—</div>
+                <div class="eval-desc">Rata-rata persentase kesalahan prediksi terhadap penjualan aktual — makin kecil makin akurat.</div>
+              </div>
+            </div>
+            <div class="eval-empty" id="evalEmpty">Evaluasi belum dapat dilakukan.</div>
+            <div class="eval-note" id="evalNote"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ VIEW: Data Transaksi ============ -->
+      <section class="view-plane" id="view-transactions" data-view-name="Data Transaksi">
+        <div class="panel" id="preprocessingPanel">
+          <div class="panel-head">
+            <div><h3>Preprocessing &amp; Validasi Data</h3><div class="desc">Tahapan otomatis yang dijalankan pada data mentah sebelum dipakai oleh seluruh analisis di dasbor ini</div></div>
+          </div>
+          <div class="kpi-grid compact" id="preSummary"></div>
+          <div class="pre-steps" id="preSteps"></div>
+        </div>
+        <div class="panel" id="orderTablePanel">
+          <div class="panel-head">
+            <div><h3>Detail pesanan</h3><div class="desc" id="tableDesc">—</div></div>
+            <input class="search-box" id="tableSearch" type="text" placeholder="Cari produk, kota, no. pesanan…">
+          </div>
+          <div class="table-scroll">
+            <table>
+              <thead><tr><th>No. Pesanan</th><th>Tanggal</th><th>Produk</th><th>Kota</th><th>Status</th><th>Total</th></tr></thead>
+              <tbody id="orderTableBody"></tbody>
+            </table>
+          </div>
+          <div class="pager">
+            <span id="pagerInfo">—</span>
+            <div class="pager-btns">
+              <button id="pagerPrev" type="button">← Sebelumnya</button>
+              <button id="pagerNext" type="button">Berikutnya →</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ VIEW: Model Evaluation ============ -->
+      <section class="view-plane" id="view-evaluation" data-view-name="Model Evaluation">
+        <div class="panel">
+          <div class="panel-head"><div><h3>Evaluasi Model Clustering (K-Means)</h3><div class="desc">Kualitas segmentasi pelanggan yang sedang aktif pada Customer Analytics, dihitung dengan WCSS/Elbow dan Silhouette Score</div></div></div>
+          <div class="kpi-grid compact" id="meKmeansSummary"></div>
+          <div class="state-empty" id="meKmeansEmpty" style="display:none;margin-top:14px;"></div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><div><h3>Evaluasi Model Forecasting (Regresi Linier)</h3><div class="desc">Diukur dengan MAE, RMSE, dan MAPE melalui backtesting pada data historis pada filter yang aktif</div></div></div>
+          <div class="kpi-grid compact" id="meForecastSummary"></div>
+          <div class="state-empty" id="meForecastEmpty" style="display:none;margin-top:14px;"></div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><div><h3>Ringkasan pertanggungjawaban model</h3><div class="desc">Narasi otomatis, disusun dari angka evaluasi di atas</div></div></div>
+          <div class="insight-narrative" id="meNarrative"></div>
+        </div>
+      </section>
+
+      <!-- ============ VIEW: Intelligent Business Insight ============ -->
+      <section class="view-plane" id="view-insight" data-view-name="Intelligent Business Insight">
+        <div class="panel">
+          <div class="panel-head"><div><h3>Insight otomatis dari data</h3><div class="desc">Seluruh angka dihitung langsung dari data yang diunggah pada filter yang aktif — tidak ada nilai contoh/hardcoded</div></div></div>
+          <div class="kpi-grid" id="insightKPIGrid"></div>
+          <div class="state-empty" id="insightEmpty" style="display:none;"></div>
+        </div>
+        <div class="grid-2" id="insightGrid2" style="align-items:start;">
+          <div class="panel">
+            <div class="panel-head"><div><h3>Produk &amp; Periode</h3><div class="desc">Performa produk dan waktu penjualan paling menonjol</div></div></div>
+            <div class="bar-list" id="insightProductPeriod"></div>
+          </div>
+          <div class="panel">
+            <div class="panel-head"><div><h3>Pelanggan Kunci</h3><div class="desc">Pelanggan dengan kontribusi tertinggi pada data saat ini</div></div></div>
+            <div class="bar-list" id="insightCustomer"></div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><div><h3>Narasi insight</h3><div class="desc">Ringkasan otomatis dalam kalimat</div></div></div>
+          <div class="insight-narrative" id="insightNarrative"></div>
+        </div>
+      </section>
+
+      <!-- ============ VIEW: Business Recommendation ============ -->
+      <section class="view-plane" id="view-recommendation" data-view-name="Business Recommendation">
+        <div class="panel">
+          <div class="panel-head"><div><h3>Rekomendasi tindakan bisnis</h3><div class="desc">Dihasilkan otomatis dari hasil RFM, segmentasi K-Means, Product Analytics, dan Forecasting — setiap kartu menjelaskan kondisi yang ditemukan, insight, dan tindakan yang disarankan</div></div></div>
+          <div id="recoList"></div>
+        </div>
+      </section>
+
+      <!-- ============ VIEW: Market Basket Analysis ============ -->
+      <section class="view-plane" id="view-basket" data-view-name="Market Basket Analysis">
+        <div class="panel">
+          <div class="panel-head"><div><h3>Market Basket Analysis (Apriori sederhana)</h3><div class="desc">Menemukan produk yang sering dibeli bersamaan dalam satu pesanan (No. Pesanan) pada transaksi selesai di filter aktif</div></div></div>
+          <div class="kpi-grid compact" id="mbaSummary"></div>
+          <div class="state-empty" id="mbaEmpty" style="display:none;margin-top:14px;"></div>
+        </div>
+        <div class="panel" id="mbaItemsetsPanel" style="display:none;">
+          <div class="panel-head"><div><h3>Frequent Itemsets</h3><div class="desc">Produk tunggal dengan dukungan (support) tertinggi di atas ambang minimum</div></div></div>
+          <div class="bar-list" id="mbaItemsets"></div>
+        </div>
+        <div class="panel" id="mbaRulesPanel" style="display:none;">
+          <div class="panel-head"><div><h3>Association Rules</h3><div class="desc">Antecedent → Consequent, diurutkan berdasarkan Lift tertinggi</div></div></div>
+          <div class="table-scroll">
+            <div id="mbaRules"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ VIEW: Executive Summary ============ -->
+      <section class="view-plane" id="view-summary" data-view-name="Executive Summary">
+        <div class="panel">
+          <div class="panel-head"><div><h3>Ringkasan eksekutif</h3><div class="desc">Rangkuman otomatis seluruh hasil analisis, disusun dalam bahasa bisnis yang mudah dipahami</div></div></div>
+          <div class="exec-kpi-strip" id="execKpiStrip"></div>
+          <div class="insight-narrative" id="execNarrative"></div>
+        </div>
+      </section>
+
+      <footer class="app-footer">Dasbor ini menyimpan data pesanan di database Neon milik Anda dan menampilkannya langsung di peramban.</footer>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="confirmModalOverlay" role="dialog" aria-modal="true" aria-labelledby="confirmModalTitle">
+  <div class="modal-box">
+    <h3 id="confirmModalTitle">—</h3>
+    <p id="confirmModalDesc">—</p>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" id="confirmModalCancel" type="button">Batal</button>
+      <button class="btn btn-primary" id="confirmModalConfirm" type="button">Lanjutkan</button>
+    </div>
+  </div>
+</div>
+
+
+<script src="/js/core/theme.js"></script>
+<script src="/js/core/utils.js"></script>
+<script src="/js/core/bubble.js"></script>
+<script src="/js/core/state.js"></script>
+<script src="/js/data/mapping.js"></script>
+<script src="/js/data/api.js"></script>
+<script src="/js/data/upload.js"></script>
+<script src="/js/core/records.js"></script>
+<script src="/js/sections/overview.js"></script>
+<script src="/js/sections/products.js"></script>
+<script src="/js/sections/customers.js"></script>
+<script src="/js/sections/segmentation.js"></script>
+<script src="/js/sections/insight.js"></script>
+<script src="/js/sections/basket.js"></script>
+<script src="/js/sections/evaluation.js"></script>
+<script src="/js/main.js"></script>
+<script src="/js/navigation.js"></script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+{
+  "name": "dasbor-penjualan",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Dasbor Analitik Penjualan — Data Mining & Intelligent Business (Vercel + Neon)",
+  "engines": { "node": "22.x" },
+  "scripts": {
+    "dev": "vercel dev",
+    "db:migrate": "node --env-file=.env db/migrate.js",
+    "db:seed": "node --env-file=.env db/seed.js"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "^1.1.0"
+  }
+}
