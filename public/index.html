@@ -75,10 +75,20 @@
   <nav class="sidebar" id="sidebar">
     <div class="sidebar-brand"><span class="brand-dot"></span> Dasbor Penjualan <button class="sidebar-close" id="sidebarClose" type="button" aria-label="Tutup menu">✕</button></div>
 
-    <div class="dataset-panel" id="datasetPanelSidebar">
-      <div class="dataset-panel-head"><h3>Dataset Anda</h3></div>
-      <div class="dataset-list" id="datasetListSidebar"></div>
-      <button class="btn btn-secondary dataset-add-btn" id="btnAddDatasetSidebar" type="button">+ Tambah dataset baru</button>
+    <div class="ds-switcher-wrap">
+      <div class="ds-switcher-label">Dataset aktif</div>
+      <button class="ds-switcher" id="datasetSwitcher" type="button" aria-haspopup="dialog" aria-controls="datasetPickerOverlay" title="Klik untuk berpindah dataset">
+        <span class="ds-switcher-icon" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><ellipse cx="12" cy="5.5" rx="7.5" ry="3" stroke="currentColor" stroke-width="1.6"/><path d="M4.5 5.5v6.5c0 1.66 3.36 3 7.5 3s7.5-1.34 7.5-3V5.5" stroke="currentColor" stroke-width="1.6"/><path d="M4.5 12v6.5c0 1.66 3.36 3 7.5 3s7.5-1.34 7.5-3V12" stroke="currentColor" stroke-width="1.6"/></svg>
+        </span>
+        <span class="ds-switcher-text">
+          <span class="ds-switcher-name" id="dsSwitcherName">Belum ada dataset</span>
+          <span class="ds-switcher-meta" id="dsSwitcherMeta">Klik untuk memilih</span>
+        </span>
+        <span class="ds-switcher-chev" aria-hidden="true">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M5 6.5L8 3.5l3 3M5 9.5l3 3 3-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </span>
+      </button>
     </div>
 
     <div class="nav-section">
@@ -674,6 +684,27 @@
       </section>
 
       <footer class="app-footer">Dasbor ini menyimpan data pesanan di database Neon milik Anda dan menampilkannya langsung di peramban.</footer>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay picker-overlay" id="datasetPickerOverlay" role="dialog" aria-modal="true" aria-labelledby="datasetPickerTitle">
+  <div class="modal-box picker-box">
+    <div class="picker-head">
+      <div>
+        <h3 id="datasetPickerTitle">Pilih dataset</h3>
+        <p id="datasetPickerSub">—</p>
+      </div>
+      <button class="picker-close" id="datasetPickerClose" type="button" aria-label="Tutup">&#10005;</button>
+    </div>
+    <div class="picker-search">
+      <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="7" cy="7" r="4.5" stroke="currentColor" stroke-width="1.5"/><path d="M10.5 10.5L14 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <input id="datasetPickerSearch" type="text" placeholder="Cari dataset…" autocomplete="off" aria-label="Cari dataset">
+    </div>
+    <div class="picker-list" id="datasetPickerList"></div>
+    <div class="picker-foot">
+      <span class="picker-hint">Klik dataset untuk berpindah &middot; <kbd>Esc</kbd> untuk menutup</span>
+      <button class="btn btn-primary" id="btnAddDatasetPicker" type="button">+ Tambah dataset baru</button>
     </div>
   </div>
 </div>

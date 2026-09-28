@@ -3,9 +3,17 @@
 /* ---------------- Manajer dataset: daftar, ganti nama, hapus, pindah aktif ---------------- */
 var DatasetsUI = (function(){
   var listElLanding = document.getElementById('datasetListLanding');
-  var listElSidebar = document.getElementById('datasetListSidebar');
   var addBtnLanding = document.getElementById('btnAddDatasetLanding');
-  var addBtnSidebar = document.getElementById('btnAddDatasetSidebar');
+  var switcherBtn = document.getElementById('datasetSwitcher');
+  var switcherName = document.getElementById('dsSwitcherName');
+  var switcherMeta = document.getElementById('dsSwitcherMeta');
+  var pickerOverlay = document.getElementById('datasetPickerOverlay');
+  var pickerList = document.getElementById('datasetPickerList');
+  var pickerSearch = document.getElementById('datasetPickerSearch');
+  var pickerSub = document.getElementById('datasetPickerSub');
+  var pickerClose = document.getElementById('datasetPickerClose');
+  var addBtnPicker = document.getElementById('btnAddDatasetPicker');
+  var pickerQuery = '';
   var backBtn = document.getElementById('btnBackToDatasets');
 
   function fmtDate(iso){
@@ -40,8 +48,152 @@ var DatasetsUI = (function(){
       }).join('');
     }
     if(listElLanding) listElLanding.innerHTML = html;
-    if(listElSidebar) listElSidebar.innerHTML = html;
+    renderSwitcher();
+    renderPicker();
     if(typeof renderComparePicker === 'function') renderComparePicker();
+  }
+
+  /* ----- Kartu "Dataset aktif" di sidebar ----- */
+  function renderSwitcher(){
+    if(!switcherName || !switcherMeta) return;
+    var ds = findDataset(state.activeDatasetId);
+    if(ds){
+      switcherName.textContent = ds.name;
+      switcherMeta.textContent = (ds.row_count || 0).toLocaleString('id-ID') + ' baris \u00b7 ' + fmtDate(ds.updated_at);
+      if(switcherBtn) switcherBtn.title = ds.name + ' \u2014 klik untuk berpindah dataset';
+    } else {
+      switcherName.textContent = state.datasets.length ? 'Pilih dataset' : 'Belum ada dataset';
+      switcherMeta.textContent = state.datasets.length ? state.datasets.length + ' dataset tersedia' : 'Tambahkan dataset pertama';
+    }
+  }
+
+  /* ----- Popup pemilih dataset ----- */
+  var ICON_EDIT = '<svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M11 2.5l2.5 2.5L5.5 13H3v-2.5L11 2.5z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>';
+  var ICON_DEL = '<svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M3 4.5h10M6.5 4.5V3h3v1.5M4.5 4.5l.6 8h5.8l.6-8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  var ICON_CHECK = '<svg width="18" height="18" viewBox="0 0 16 16" fill="none"><path d="M3.5 8.5l3 3 6-7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+  function renderPicker(){
+    if(!pickerList) return;
+    var total = state.datasets.length;
+    if(pickerSub) pickerSub.textContent = total ? total + ' dataset tersimpan di akun Anda' : 'Belum ada dataset tersimpan';
+    var q = pickerQuery.trim().toLowerCase();
+    var items = state.datasets.filter(function(ds){ return !q || String(ds.name).toLowerCase().indexOf(q) !== -1; });
+    if(!total){
+      pickerList.innerHTML = '<div class="picker-empty">Belum ada dataset. Klik <b>Tambah dataset baru</b> untuk mengunggah berkas pertama Anda.</div>';
+      return;
+    }
+    if(!items.length){
+      pickerList.innerHTML = '<div class="picker-empty">Tidak ada dataset yang cocok dengan \u201c' + escapeHtml(pickerQuery.trim()) + '\u201d.</div>';
+      return;
+    }
+    pickerList.innerHTML = items.map(function(ds){
+      var active = ds.id === state.activeDatasetId;
+      var initial = escapeHtml((String(ds.name).trim().charAt(0) || '?').toUpperCase());
+      return '<div class="pk-item' + (active ? ' active' : '') + '" data-id="' + ds.id + '" role="button" tabindex="0"' + (active ? ' aria-current="true"' : '') + '>' +
+        '<span class="pk-avatar">' + (active ? ICON_CHECK : initial) + '</span>' +
+        '<div class="pk-main">' +
+          '<div class="pk-name" title="' + escapeHtml(ds.name) + '">' + escapeHtml(ds.name) + '</div>' +
+          '<div class="pk-meta"><span>' + (ds.row_count || 0).toLocaleString('id-ID') + ' baris</span><span>diperbarui ' + fmtDate(ds.updated_at) + '</span></div>' +
+        '</div>' +
+        (active ? '<span class="pk-badge">Aktif</span>' : '') +
+        '<div class="pk-actions">' +
+          '<button type="button" data-action="rename" title="Ganti nama" aria-label="Ganti nama ' + escapeHtml(ds.name) + '">' + ICON_EDIT + '</button>' +
+          '<button type="button" data-action="delete" title="Hapus" aria-label="Hapus ' + escapeHtml(ds.name) + '">' + ICON_DEL + '</button>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+  }
+
+  function openPicker(){
+    if(!pickerOverlay) return;
+    pickerQuery = '';
+    if(pickerSearch) pickerSearch.value = '';
+    renderPicker();
+    pickerOverlay.classList.add('show');
+    var activeEl = pickerList && pickerList.querySelector('.pk-item.active');
+    if(activeEl && activeEl.scrollIntoView) activeEl.scrollIntoView({block:'nearest'});
+    setTimeout(function(){ if(state.datasets.length > 5 && pickerSearch) pickerSearch.focus(); else if(activeEl) activeEl.focus(); }, 60);
+  }
+  function closePicker(){
+    if(pickerOverlay) pickerOverlay.classList.remove('show');
+    if(switcherBtn) switcherBtn.focus({preventScroll:true});
+  }
+
+  function startInlineRename(item, id){
+    var ds = findDataset(id);
+    var nameEl = item.querySelector('.pk-name');
+    if(!ds || !nameEl || item.classList.contains('editing')) return;
+    item.classList.add('editing');
+    var input = document.createElement('input');
+    input.type = 'text'; input.className = 'pk-rename-input'; input.value = ds.name; input.maxLength = 120;
+    input.setAttribute('aria-label', 'Nama baru dataset');
+    nameEl.replaceWith(input);
+    input.focus(); input.select();
+    var done = false;
+    function finish(save){
+      if(done) return; done = true;
+      var name = input.value.trim();
+      if(!save || !name || name === ds.name){ renderPicker(); return; }
+      input.disabled = true;
+      Api.datasets.rename(id, name).then(function(updated){
+        ds.name = updated.name;
+        renderList();
+        if(state.activeDatasetId === id) setActiveDatasetLabel(updated.name);
+      }).catch(function(err){ renderPicker(); showError('Gagal mengganti nama: ' + err.message); });
+    }
+    input.addEventListener('keydown', function(e){
+      e.stopPropagation();
+      if(e.key === 'Enter'){ e.preventDefault(); finish(true); }
+      if(e.key === 'Escape'){ e.preventDefault(); finish(false); }
+    });
+    input.addEventListener('blur', function(){ finish(true); });
+    input.addEventListener('click', function(e){ e.stopPropagation(); });
+  }
+
+  if(switcherBtn) switcherBtn.addEventListener('click', openPicker);
+  if(pickerClose) pickerClose.addEventListener('click', closePicker);
+  if(pickerOverlay) pickerOverlay.addEventListener('click', function(e){ if(e.target === pickerOverlay) closePicker(); });
+  if(pickerSearch) pickerSearch.addEventListener('input', function(){ pickerQuery = pickerSearch.value; renderPicker(); });
+  if(addBtnPicker) addBtnPicker.addEventListener('click', function(){
+    closePicker();
+    document.getElementById('fileInput').click();
+  });
+  document.addEventListener('keydown', function(e){
+    if(e.key !== 'Escape' || !pickerOverlay || !pickerOverlay.classList.contains('show')) return;
+    var confirmEl = document.getElementById('confirmModalOverlay');
+    if(confirmEl && confirmEl.classList.contains('show')) return; // dialog konfirmasi menutup dirinya sendiri
+    closePicker();
+  });
+  if(pickerList){
+    pickerList.addEventListener('click', function(e){
+      var item = e.target.closest('.pk-item');
+      if(!item || item.classList.contains('editing')) return;
+      var id = parseInt(item.getAttribute('data-id'), 10);
+      var actionBtn = e.target.closest('button[data-action]');
+      if(actionBtn){
+        e.stopPropagation();
+        if(actionBtn.getAttribute('data-action') === 'rename') startInlineRename(item, id);
+        if(actionBtn.getAttribute('data-action') === 'delete') deleteDataset(id);
+        return;
+      }
+      pickDataset(id);
+    });
+    pickerList.addEventListener('keydown', function(e){
+      var item = e.target.closest('.pk-item');
+      if(!item || e.target !== item) return;
+      if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); pickDataset(parseInt(item.getAttribute('data-id'), 10)); }
+      if(e.key === 'ArrowDown' || e.key === 'ArrowUp'){
+        e.preventDefault();
+        var sib = e.key === 'ArrowDown' ? item.nextElementSibling : item.previousElementSibling;
+        if(sib && sib.classList.contains('pk-item')) sib.focus();
+      }
+    });
+  }
+  function pickDataset(id){
+    closePicker();
+    var sc = document.getElementById('sidebarClose');
+    if(sc && sc.offsetParent !== null) sc.click(); // tutup drawer sidebar di layar kecil
+    if(id !== state.activeDatasetId) switchToDataset(id);
   }
 
   function bindListClicks(container){
@@ -62,7 +214,6 @@ var DatasetsUI = (function(){
     });
   }
   bindListClicks(listElLanding);
-  bindListClicks(listElSidebar);
 
   function refreshDatasets(){
     return Api.datasets.list().then(function(list){
@@ -77,6 +228,7 @@ var DatasetsUI = (function(){
       var el = document.getElementById(id);
       if(el) el.textContent = name || '—';
     });
+    renderSwitcher();
   }
 
   function switchToDataset(id){
@@ -135,7 +287,7 @@ var DatasetsUI = (function(){
     });
   }
 
-  [addBtnLanding, addBtnSidebar].forEach(function(btn){
+  [addBtnLanding].forEach(function(btn){
     if(btn) btn.addEventListener('click', function(){ document.getElementById('fileInput').click(); });
   });
 
