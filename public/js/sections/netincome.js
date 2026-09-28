@@ -123,41 +123,46 @@ var NetIncome = (function(){
     document.getElementById('niFootNet').textContent = idr(t.net);
   }
 
-  function renderChart(){
-    var css = getComputedStyle(document.documentElement);
-    var items = rows.map(function(p){ return { name:p.key, net:p.kg * marginOf(p) }; })
-      .filter(function(x){ return x.net > 0; })
-      .sort(function(a,b){ return b.net - a.net; }).slice(0, 10);
-    var wrap = document.getElementById('niChartWrap');
+  // Peringkat 10 produk dengan pendapatan bersih tertinggi (daftar berbatang, bukan grafik).
+  function renderRank(t){
+    var wrap = document.getElementById('niRank');
     var empty = document.getElementById('niChartEmpty');
+    var insight = document.getElementById('niInsight');
+    var items = rows.map(function(p){ return { p:p, m:marginOf(p), net:p.kg * marginOf(p) }; })
+      .filter(function(x){ return x.net > 0; })
+      .sort(function(a,b){ return b.net - a.net; });
     if(!items.length){
-      wrap.style.display = 'none';
+      wrap.innerHTML = '';
+      insight.style.display = 'none';
       empty.style.display = '';
-      if(charts.niNet){ charts.niNet.destroy(); charts.niNet = null; }
       return;
     }
-    wrap.style.display = '';
     empty.style.display = 'none';
-    var labels = items.map(function(x){ return x.name.length > 36 ? x.name.slice(0,33) + '…' : x.name; });
-    var data = items.map(function(x){ return x.net; });
-    if(charts.niNet){
-      charts.niNet.data.labels = labels;
-      charts.niNet.data.datasets[0].data = data;
-      charts.niNet.update();
-      return;
-    }
-    charts.niNet = new Chart(document.getElementById('niChart').getContext('2d'), {
-      type: 'bar',
-      data: { labels: labels, datasets: [{ label:'Pendapatan bersih', data:data, backgroundColor: css.getPropertyValue('--chart-line').trim(), borderRadius:4, maxBarThickness:22 }] },
-      options: {
-        indexAxis: 'y', responsive:true, maintainAspectRatio:false,
-        plugins: { legend:{ display:false }, tooltip:{ callbacks:{ label:function(i){ return idr(i.parsed.x); } } } },
-        scales: {
-          x: { grid:{ color: css.getPropertyValue('--chart-grid').trim() }, ticks:{ callback:function(v){ return idrShort(v); }, color: css.getPropertyValue('--ink-muted').trim() } },
-          y: { grid:{ display:false }, ticks:{ color: css.getPropertyValue('--ink-muted').trim(), font:{ size:11 } } }
-        }
-      }
-    });
+    var total = t.net;
+    var top = items.slice(0, 10);
+    var max = top[0].net;
+
+    var top3 = items.slice(0, 3).reduce(function(a,x){ return a + x.net; }, 0);
+    var top3Pct = total > 0 ? Math.round(top3 / total * 100) : 0;
+    insight.innerHTML = '<b>' + escapeHtml(top[0].p.key) + '</b> adalah penyumbang terbesar: ' + idr(top[0].net) +
+      ' (' + Math.round(top[0].net / total * 100) + '% dari total).' +
+      (items.length >= 3 ? ' Tiga produk teratas menyumbang <b>' + top3Pct + '%</b> dari seluruh pendapatan bersih.' : '');
+    insight.style.display = '';
+
+    wrap.innerHTML = top.map(function(x, i){
+      var pct = total > 0 ? x.net / total * 100 : 0;
+      var width = Math.max(3, x.net / max * 100);
+      return '<div class="ni-rank-item' + (i === 0 ? ' first' : '') + '">' +
+        '<div class="ni-rank-no">' + (i + 1) + '</div>' +
+        '<div class="ni-rank-main">' +
+          '<div class="ni-rank-top">' +
+            '<div class="ni-rank-name" title="' + escapeHtml(x.p.name || x.p.key) + '">' + escapeHtml(x.p.key) + '</div>' +
+            '<div class="ni-rank-val tabular">' + idr(x.net) + '</div>' +
+          '</div>' +
+          '<div class="ni-rank-track"><div class="ni-rank-fill" style="width:' + width.toFixed(1) + '%"></div></div>' +
+          '<div class="ni-rank-meta"><span>' + fmtKg(x.p.kg) + ' kg × ' + idr(x.m) + '/kg</span><span class="ni-rank-pct">' + pct.toFixed(1).replace('.', ',') + '% dari total</span></div>' +
+        '</div></div>';
+    }).join('') + (items.length > 10 ? '<div class="ni-rank-more">+ ' + (items.length - 10) + ' produk lain ada di tabel di atas</div>' : '');
   }
 
   // Render penuh: dipanggil saat dataset/filter berubah.
@@ -169,7 +174,6 @@ var NetIncome = (function(){
       contentEl.classList.add('hidden');
       emptyEl.classList.add('show');
       emptyEl.textContent = 'Belum ada produk pada dataset/filter yang aktif. Unggah data transaksi atau ubah filter di Dashboard Utama.';
-      if(charts.niNet){ charts.niNet.destroy(); charts.niNet = null; }
       return;
     }
     emptyEl.classList.remove('show');
@@ -193,7 +197,7 @@ var NetIncome = (function(){
     var t = totals();
     renderSummary(t);
     renderFooter(t);
-    renderChart();
+    renderRank(t);
   }
 
   // Pembaruan ringan saat mengetik (tanpa membangun ulang tabel, agar fokus input tidak hilang).
@@ -212,7 +216,7 @@ var NetIncome = (function(){
     var t = totals();
     renderSummary(t);
     renderFooter(t);
-    renderChart();
+    renderRank(t);
   }
 
   document.getElementById('niTableBody').addEventListener('input', onInput);
