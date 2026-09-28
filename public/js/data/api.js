@@ -99,7 +99,7 @@ var Api = (function(){
   function clearOrders(datasetId){ return request('DELETE', '/api/orders?datasetId=' + datasetId); }
 
   function loadDemo(){
-    return fetch('data/demo-orders.json').then(function(res){
+    return fetch('/data/demo-orders.json').then(function(res){
       if(!res.ok) throw new Error('Berkas data contoh tidak ditemukan.');
       return res.json();
     });

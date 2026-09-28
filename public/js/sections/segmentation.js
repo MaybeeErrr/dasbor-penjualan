@@ -5,7 +5,7 @@
 // pada Customer Analytics (RFM) di atas — tidak ada data dummy atau hasil
 // cluster manual. Fitur ini tidak mengubah perhitungan RFM sama sekali;
 // ia hanya membaca daftar pelanggan yang sudah dihasilkan getCustomerAnalytics().
-var CLUSTER_COLORS = ['#4338CA', '#0E8FA0', '#F59E0B', '#EC4899', '#10B981'];
+var CLUSTER_COLORS = ['#4E79A7', '#F28E2B', '#E15759', '#59A14F', '#B07AA1'];
 var KMEANS_MIN_CUSTOMERS = 4;       // minimal pelanggan agar clustering dijalankan sama sekali
 var KMEANS_SILHOUETTE_MAX_N = 1500; // batas jumlah pelanggan agar Silhouette Score tetap dihitung real-time di peramban
 
