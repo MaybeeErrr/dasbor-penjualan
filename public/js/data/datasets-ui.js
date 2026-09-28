@@ -299,14 +299,25 @@ var DatasetsUI = (function(){
       if(!ok) return;
       Api.datasets.remove(ds.id).then(function(){
         state.datasets = state.datasets.filter(function(d){ return !sameId(d.id, ds.id); });
-        if(sameId(state.activeDatasetId, ds.id)){
+        var wasActive = sameId(state.activeDatasetId, ds.id);
+        if(wasActive){
           state.activeDatasetId = null;
           state.records = [];
-          document.getElementById('dashboard').classList.remove('show');
-          setStatusPill(false, 'Belum ada data');
           setActiveDatasetLabel(null);
         }
         renderList();
+        if(wasActive){
+          if(state.datasets.length){
+            // masih ada dataset lain: langsung pindah ke sana, tetap di dashboard
+            switchToDataset(state.datasets[0].id).then(function(ok){
+              if(ok) closePicker();
+            });
+          } else {
+            document.getElementById('dashboard').classList.remove('show');
+            setStatusPill(false, 'Belum ada data');
+          }
+        }
+        dsToast('Dataset dihapus');
       }).catch(function(err){ console.error(err); showError('Gagal menghapus dataset: ' + err.message); dsToast('Gagal menghapus dataset: ' + err.message, 'error'); });
     });
   }
