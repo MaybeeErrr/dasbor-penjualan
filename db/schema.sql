@@ -42,3 +42,8 @@ CREATE TABLE IF NOT EXISTS orders (
 CREATE INDEX IF NOT EXISTS idx_orders_dataset ON orders (dataset_id);
 CREATE INDEX IF NOT EXISTS idx_orders_created_at ON orders (created_at);
 CREATE INDEX IF NOT EXISTS idx_orders_order_id ON orders (order_id);
+
+-- Migrasi: SKU induk & berat baris produk (gram) untuk menu Pendapatan Bersih.
+-- Aman dijalankan berulang; dataset lama tetap terbaca (nilai default '' / 0).
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS sku TEXT NOT NULL DEFAULT '';
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS weight_g DOUBLE PRECISION NOT NULL DEFAULT 0;

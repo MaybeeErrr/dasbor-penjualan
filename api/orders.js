@@ -38,7 +38,7 @@ async function list(datasetId, req, res) {
     sql`SELECT order_id, status,
                to_char(created_at, 'YYYY-MM-DD"T"HH24:MI:SS') AS created_at,
                payment_method, product, variation, price, qty, subtotal,
-               total_payment, city, province, customer_id
+               total_payment, city, province, customer_id, sku, weight_g
         FROM orders WHERE dataset_id = ${datasetId} ORDER BY id LIMIT ${limit} OFFSET ${offset}`,
     sql`SELECT count(*)::int AS n FROM orders WHERE dataset_id = ${datasetId}`,
     sql`SELECT name, source_name, updated_at FROM datasets WHERE id = ${datasetId}`,

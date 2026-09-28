@@ -11,7 +11,9 @@
   "subtotal": "30.000",
   "total_payment": "125.984",
   "city": "KAB. DEMAK",
-  "province": "JAWA TENGAH"
+  "province": "JAWA TENGAH",
+  "sku": "BINTANG 10/ 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "260101T6DFNJ7M",
@@ -25,7 +27,9 @@
   "subtotal": "111.800",
   "total_payment": "125.984",
   "city": "KAB. DEMAK",
-  "province": "JAWA TENGAH"
+  "province": "JAWA TENGAH",
+  "sku": "BINTANG 20 PCS/ 2KG",
+  "weight_g": 4000
  },
  {
   "order_id": "260101TPKYN5AP",
@@ -39,7 +43,9 @@
   "subtotal": "57.500",
   "total_payment": "51.294",
   "city": "KOTA PALANGKA RAYA",
-  "province": "KALIMANTAN TENGAH"
+  "province": "KALIMANTAN TENGAH",
+  "sku": "MIE UNYIL 2KG",
+  "weight_g": 2000
  },
  {
   "order_id": "260101TQTTAUJ6",
@@ -53,7 +59,9 @@
   "subtotal": "57.000",
   "total_payment": "53.300",
   "city": "KOTA JAMBI",
-  "province": "JAMBI"
+  "province": "JAMBI",
+  "sku": "BINTANG 10/ 1KG",
+  "weight_g": 2000
  },
  {
   "order_id": "260101TR14FYYK",
@@ -67,7 +75,9 @@
   "subtotal": "57.000",
   "total_payment": "56.150",
   "city": "KOTA JAMBI",
-  "province": "JAMBI"
+  "province": "JAMBI",
+  "sku": "BINTANG 10/ 1KG",
+  "weight_g": 2000
  },
  {
   "order_id": "260101TR4VNE1Y",
@@ -81,7 +91,9 @@
   "subtotal": "57.000",
   "total_payment": "59.000",
   "city": "KOTA JAMBI",
-  "province": "JAMBI"
+  "province": "JAMBI",
+  "sku": "BINTANG 10/ 1KG",
+  "weight_g": 2000
  },
  {
   "order_id": "260101TS6VSEF7",
@@ -95,7 +107,9 @@
   "subtotal": "57.000",
   "total_payment": "59.000",
   "city": "KOTA JAMBI",
-  "province": "JAMBI"
+  "province": "JAMBI",
+  "sku": "BINTANG 10/ 1KG",
+  "weight_g": 2000
  },
  {
   "order_id": "260101TSEQJ3T1",
@@ -109,7 +123,9 @@
   "subtotal": "57.000",
   "total_payment": "59.000",
   "city": "KOTA JAMBI",
-  "province": "JAMBI"
+  "province": "JAMBI",
+  "sku": "BINTANG 10/ 1KG",
+  "weight_g": 2000
  },
  {
   "order_id": "260101U122BVC3",
@@ -123,7 +139,9 @@
   "subtotal": "30.000",
   "total_payment": "31.900",
   "city": "KAB. PONOROGO",
-  "province": "JAWA TIMUR"
+  "province": "JAWA TIMUR",
+  "sku": "UNYIL 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "260101U9F9V55R",
@@ -137,7 +155,9 @@
   "subtotal": "30.000",
   "total_payment": "30.500",
   "city": "KOTA JAKARTA SELATAN",
-  "province": "DKI JAKARTA"
+  "province": "DKI JAKARTA",
+  "sku": "BINTANG 10/ 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "260101UCP9QTFC",
@@ -151,7 +171,9 @@
   "subtotal": "30.000",
   "total_payment": "32.000",
   "city": "KAB. LEBAK",
-  "province": "BANTEN"
+  "province": "BANTEN",
+  "sku": "BINTANG 10/ 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "260101UE8655FJ",
@@ -165,7 +187,9 @@
   "subtotal": "15.100",
   "total_payment": "11.100",
   "city": "KAB. GRESIK",
-  "province": "JAWA TIMUR"
+  "province": "JAWA TIMUR",
+  "sku": "UNYIL 450gram",
+  "weight_g": 450
  },
  {
   "order_id": "260101UKPYH6VH",
@@ -179,7 +203,9 @@
   "subtotal": "30.000",
   "total_payment": "30.500",
   "city": "KOTA JAKARTA BARAT",
-  "province": "DKI JAKARTA"
+  "province": "DKI JAKARTA",
+  "sku": "BINTANG 10/ 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "260101UQJBQAV4",
@@ -193,7 +219,9 @@
   "subtotal": "30.000",
   "total_payment": "30.500",
   "city": "KOTA BANJARBARU",
-  "province": "KALIMANTAN SELATAN"
+  "province": "KALIMANTAN SELATAN",
+  "sku": "BAJING 10 PCS/ 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "260101VGRWYDJ8",
@@ -207,7 +235,9 @@
   "subtotal": "30.000",
   "total_payment": "30.400",
   "city": "KOTA BANDAR LAMPUNG",
-  "province": "LAMPUNG"
+  "province": "LAMPUNG",
+  "sku": "BINTANG 10/ 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "260102VNDWD3N5",
@@ -221,7 +251,9 @@
   "subtotal": "30.000",
   "total_payment": "26.864",
   "city": "KOTA MALANG",
-  "province": "JAWA TIMUR"
+  "province": "JAWA TIMUR",
+  "sku": "BINTANG 10/ 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "2601020A06GTNR",
@@ -235,7 +267,9 @@
   "subtotal": "30.000",
   "total_payment": "0",
   "city": "KOTA JAKARTA SELATAN",
-  "province": "DKI JAKARTA"
+  "province": "DKI JAKARTA",
+  "sku": "BINTANG 10/ 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "2601020BXJHUF9",
@@ -249,7 +283,9 @@
   "subtotal": "30.000",
   "total_payment": "0",
   "city": "KAB. BOGOR",
-  "province": "JAWA BARAT"
+  "province": "JAWA BARAT",
+  "sku": "BINTANG 10/ 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "2601020D3ACDPU",
@@ -263,7 +299,9 @@
   "subtotal": "30.000",
   "total_payment": "30.500",
   "city": "KOTA BALIKPAPAN",
-  "province": "KALIMANTAN TIMUR"
+  "province": "KALIMANTAN TIMUR",
+  "sku": "BINTANG 10/ 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "2601020Q7S254G",
@@ -277,7 +315,9 @@
   "subtotal": "30.000",
   "total_payment": "27.900",
   "city": "KOTA DEPOK",
-  "province": "JAWA BARAT"
+  "province": "JAWA BARAT",
+  "sku": "BINTANG 10 IKAT/ 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "2601020SA05Y34",
@@ -291,7 +331,9 @@
   "subtotal": "30.000",
   "total_payment": "30.500",
   "city": "KOTA PEKANBARU",
-  "province": "RIAU"
+  "province": "RIAU",
+  "sku": "BAJING 10 PCS/ 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "2601020TK63WY6",
@@ -305,7 +347,9 @@
   "subtotal": "30.000",
   "total_payment": "32.000",
   "city": "KOTA JAKARTA BARAT",
-  "province": "DKI JAKARTA"
+  "province": "DKI JAKARTA",
+  "sku": "RAJAWALI 10 IKAT/ 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "2601020US628QV",
@@ -319,7 +363,9 @@
   "subtotal": "59.500",
   "total_payment": "31.500",
   "city": "KAB. PURBALINGGA",
-  "province": "JAWA TENGAH"
+  "province": "JAWA TENGAH",
+  "sku": "PANDAWA 1 BALL PLASTK 20PCS / 2KG",
+  "weight_g": 2000
  },
  {
   "order_id": "26010210D9SX1M",
@@ -333,7 +379,9 @@
   "subtotal": "19.800",
   "total_payment": "17.647",
   "city": "KAB. BOGOR",
-  "province": "JAWA BARAT"
+  "province": "JAWA BARAT",
+  "sku": "BINTANG 5 PCS/ 500gram",
+  "weight_g": 500
  },
  {
   "order_id": "26010216DQNGTJ",
@@ -347,7 +395,9 @@
   "subtotal": "57.800",
   "total_payment": "59.800",
   "city": "KAB. ROKAN HULU",
-  "province": "RIAU"
+  "province": "RIAU",
+  "sku": "BALL PLASTIK 20 pcs/2KG",
+  "weight_g": 2000
  },
  {
   "order_id": "260103205F8M80",
@@ -361,7 +411,9 @@
   "subtotal": "30.000",
   "total_payment": "62.000",
   "city": "KOTA BOGOR",
-  "province": "JAWA BARAT"
+  "province": "JAWA BARAT",
+  "sku": "BINTANG 10/ 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "260103205F8M80",
@@ -375,7 +427,9 @@
   "subtotal": "30.000",
   "total_payment": "62.000",
   "city": "KOTA BOGOR",
-  "province": "JAWA BARAT"
+  "province": "JAWA BARAT",
+  "sku": "BINTANG 10 IKAT/ 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "26010322K0QTAH",
@@ -389,7 +443,9 @@
   "subtotal": "15.100",
   "total_payment": "19.793",
   "city": "KAB. KLATEN",
-  "province": "JAWA TENGAH"
+  "province": "JAWA TENGAH",
+  "sku": "UNYIL 450gram",
+  "weight_g": 450
  },
  {
   "order_id": "26010323VMYKK5",
@@ -403,7 +459,9 @@
   "subtotal": "15.100",
   "total_payment": "17.100",
   "city": "KAB. BANJARNEGARA",
-  "province": "JAWA TENGAH"
+  "province": "JAWA TENGAH",
+  "sku": "UNYIL 450gram",
+  "weight_g": 450
  },
  {
   "order_id": "26010325TKPKTD",
@@ -417,7 +475,9 @@
   "subtotal": "30.000",
   "total_payment": "0",
   "city": "KOTA JAKARTA UTARA",
-  "province": "DKI JAKARTA"
+  "province": "DKI JAKARTA",
+  "sku": "BINTANG 10/ 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "2601032PV3RBCV",
@@ -431,7 +491,9 @@
   "subtotal": "30.000",
   "total_payment": "30.500",
   "city": "KOTA DENPASAR",
-  "province": "BALI"
+  "province": "BALI",
+  "sku": "UNYIL 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "2601032RQDGCDR",
@@ -445,7 +507,9 @@
   "subtotal": "30.000",
   "total_payment": "30.000",
   "city": "KAB. TEGAL",
-  "province": "JAWA TENGAH"
+  "province": "JAWA TENGAH",
+  "sku": "BINTANG 10/ 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "2601032XACB94V",
@@ -459,7 +523,9 @@
   "subtotal": "30.000",
   "total_payment": "32.000",
   "city": "KAB. SIMALUNGUN",
-  "province": "SUMATERA UTARA"
+  "province": "SUMATERA UTARA",
+  "sku": "BINTANG 10 IKAT/ 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "2601033CU22M3N",
@@ -473,7 +539,9 @@
   "subtotal": "30.000",
   "total_payment": "32.000",
   "city": "KAB. TANGGAMUS",
-  "province": "LAMPUNG"
+  "province": "LAMPUNG",
+  "sku": "UNYIL 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "26010343PG348J",
@@ -487,7 +555,9 @@
   "subtotal": "111.800",
   "total_payment": "100.384",
   "city": "KOTA BATU",
-  "province": "JAWA TIMUR"
+  "province": "JAWA TIMUR",
+  "sku": "MIE UNYIL 2KG",
+  "weight_g": 4000
  },
  {
   "order_id": "2601045DUWH4PP",
@@ -501,7 +571,9 @@
   "subtotal": "57.000",
   "total_payment": "59.000",
   "city": "KAB. BANDUNG",
-  "province": "JAWA BARAT"
+  "province": "JAWA BARAT",
+  "sku": "BINTANG 5 PCS/ 500gram",
+  "weight_g": 1500
  },
  {
   "order_id": "26010464FRB8U9",
@@ -515,7 +587,9 @@
   "subtotal": "30.000",
   "total_payment": "32.000",
   "city": "KOTA PASURUAN",
-  "province": "JAWA TIMUR"
+  "province": "JAWA TIMUR",
+  "sku": "UNYIL 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "2601046JX3NMHY",
@@ -529,7 +603,9 @@
   "subtotal": "30.000",
   "total_payment": "32.000",
   "city": "KAB. KARAWANG",
-  "province": "JAWA BARAT"
+  "province": "JAWA BARAT",
+  "sku": "UNYIL 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "2601046P4XSM84",
@@ -543,7 +619,9 @@
   "subtotal": "57.500",
   "total_payment": "48.000",
   "city": "KAB. MALANG",
-  "province": "JAWA TIMUR"
+  "province": "JAWA TIMUR",
+  "sku": "MIE UNYIL 2KG",
+  "weight_g": 2000
  },
  {
   "order_id": "26010577WRMRRQ",
@@ -557,7 +635,9 @@
   "subtotal": "30.000",
   "total_payment": "0",
   "city": "KAB. BOGOR",
-  "province": "JAWA BARAT"
+  "province": "JAWA BARAT",
+  "sku": "UNYIL 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "2601058R8CGSQT",
@@ -571,7 +651,9 @@
   "subtotal": "30.000",
   "total_payment": "32.000",
   "city": "KOTA JAKARTA PUSAT",
-  "province": "DKI JAKARTA"
+  "province": "DKI JAKARTA",
+  "sku": "UNYIL 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "2601058TCDP64G",
@@ -585,7 +667,9 @@
   "subtotal": "15.100",
   "total_payment": "13.543",
   "city": "KOTA JAKARTA UTARA",
-  "province": "DKI JAKARTA"
+  "province": "DKI JAKARTA",
+  "sku": "UNYIL 450gram",
+  "weight_g": 450
  },
  {
   "order_id": "260106AW4TU9G8",
@@ -599,7 +683,9 @@
   "subtotal": "30.000",
   "total_payment": "30.500",
   "city": "KAB. TASIKMALAYA",
-  "province": "JAWA BARAT"
+  "province": "JAWA BARAT",
+  "sku": "UNYIL 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "260106AWUN9REX",
@@ -613,7 +699,9 @@
   "subtotal": "30.000",
   "total_payment": "0",
   "city": "KOTA SEMARANG",
-  "province": "JAWA TENGAH"
+  "province": "JAWA TENGAH",
+  "sku": "UNYIL 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "260106BB6U91TE",
@@ -627,7 +715,9 @@
   "subtotal": "15.100",
   "total_payment": "17.100",
   "city": "KAB. PROBOLINGGO",
-  "province": "JAWA TIMUR"
+  "province": "JAWA TIMUR",
+  "sku": "UNYIL 450gram",
+  "weight_g": 450
  },
  {
   "order_id": "260107CXB7MMRC",
@@ -641,7 +731,9 @@
   "subtotal": "56.000",
   "total_payment": "58.000",
   "city": "KAB. WONOGIRI",
-  "province": "JAWA TENGAH"
+  "province": "JAWA TENGAH",
+  "sku": "UNYIL 1KG",
+  "weight_g": 2000
  },
  {
   "order_id": "260107D1E3Y0H5",
@@ -655,7 +747,9 @@
   "subtotal": "30.000",
   "total_payment": "30.500",
   "city": "KAB. ASAHAN",
-  "province": "SUMATERA UTARA"
+  "province": "SUMATERA UTARA",
+  "sku": "UNYIL 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "260107D3N1NAET",
@@ -669,7 +763,9 @@
   "subtotal": "15.100",
   "total_payment": "16.975",
   "city": "KAB. KARAWANG",
-  "province": "JAWA BARAT"
+  "province": "JAWA BARAT",
+  "sku": "UNYIL 450gram",
+  "weight_g": 450
  },
  {
   "order_id": "260107D4JX6VQ7",
@@ -683,7 +779,9 @@
   "subtotal": "30.000",
   "total_payment": "32.500",
   "city": "KOTA TARAKAN",
-  "province": "KALIMANTAN UTARA"
+  "province": "KALIMANTAN UTARA",
+  "sku": "UNYIL 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "260107D87G16CV",
@@ -697,7 +795,9 @@
   "subtotal": "15.100",
   "total_payment": "12.336",
   "city": "KAB. PATI",
-  "province": "JAWA TENGAH"
+  "province": "JAWA TENGAH",
+  "sku": "UNYIL 450gram",
+  "weight_g": 450
  },
  {
   "order_id": "260107DD7P202C",
@@ -711,7 +811,9 @@
   "subtotal": "57.000",
   "total_payment": "56.150",
   "city": "KOTA DENPASAR",
-  "province": "BALI"
+  "province": "BALI",
+  "sku": "BINTANG 10/ 1KG",
+  "weight_g": 2000
  },
  {
   "order_id": "260107DJCSDPRK",
@@ -725,7 +827,9 @@
   "subtotal": "15.100",
   "total_payment": "0",
   "city": "KAB. PAMEKASAN",
-  "province": "JAWA TIMUR"
+  "province": "JAWA TIMUR",
+  "sku": "UNYIL 450gram",
+  "weight_g": 450
  },
  {
   "order_id": "260108FMAHWYN2",
@@ -739,7 +843,9 @@
   "subtotal": "57.000",
   "total_payment": "56.150",
   "city": "KOTA BONTANG",
-  "province": "KALIMANTAN TIMUR"
+  "province": "KALIMANTAN TIMUR",
+  "sku": "BINTANG 10/ 1KG",
+  "weight_g": 2000
  },
  {
   "order_id": "260108GNRU689E",
@@ -753,7 +859,9 @@
   "subtotal": "30.000",
   "total_payment": "32.000",
   "city": "KAB. MUKO MUKO",
-  "province": "BENGKULU"
+  "province": "BENGKULU",
+  "sku": "BINTANG 10/ 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "260108GPRYADYM",
@@ -767,7 +875,9 @@
   "subtotal": "57.000",
   "total_payment": "0",
   "city": "KOTA JAKARTA SELATAN",
-  "province": "DKI JAKARTA"
+  "province": "DKI JAKARTA",
+  "sku": "BINTANG 10/ 1KG",
+  "weight_g": 2000
  },
  {
   "order_id": "260108GUV9ERQ0",
@@ -781,7 +891,9 @@
   "subtotal": "30.000",
   "total_payment": "29.642",
   "city": "KOTA JAKARTA TIMUR",
-  "province": "DKI JAKARTA"
+  "province": "DKI JAKARTA",
+  "sku": "BINTANG 10/ 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "260108GUVYB1QP",
@@ -795,7 +907,9 @@
   "subtotal": "57.500",
   "total_payment": "51.355",
   "city": "KOTA BOGOR",
-  "province": "JAWA BARAT"
+  "province": "JAWA BARAT",
+  "sku": "MIE UNYIL 2KG",
+  "weight_g": 2000
  },
  {
   "order_id": "260109H6VKQ2NH",
@@ -809,7 +923,9 @@
   "subtotal": "56.000",
   "total_payment": "55.200",
   "city": "KAB. BOGOR",
-  "province": "JAWA BARAT"
+  "province": "JAWA BARAT",
+  "sku": "UNYIL 1KG",
+  "weight_g": 2000
  },
  {
   "order_id": "260109HV8ET7E4",
@@ -823,7 +939,9 @@
   "subtotal": "58.000",
   "total_payment": "0",
   "city": "KAB. BANYUWANGI",
-  "province": "JAWA TIMUR"
+  "province": "JAWA TIMUR",
+  "sku": "BINTANG 10 IKAT/ 1KG",
+  "weight_g": 2000
  },
  {
   "order_id": "260109J0DRJGKN",
@@ -837,7 +955,9 @@
   "subtotal": "30.000",
   "total_payment": "29.400",
   "city": "KOTA SURABAYA",
-  "province": "JAWA TIMUR"
+  "province": "JAWA TIMUR",
+  "sku": "BINTANG 10/ 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "260109J52CJ9UY",
@@ -851,7 +971,9 @@
   "subtotal": "57.500",
   "total_payment": "54.500",
   "city": "KAB. BANTUL",
-  "province": "DI YOGYAKARTA"
+  "province": "DI YOGYAKARTA",
+  "sku": "MIE UNYIL 2KG",
+  "weight_g": 2000
  },
  {
   "order_id": "260109KBJDD1WV",
@@ -865,7 +987,9 @@
   "subtotal": "58.000",
   "total_payment": "51.459",
   "city": "KAB. TEGAL",
-  "province": "JAWA TENGAH"
+  "province": "JAWA TENGAH",
+  "sku": "ABABIL 10/ 1KG",
+  "weight_g": 2000
  },
  {
   "order_id": "260109KECVRYPD",
@@ -879,7 +1003,9 @@
   "subtotal": "30.000",
   "total_payment": "0",
   "city": "KAB. SUBANG",
-  "province": "JAWA BARAT"
+  "province": "JAWA BARAT",
+  "sku": "BUNDA 10 IKAT/ 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "260109KECVRYPD",
@@ -893,7 +1019,9 @@
   "subtotal": "30.000",
   "total_payment": "0",
   "city": "KAB. SUBANG",
-  "province": "JAWA BARAT"
+  "province": "JAWA BARAT",
+  "sku": "UNYIL 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "260109KENN4SDT",
@@ -907,7 +1035,9 @@
   "subtotal": "15.100",
   "total_payment": "14.080",
   "city": "KAB. SUBANG",
-  "province": "JAWA BARAT"
+  "province": "JAWA BARAT",
+  "sku": "UNYIL 450gram",
+  "weight_g": 450
  },
  {
   "order_id": "260110M9NK7T7E",
@@ -921,7 +1051,9 @@
   "subtotal": "57.000",
   "total_payment": "56.150",
   "city": "KAB. MUARA ENIM",
-  "province": "SUMATERA SELATAN"
+  "province": "SUMATERA SELATAN",
+  "sku": "BINTANG 10/ 1KG",
+  "weight_g": 2000
  },
  {
   "order_id": "260110MBVE3V8R",
@@ -935,7 +1067,9 @@
   "subtotal": "30.000",
   "total_payment": "27.759",
   "city": "KAB. TEMANGGUNG",
-  "province": "JAWA TENGAH"
+  "province": "JAWA TENGAH",
+  "sku": "UNYIL 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "260110MD5PWDSX",
@@ -949,7 +1083,9 @@
   "subtotal": "57.500",
   "total_payment": "56.625",
   "city": "KAB. KUTAI BARAT",
-  "province": "KALIMANTAN TIMUR"
+  "province": "KALIMANTAN TIMUR",
+  "sku": "MIE UNYIL 2KG",
+  "weight_g": 2000
  },
  {
   "order_id": "260110MNKU2RBC",
@@ -963,7 +1099,9 @@
   "subtotal": "57.000",
   "total_payment": "55.000",
   "city": "KOTA MALANG",
-  "province": "JAWA TIMUR"
+  "province": "JAWA TIMUR",
+  "sku": "BINTANG 10/ 1KG",
+  "weight_g": 2000
  },
  {
   "order_id": "260110MQDR24GB",
@@ -977,7 +1115,9 @@
   "subtotal": "30.000",
   "total_payment": "27.896",
   "city": "KAB. MALANG",
-  "province": "JAWA TIMUR"
+  "province": "JAWA TIMUR",
+  "sku": "UNYIL 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "260110MYMKFTX9",
@@ -991,7 +1131,9 @@
   "subtotal": "15.100",
   "total_payment": "36.900",
   "city": "KAB. BLITAR",
-  "province": "JAWA TIMUR"
+  "province": "JAWA TIMUR",
+  "sku": "UNYIL 450gram",
+  "weight_g": 450
  },
  {
   "order_id": "260110MYMKFTX9",
@@ -1005,7 +1147,9 @@
   "subtotal": "19.800",
   "total_payment": "36.900",
   "city": "KAB. BLITAR",
-  "province": "JAWA TIMUR"
+  "province": "JAWA TIMUR",
+  "sku": "BINTANG 5 PCS/ 500gram",
+  "weight_g": 500
  },
  {
   "order_id": "260110N0VTW76R",
@@ -1019,7 +1163,9 @@
   "subtotal": "30.000",
   "total_payment": "0",
   "city": "KAB. BOGOR",
-  "province": "JAWA BARAT"
+  "province": "JAWA BARAT",
+  "sku": "BINTANG 10/ 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "260110N2DF8G6G",
@@ -1033,7 +1179,9 @@
   "subtotal": "30.000",
   "total_payment": "30.500",
   "city": "KAB. BENGKULU UTARA",
-  "province": "BENGKULU"
+  "province": "BENGKULU",
+  "sku": "BINTANG 10/ 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "260110N5CW0BHC",
@@ -1047,7 +1195,9 @@
   "subtotal": "30.000",
   "total_payment": "32.000",
   "city": "KOTA SURABAYA",
-  "province": "JAWA TIMUR"
+  "province": "JAWA TIMUR",
+  "sku": "BINTANG 10/ 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "260110N7X7JRWD",
@@ -1061,7 +1211,9 @@
   "subtotal": "30.100",
   "total_payment": "32.100",
   "city": "KAB. LIMA PULUH KOTO/KOTA",
-  "province": "SUMATERA BARAT"
+  "province": "SUMATERA BARAT",
+  "sku": "PATI AREN 10PCS/ 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "260110NMKV0BUE",
@@ -1075,7 +1227,9 @@
   "subtotal": "30.000",
   "total_payment": "32.000",
   "city": "KAB. WAY KANAN",
-  "province": "LAMPUNG"
+  "province": "LAMPUNG",
+  "sku": "BINTANG 10 IKAT/ 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "260110NVCT141U",
@@ -1089,7 +1243,9 @@
   "subtotal": "30.000",
   "total_payment": "32.000",
   "city": "KAB. WAY KANAN",
-  "province": "LAMPUNG"
+  "province": "LAMPUNG",
+  "sku": "WALET 10PCS/ 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "260111PP2PFET6",
@@ -1103,7 +1259,9 @@
   "subtotal": "142.500",
   "total_payment": "126.558",
   "city": "KOTA JAKARTA TIMUR",
-  "province": "DKI JAKARTA"
+  "province": "DKI JAKARTA",
+  "sku": "BINTANG 10/ 1KG",
+  "weight_g": 5000
  },
  {
   "order_id": "260111PQ0H3BX5",
@@ -1117,7 +1275,9 @@
   "subtotal": "30.000",
   "total_payment": "27.000",
   "city": "KAB. SERANG",
-  "province": "BANTEN"
+  "province": "BANTEN",
+  "sku": "BINTANG 10/ 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "260111QB0H7WFT",
@@ -1131,7 +1291,9 @@
   "subtotal": "30.000",
   "total_payment": "30.500",
   "city": "KAB. BATANG HARI",
-  "province": "JAMBI"
+  "province": "JAMBI",
+  "sku": "UNYIL 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "260111QCNJSB2B",
@@ -1145,7 +1307,9 @@
   "subtotal": "111.000",
   "total_payment": "98.680",
   "city": "KOTA TANGERANG SELATAN",
-  "province": "BANTEN"
+  "province": "BANTEN",
+  "sku": "PANDAWA 1 BALL PLASTK 20PCS / 2KG",
+  "weight_g": 4000
  },
  {
   "order_id": "260111QPWB8XX9",
@@ -1159,7 +1323,9 @@
   "subtotal": "30.000",
   "total_payment": "31.900",
   "city": "KAB. KARAWANG",
-  "province": "JAWA BARAT"
+  "province": "JAWA BARAT",
+  "sku": "BINTANG 10/ 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "260111QRFHANEP",
@@ -1173,7 +1339,9 @@
   "subtotal": "15.100",
   "total_payment": "16.000",
   "city": "KAB. BOGOR",
-  "province": "JAWA BARAT"
+  "province": "JAWA BARAT",
+  "sku": "UNYIL 450gram",
+  "weight_g": 450
  },
  {
   "order_id": "260111R0JX1F0C",
@@ -1187,7 +1355,9 @@
   "subtotal": "30.000",
   "total_payment": "30.500",
   "city": "KAB. BANDUNG BARAT",
-  "province": "JAWA BARAT"
+  "province": "JAWA BARAT",
+  "sku": "BINTANG 10/ 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "260111RC6FG15A",
@@ -1201,7 +1371,9 @@
   "subtotal": "30.000",
   "total_payment": "28.000",
   "city": "KOTA SURABAYA",
-  "province": "JAWA TIMUR"
+  "province": "JAWA TIMUR",
+  "sku": "BINTANG 10/ 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "260111RFCWAHQS",
@@ -1215,7 +1387,9 @@
   "subtotal": "59.500",
   "total_payment": "61.500",
   "city": "KAB. LANGKAT",
-  "province": "SUMATERA UTARA"
+  "province": "SUMATERA UTARA",
+  "sku": "PANDAWA 1 BALL PLASTK 20PCS / 2KG",
+  "weight_g": 2000
  },
  {
   "order_id": "260112SCV6YE37",
@@ -1229,7 +1403,9 @@
   "subtotal": "30.000",
   "total_payment": "30.500",
   "city": "KOTA JAMBI",
-  "province": "JAMBI"
+  "province": "JAMBI",
+  "sku": "BINTANG 10 IKAT/ 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "260112SFMA3CQF",
@@ -1243,7 +1419,9 @@
   "subtotal": "57.000",
   "total_payment": "56.150",
   "city": "KOTA MALANG",
-  "province": "JAWA TIMUR"
+  "province": "JAWA TIMUR",
+  "sku": "BINTANG 10/ 1KG",
+  "weight_g": 2000
  },
  {
   "order_id": "260112SJ2YSVK6",
@@ -1257,7 +1435,9 @@
   "subtotal": "30.000",
   "total_payment": "30.400",
   "city": "KAB. CIREBON",
-  "province": "JAWA BARAT"
+  "province": "JAWA BARAT",
+  "sku": "BINTANG 10/ 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "260112SMG7P6YC",
@@ -1271,7 +1451,9 @@
   "subtotal": "56.000",
   "total_payment": "54.600",
   "city": "KOTA JAKARTA TIMUR",
-  "province": "DKI JAKARTA"
+  "province": "DKI JAKARTA",
+  "sku": "UNYIL 1KG",
+  "weight_g": 2000
  },
  {
   "order_id": "260112SWGW1E6D",
@@ -1285,7 +1467,9 @@
   "subtotal": "15.100",
   "total_payment": "17.100",
   "city": "KOTA JAKARTA BARAT",
-  "province": "DKI JAKARTA"
+  "province": "DKI JAKARTA",
+  "sku": "UNYIL 450gram",
+  "weight_g": 450
  },
  {
   "order_id": "260112T4AJMG5M",
@@ -1299,7 +1483,9 @@
   "subtotal": "56.000",
   "total_payment": "54.000",
   "city": "KOTA TANGERANG",
-  "province": "BANTEN"
+  "province": "BANTEN",
+  "sku": "UNYIL 1KG",
+  "weight_g": 2000
  },
  {
   "order_id": "260112TADAUJKF",
@@ -1313,7 +1499,9 @@
   "subtotal": "30.000",
   "total_payment": "0",
   "city": "KAB. GARUT",
-  "province": "JAWA BARAT"
+  "province": "JAWA BARAT",
+  "sku": "BINTANG 10/ 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "260112TAKSSMMT",
@@ -1327,7 +1515,9 @@
   "subtotal": "30.000",
   "total_payment": "30.400",
   "city": "KAB. GARUT",
-  "province": "JAWA BARAT"
+  "province": "JAWA BARAT",
+  "sku": "BINTANG 10/ 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "260112TC7S1PWT",
@@ -1341,7 +1531,9 @@
   "subtotal": "15.100",
   "total_payment": "17.100",
   "city": "KAB. MALANG",
-  "province": "JAWA TIMUR"
+  "province": "JAWA TIMUR",
+  "sku": "UNYIL 450gram",
+  "weight_g": 450
  },
  {
   "order_id": "260112U1EUEFV3",
@@ -1355,7 +1547,9 @@
   "subtotal": "30.000",
   "total_payment": "0",
   "city": "KAB. GUNUNG KIDUL",
-  "province": "DI YOGYAKARTA"
+  "province": "DI YOGYAKARTA",
+  "sku": "BINTANG 10 IKAT/ 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "260112U34VFJ6Q",
@@ -1369,7 +1563,9 @@
   "subtotal": "57.000",
   "total_payment": "56.150",
   "city": "KAB. GUNUNG KIDUL",
-  "province": "DI YOGYAKARTA"
+  "province": "DI YOGYAKARTA",
+  "sku": "BINTANG 10/ 1KG",
+  "weight_g": 2000
  },
  {
   "order_id": "260113UN6GM7VC",
@@ -1383,7 +1579,9 @@
   "subtotal": "30.000",
   "total_payment": "32.000",
   "city": "KAB. BLORA",
-  "province": "JAWA TENGAH"
+  "province": "JAWA TENGAH",
+  "sku": "UNYIL 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "260113UTHY1WVY",
@@ -1397,7 +1595,9 @@
   "subtotal": "30.000",
   "total_payment": "30.485",
   "city": "KAB. PAMEKASAN",
-  "province": "JAWA TIMUR"
+  "province": "JAWA TIMUR",
+  "sku": "BINTANG 10/ 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "260113UW7MV3XY",
@@ -1411,7 +1611,9 @@
   "subtotal": "30.000",
   "total_payment": "30.500",
   "city": "KAB. NGANJUK",
-  "province": "JAWA TIMUR"
+  "province": "JAWA TIMUR",
+  "sku": "WALET 10PCS/ 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "260113UY67M8DR",
@@ -1425,7 +1627,9 @@
   "subtotal": "30.000",
   "total_payment": "30.500",
   "city": "KAB. KEBUMEN",
-  "province": "JAWA TENGAH"
+  "province": "JAWA TENGAH",
+  "sku": "UNYIL 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "260113V5P96G82",
@@ -1439,7 +1643,9 @@
   "subtotal": "30.000",
   "total_payment": "28.443",
   "city": "KOTA SURABAYA",
-  "province": "JAWA TIMUR"
+  "province": "JAWA TIMUR",
+  "sku": "BINTANG 10/ 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "260113VA2TS3HP",
@@ -1453,7 +1659,9 @@
   "subtotal": "30.000",
   "total_payment": "30.625",
   "city": "KAB. BOGOR",
-  "province": "JAWA BARAT"
+  "province": "JAWA BARAT",
+  "sku": "BINTANG 10 IKAT/ 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "260113VH0G6NSQ",
@@ -1467,7 +1675,9 @@
   "subtotal": "30.000",
   "total_payment": "29.500",
   "city": "KAB. JEPARA",
-  "province": "JAWA TENGAH"
+  "province": "JAWA TENGAH",
+  "sku": "BINTANG 10/ 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "260113VQCG20K3",
@@ -1481,7 +1691,9 @@
   "subtotal": "58.000",
   "total_payment": "57.100",
   "city": "KAB. MUSI RAWAS UTARA",
-  "province": "SUMATERA SELATAN"
+  "province": "SUMATERA SELATAN",
+  "sku": "BINTANG 10 IKAT/ 1KG",
+  "weight_g": 2000
  },
  {
   "order_id": "26011307PUH6G2",
@@ -1495,7 +1707,9 @@
   "subtotal": "30.000",
   "total_payment": "32.000",
   "city": "KAB. SUKOHARJO",
-  "province": "JAWA TENGAH"
+  "province": "JAWA TENGAH",
+  "sku": "UNYIL 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "26011308QB0VF5",
@@ -1509,7 +1723,9 @@
   "subtotal": "30.000",
   "total_payment": "30.500",
   "city": "KAB. GRESIK",
-  "province": "JAWA TIMUR"
+  "province": "JAWA TIMUR",
+  "sku": "UNYIL 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "2601141BWVVVB1",
@@ -1523,7 +1739,9 @@
   "subtotal": "30.000",
   "total_payment": "27.000",
   "city": "KOTA JAKARTA PUSAT",
-  "province": "DKI JAKARTA"
+  "province": "DKI JAKARTA",
+  "sku": "BINTANG 10/ 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "2601141F46TRGJ",
@@ -1537,7 +1755,9 @@
   "subtotal": "59.500",
   "total_payment": "58.525",
   "city": "KAB. WONOGIRI",
-  "province": "JAWA TENGAH"
+  "province": "JAWA TENGAH",
+  "sku": "PANDAWA 1 BALL PLASTK 20PCS / 2KG",
+  "weight_g": 2000
  },
  {
   "order_id": "2601141FF11KB2",
@@ -1551,7 +1771,9 @@
   "subtotal": "57.500",
   "total_payment": "59.400",
   "city": "KOTA SERANG",
-  "province": "BANTEN"
+  "province": "BANTEN",
+  "sku": "MIE UNYIL 2KG",
+  "weight_g": 2000
  },
  {
   "order_id": "2601141HG8KWCF",
@@ -1565,7 +1787,9 @@
   "subtotal": "30.000",
   "total_payment": "30.500",
   "city": "KAB. MALANG",
-  "province": "JAWA TIMUR"
+  "province": "JAWA TIMUR",
+  "sku": "BINTANG 10/ 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "2601141NX8VEQD",
@@ -1579,7 +1803,9 @@
   "subtotal": "15.100",
   "total_payment": "15.307",
   "city": "KOTA SEMARANG",
-  "province": "JAWA TENGAH"
+  "province": "JAWA TENGAH",
+  "sku": "UNYIL 450gram",
+  "weight_g": 450
  },
  {
   "order_id": "2601141QD088FV",
@@ -1593,7 +1819,9 @@
   "subtotal": "30.000",
   "total_payment": "28.843",
   "city": "KOTA DEPOK",
-  "province": "JAWA BARAT"
+  "province": "JAWA BARAT",
+  "sku": "UNYIL 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "2601141U1XEVXC",
@@ -1607,7 +1835,9 @@
   "subtotal": "30.000",
   "total_payment": "30.500",
   "city": "KOTA PALEMBANG",
-  "province": "SUMATERA SELATAN"
+  "province": "SUMATERA SELATAN",
+  "sku": "UNYIL 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "2601141VNH88JN",
@@ -1621,7 +1851,9 @@
   "subtotal": "30.000",
   "total_payment": "31.000",
   "city": "KAB. BOGOR",
-  "province": "JAWA BARAT"
+  "province": "JAWA BARAT",
+  "sku": "BINTANG 10/ 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "26011424TFMSBJ",
@@ -1635,7 +1867,9 @@
   "subtotal": "57.000",
   "total_payment": "57.445",
   "city": "KOTA JAMBI",
-  "province": "JAMBI"
+  "province": "JAMBI",
+  "sku": "BINTANG 10/ 1KG",
+  "weight_g": 2000
  },
  {
   "order_id": "2601142DYJ2AHT",
@@ -1649,7 +1883,9 @@
   "subtotal": "30.000",
   "total_payment": "30.500",
   "city": "KAB. BANGKALAN",
-  "province": "JAWA TIMUR"
+  "province": "JAWA TIMUR",
+  "sku": "WALET 10PCS/ 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "2601142N08QU6D",
@@ -1663,7 +1899,9 @@
   "subtotal": "30.000",
   "total_payment": "30.500",
   "city": "KAB. NGANJUK",
-  "province": "JAWA TIMUR"
+  "province": "JAWA TIMUR",
+  "sku": "UNYIL 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "2601142NN2CMEB",
@@ -1677,7 +1915,9 @@
   "subtotal": "59.500",
   "total_payment": "0",
   "city": "KAB. LEBAK",
-  "province": "BANTEN"
+  "province": "BANTEN",
+  "sku": "PANDAWA 1 BALL PLASTK 20PCS / 2KG",
+  "weight_g": 2000
  },
  {
   "order_id": "2601142NYVK7C8",
@@ -1691,7 +1931,9 @@
   "subtotal": "30.000",
   "total_payment": "29.900",
   "city": "KOTA JAKARTA PUSAT",
-  "province": "DKI JAKARTA"
+  "province": "DKI JAKARTA",
+  "sku": "BINTANG 10/ 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "2601142P1D9N20",
@@ -1705,7 +1947,9 @@
   "subtotal": "57.000",
   "total_payment": "51.692",
   "city": "KAB. LEBAK",
-  "province": "BANTEN"
+  "province": "BANTEN",
+  "sku": "BINTANG 10/ 1KG",
+  "weight_g": 2000
  },
  {
   "order_id": "2601142WQJJRFW",
@@ -1719,7 +1963,9 @@
   "subtotal": "30.000",
   "total_payment": "0",
   "city": "KAB. PONOROGO",
-  "province": "JAWA TIMUR"
+  "province": "JAWA TIMUR",
+  "sku": "BINTANG 10 IKAT/ 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "2601142WU5XY64",
@@ -1733,7 +1979,9 @@
   "subtotal": "30.000",
   "total_payment": "0",
   "city": "KAB. PONOROGO",
-  "province": "JAWA TIMUR"
+  "province": "JAWA TIMUR",
+  "sku": "BINTANG 10 IKAT/ 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "2601142WX5ADTJ",
@@ -1747,7 +1995,9 @@
   "subtotal": "30.000",
   "total_payment": "32.000",
   "city": "KAB. PONOROGO",
-  "province": "JAWA TIMUR"
+  "province": "JAWA TIMUR",
+  "sku": "BINTANG 10 IKAT/ 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "2601153QEFE5RA",
@@ -1761,7 +2011,9 @@
   "subtotal": "19.800",
   "total_payment": "21.800",
   "city": "KAB. REMBANG",
-  "province": "JAWA TENGAH"
+  "province": "JAWA TENGAH",
+  "sku": "BINTANG 5 PCS/ 500gram",
+  "weight_g": 500
  },
  {
   "order_id": "2601153UAERTYT",
@@ -1775,7 +2027,9 @@
   "subtotal": "30.000",
   "total_payment": "32.000",
   "city": "KOTA JAKARTA TIMUR",
-  "province": "DKI JAKARTA"
+  "province": "DKI JAKARTA",
+  "sku": "BINTANG 10/ 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "2601153WBV1J87",
@@ -1789,7 +2043,9 @@
   "subtotal": "57.500",
   "total_payment": "59.500",
   "city": "KAB. PASURUAN",
-  "province": "JAWA TIMUR"
+  "province": "JAWA TIMUR",
+  "sku": "MIE UNYIL 2KG",
+  "weight_g": 2000
  },
  {
   "order_id": "260115438QFHB3",
@@ -1803,7 +2059,9 @@
   "subtotal": "30.000",
   "total_payment": "32.000",
   "city": "KAB. JEMBER",
-  "province": "JAWA TIMUR"
+  "province": "JAWA TIMUR",
+  "sku": "BINTANG 10 IKAT/ 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "26011547B2VFW5",
@@ -1817,7 +2075,9 @@
   "subtotal": "30.000",
   "total_payment": "30.500",
   "city": "KOTA YOGYAKARTA",
-  "province": "DI YOGYAKARTA"
+  "province": "DI YOGYAKARTA",
+  "sku": "BINTANG 10/ 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "2601154B3NDT8P",
@@ -1831,7 +2091,9 @@
   "subtotal": "30.000",
   "total_payment": "17.000",
   "city": "KOTA TANGERANG SELATAN",
-  "province": "BANTEN"
+  "province": "BANTEN",
+  "sku": "BINTANG 10/ 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "2601154V7HRF8R",
@@ -1845,7 +2107,9 @@
   "subtotal": "30.000",
   "total_payment": "16.000",
   "city": "KAB. BOGOR",
-  "province": "JAWA BARAT"
+  "province": "JAWA BARAT",
+  "sku": "BINTANG 10/ 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "26011555VYRN17",
@@ -1859,7 +2123,9 @@
   "subtotal": "30.000",
   "total_payment": "16.900",
   "city": "KAB. TANGERANG",
-  "province": "BANTEN"
+  "province": "BANTEN",
+  "sku": "BINTANG 10/ 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "2601155BPGCVP3",
@@ -1873,7 +2139,9 @@
   "subtotal": "30.000",
   "total_payment": "32.000",
   "city": "KOTA BATAM",
-  "province": "KEPULAUAN RIAU"
+  "province": "KEPULAUAN RIAU",
+  "sku": "UNYIL 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "2601165MPERWC1",
@@ -1887,7 +2155,9 @@
   "subtotal": "57.000",
   "total_payment": "0",
   "city": "KAB. PATI",
-  "province": "JAWA TENGAH"
+  "province": "JAWA TENGAH",
+  "sku": "BINTANG 10/ 1KG",
+  "weight_g": 2000
  },
  {
   "order_id": "2601165RSD745U",
@@ -1901,7 +2171,9 @@
   "subtotal": "57.000",
   "total_payment": "55.000",
   "city": "KAB. PATI",
-  "province": "JAWA TENGAH"
+  "province": "JAWA TENGAH",
+  "sku": "BINTANG 10/ 1KG",
+  "weight_g": 2000
  },
  {
   "order_id": "2601166BFKD89V",
@@ -1915,7 +2187,9 @@
   "subtotal": "15.100",
   "total_payment": "17.100",
   "city": "KAB. MALANG",
-  "province": "JAWA TIMUR"
+  "province": "JAWA TIMUR",
+  "sku": "UNYIL 450gram",
+  "weight_g": 450
  },
  {
   "order_id": "2601166UXSVWQB",
@@ -1929,7 +2203,9 @@
   "subtotal": "87.000",
   "total_payment": "85.000",
   "city": "KAB. SIDOARJO",
-  "province": "JAWA TIMUR"
+  "province": "JAWA TIMUR",
+  "sku": "BINTANG 10 IKAT/ 1KG",
+  "weight_g": 3000
  },
  {
   "order_id": "2601166V12ANVF",
@@ -1943,7 +2219,9 @@
   "subtotal": "57.000",
   "total_payment": "54.500",
   "city": "KOTA PALEMBANG",
-  "province": "SUMATERA SELATAN"
+  "province": "SUMATERA SELATAN",
+  "sku": "BINTANG 10/ 1KG",
+  "weight_g": 2000
  },
  {
   "order_id": "2601166Y4X4TKP",
@@ -1957,7 +2235,9 @@
   "subtotal": "30.000",
   "total_payment": "30.500",
   "city": "KAB. LAMONGAN",
-  "province": "JAWA TIMUR"
+  "province": "JAWA TIMUR",
+  "sku": "BINTANG 10 IKAT/ 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "26011675D40JWT",
@@ -1971,7 +2251,9 @@
   "subtotal": "30.000",
   "total_payment": "38.600",
   "city": "KOTA TANGERANG",
-  "province": "BANTEN"
+  "province": "BANTEN",
+  "sku": "BINTANG 10 IKAT/ 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "26011675G0DW1E",
@@ -1985,7 +2267,9 @@
   "subtotal": "30.000",
   "total_payment": "29.368",
   "city": "KOTA BANDUNG",
-  "province": "JAWA BARAT"
+  "province": "JAWA BARAT",
+  "sku": "UNYIL 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "2601167EQYDRVR",
@@ -1999,7 +2283,9 @@
   "subtotal": "30.000",
   "total_payment": "30.500",
   "city": "KOTA MAGELANG",
-  "province": "JAWA TENGAH"
+  "province": "JAWA TENGAH",
+  "sku": "BINTANG 10/ 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "26011680N5EUNA",
@@ -2013,7 +2299,9 @@
   "subtotal": "57.500",
   "total_payment": "0",
   "city": "KOTA TARAKAN",
-  "province": "KALIMANTAN UTARA"
+  "province": "KALIMANTAN UTARA",
+  "sku": "MIE UNYIL 2KG",
+  "weight_g": 2000
  },
  {
   "order_id": "2601178U86HTRV",
@@ -2027,7 +2315,9 @@
   "subtotal": "111.000",
   "total_payment": "99.180",
   "city": "KAB. BLITAR",
-  "province": "JAWA TIMUR"
+  "province": "JAWA TIMUR",
+  "sku": "PANDAWA 1 BALL PLASTK 20PCS / 2KG",
+  "weight_g": 4000
  },
  {
   "order_id": "26011791S8H8JX",
@@ -2041,7 +2331,9 @@
   "subtotal": "59.500",
   "total_payment": "58.335",
   "city": "KAB. PENAJAM PASER UTARA",
-  "province": "KALIMANTAN TIMUR"
+  "province": "KALIMANTAN TIMUR",
+  "sku": "PANDAWA 1 BALL PLASTK 20PCS / 2KG",
+  "weight_g": 2000
  },
  {
   "order_id": "260117970S7EWY",
@@ -2055,7 +2347,9 @@
   "subtotal": "57.000",
   "total_payment": "56.050",
   "city": "KOTA SURABAYA",
-  "province": "JAWA TIMUR"
+  "province": "JAWA TIMUR",
+  "sku": "BINTANG 10/ 1KG",
+  "weight_g": 2000
  },
  {
   "order_id": "26011797A7GP9N",
@@ -2069,7 +2363,9 @@
   "subtotal": "145.000",
   "total_payment": "137.200",
   "city": "KOTA BATU",
-  "province": "JAWA TIMUR"
+  "province": "JAWA TIMUR",
+  "sku": "UNYIL 5 KG",
+  "weight_g": 5000
  },
  {
   "order_id": "260117988GDAWQ",
@@ -2083,7 +2379,9 @@
   "subtotal": "30.000",
   "total_payment": "32.000",
   "city": "KAB. KARANGANYAR",
-  "province": "JAWA TENGAH"
+  "province": "JAWA TENGAH",
+  "sku": "BINTANG 10/ 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "2601179AB217B3",
@@ -2097,7 +2395,9 @@
   "subtotal": "57.500",
   "total_payment": "52.117",
   "city": "KOTA SERANG",
-  "province": "BANTEN"
+  "province": "BANTEN",
+  "sku": "MIE UNYIL 2KG",
+  "weight_g": 2000
  },
  {
   "order_id": "2601179EDAGCXP",
@@ -2111,7 +2411,9 @@
   "subtotal": "111.000",
   "total_payment": "99.680",
   "city": "KAB. WONOGIRI",
-  "province": "JAWA TENGAH"
+  "province": "JAWA TENGAH",
+  "sku": "PANDAWA 1 BALL PLASTK 20PCS / 2KG",
+  "weight_g": 4000
  },
  {
   "order_id": "2601179GAP31BY",
@@ -2125,7 +2427,9 @@
   "subtotal": "114.000",
   "total_payment": "101.820",
   "city": "KAB. KARAWANG",
-  "province": "JAWA BARAT"
+  "province": "JAWA BARAT",
+  "sku": "BINTANG 10/ 1KG",
+  "weight_g": 4000
  },
  {
   "order_id": "2601179NCAVCS6",
@@ -2139,7 +2443,9 @@
   "subtotal": "30.000",
   "total_payment": "0",
   "city": "KOTA TANGERANG",
-  "province": "BANTEN"
+  "province": "BANTEN",
+  "sku": "BINTANG 10/ 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "2601179RVUWEG7",
@@ -2153,7 +2459,9 @@
   "subtotal": "30.000",
   "total_payment": "32.000",
   "city": "KAB. MALANG",
-  "province": "JAWA TIMUR"
+  "province": "JAWA TIMUR",
+  "sku": "BINTANG 10/ 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "2601179T6SPAUY",
@@ -2167,7 +2475,9 @@
   "subtotal": "30.000",
   "total_payment": "28.000",
   "city": "KAB. BOGOR",
-  "province": "JAWA BARAT"
+  "province": "JAWA BARAT",
+  "sku": "BINTANG 10/ 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "260117A9186BY8",
@@ -2181,7 +2491,9 @@
   "subtotal": "30.000",
   "total_payment": "30.500",
   "city": "KAB. TASIKMALAYA",
-  "province": "JAWA BARAT"
+  "province": "JAWA BARAT",
+  "sku": "UNYIL 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "260118BF1NCRY7",
@@ -2195,7 +2507,9 @@
   "subtotal": "30.100",
   "total_payment": "30.595",
   "city": "KAB. GARUT",
-  "province": "JAWA BARAT"
+  "province": "JAWA BARAT",
+  "sku": "PATI AREN 10PCS/ 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "260118BFSG9QW6",
@@ -2209,7 +2523,9 @@
   "subtotal": "30.000",
   "total_payment": "30.500",
   "city": "KAB. BANDUNG",
-  "province": "JAWA BARAT"
+  "province": "JAWA BARAT",
+  "sku": "BINTANG 10/ 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "260118CGQ3JKHV",
@@ -2223,7 +2539,9 @@
   "subtotal": "57.000",
   "total_payment": "56.150",
   "city": "KAB. BATANG HARI",
-  "province": "JAMBI"
+  "province": "JAMBI",
+  "sku": "BINTANG 10/ 1KG",
+  "weight_g": 2000
  },
  {
   "order_id": "260118CHH0C384",
@@ -2237,7 +2555,9 @@
   "subtotal": "30.000",
   "total_payment": "26.705",
   "city": "KOTA SURABAYA",
-  "province": "JAWA TIMUR"
+  "province": "JAWA TIMUR",
+  "sku": "BINTANG 10/ 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "260118CSSAFVD5",
@@ -2251,7 +2571,9 @@
   "subtotal": "30.000",
   "total_payment": "30.500",
   "city": "KOTA DEPOK",
-  "province": "JAWA BARAT"
+  "province": "JAWA BARAT",
+  "sku": "BINTANG 10/ 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "260118CT4YAS5D",
@@ -2265,7 +2587,9 @@
   "subtotal": "56.000",
   "total_payment": "58.000",
   "city": "KAB. TASIKMALAYA",
-  "province": "JAWA BARAT"
+  "province": "JAWA BARAT",
+  "sku": "UNYIL 1KG",
+  "weight_g": 2000
  },
  {
   "order_id": "26012519G4QQFD",
@@ -2279,7 +2603,9 @@
   "subtotal": "30.000",
   "total_payment": "30.101",
   "city": "KAB. BEKASI",
-  "province": "JAWA BARAT"
+  "province": "JAWA BARAT",
+  "sku": "BINTANG 10/ 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "2601251J0407C4",
@@ -2293,7 +2619,9 @@
   "subtotal": "59.500",
   "total_payment": "0",
   "city": "KAB. MUARO JAMBI",
-  "province": "JAMBI"
+  "province": "JAMBI",
+  "sku": "PANDAWA 1 BALL PLASTK 20PCS / 2KG",
+  "weight_g": 2000
  },
  {
   "order_id": "2601262A7V3TAM",
@@ -2307,7 +2635,9 @@
   "subtotal": "30.000",
   "total_payment": "29.400",
   "city": "KOTA BANDUNG",
-  "province": "JAWA BARAT"
+  "province": "JAWA BARAT",
+  "sku": "BINTANG 10/ 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "2601262M36WVMD",
@@ -2321,7 +2651,9 @@
   "subtotal": "15.100",
   "total_payment": "0",
   "city": "KAB. GROBOGAN",
-  "province": "JAWA TENGAH"
+  "province": "JAWA TENGAH",
+  "sku": "UNYIL 450gram",
+  "weight_g": 450
  },
  {
   "order_id": "2601262Q5WGQHB",
@@ -2335,7 +2667,9 @@
   "subtotal": "210.000",
   "total_payment": "0",
   "city": "KOTA JAKARTA TIMUR",
-  "province": "DKI JAKARTA"
+  "province": "DKI JAKARTA",
+  "sku": "BINTANG 20 PCS/ 4KG",
+  "weight_g": 8000
  },
  {
   "order_id": "2601262QCQVCDU",
@@ -2349,7 +2683,9 @@
   "subtotal": "30.000",
   "total_payment": "30.500",
   "city": "KAB. BANJARNEGARA",
-  "province": "JAWA TENGAH"
+  "province": "JAWA TENGAH",
+  "sku": "BINTANG 10/ 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "2601262XKBCAG3",
@@ -2363,7 +2699,9 @@
   "subtotal": "30.000",
   "total_payment": "0",
   "city": "KOTA BANDUNG",
-  "province": "JAWA BARAT"
+  "province": "JAWA BARAT",
+  "sku": "BINTANG 10/ 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "2601263602EGSE",
@@ -2377,7 +2715,9 @@
   "subtotal": "57.000",
   "total_payment": "47.600",
   "city": "KOTA JAKARTA SELATAN",
-  "province": "DKI JAKARTA"
+  "province": "DKI JAKARTA",
+  "sku": "BINTANG 10/ 1KG",
+  "weight_g": 2000
  },
  {
   "order_id": "2601263865H445",
@@ -2391,7 +2731,9 @@
   "subtotal": "57.000",
   "total_payment": "0",
   "city": "KAB. BOGOR",
-  "province": "JAWA BARAT"
+  "province": "JAWA BARAT",
+  "sku": "BINTANG 10/ 1KG",
+  "weight_g": 2000
  },
  {
   "order_id": "2601263B00TMCP",
@@ -2405,7 +2747,9 @@
   "subtotal": "30.000",
   "total_payment": "30.500",
   "city": "KAB. BEKASI",
-  "province": "JAWA BARAT"
+  "province": "JAWA BARAT",
+  "sku": "BINTANG 10/ 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "2601263CHA6XPN",
@@ -2419,7 +2763,9 @@
   "subtotal": "56.000",
   "total_payment": "0",
   "city": "KAB. MUSI BANYUASIN",
-  "province": "SUMATERA SELATAN"
+  "province": "SUMATERA SELATAN",
+  "sku": "UNYIL 1KG",
+  "weight_g": 2000
  },
  {
   "order_id": "2601263QKDQ6B7",
@@ -2433,7 +2779,9 @@
   "subtotal": "30.000",
   "total_payment": "0",
   "city": "KAB. SUMBAWA",
-  "province": "NUSA TENGGARA BARAT (NTB)"
+  "province": "NUSA TENGGARA BARAT (NTB)",
+  "sku": "UNYIL 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "2601263R27R8KT",
@@ -2447,7 +2795,9 @@
   "subtotal": "30.000",
   "total_payment": "31.500",
   "city": "KOTA JAKARTA UTARA",
-  "province": "DKI JAKARTA"
+  "province": "DKI JAKARTA",
+  "sku": "BINTANG 10/ 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "2601274SK32Y9D",
@@ -2461,7 +2811,9 @@
   "subtotal": "30.000",
   "total_payment": "0",
   "city": "KAB. BANDUNG",
-  "province": "JAWA BARAT"
+  "province": "JAWA BARAT",
+  "sku": "UNYIL 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "26012758JW84WF",
@@ -2475,7 +2827,9 @@
   "subtotal": "57.000",
   "total_payment": "56.050",
   "city": "KAB. LAMPUNG TENGAH",
-  "province": "LAMPUNG"
+  "province": "LAMPUNG",
+  "sku": "BINTANG 10/ 1KG",
+  "weight_g": 2000
  },
  {
   "order_id": "2601275BKRN1NB",
@@ -2489,7 +2843,9 @@
   "subtotal": "56.000",
   "total_payment": "0",
   "city": "KAB. MUSI BANYUASIN",
-  "province": "SUMATERA SELATAN"
+  "province": "SUMATERA SELATAN",
+  "sku": "UNYIL 1KG",
+  "weight_g": 2000
  },
  {
   "order_id": "2601275PPK28C6",
@@ -2503,7 +2859,9 @@
   "subtotal": "30.000",
   "total_payment": "29.400",
   "city": "KOTA BONTANG",
-  "province": "KALIMANTAN TIMUR"
+  "province": "KALIMANTAN TIMUR",
+  "sku": "BINTANG 10/ 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "2601275QAVHJ8T",
@@ -2517,7 +2875,9 @@
   "subtotal": "57.500",
   "total_payment": "0",
   "city": "KOTA SERANG",
-  "province": "BANTEN"
+  "province": "BANTEN",
+  "sku": "MIE UNYIL 2KG",
+  "weight_g": 2000
  },
  {
   "order_id": "2601275T7UYC7G",
@@ -2531,7 +2891,9 @@
   "subtotal": "30.000",
   "total_payment": "30.500",
   "city": "KAB. TRENGGALEK",
-  "province": "JAWA TIMUR"
+  "province": "JAWA TIMUR",
+  "sku": "BINTANG 10/ 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "260127676YS5GW",
@@ -2545,7 +2907,9 @@
   "subtotal": "30.000",
   "total_payment": "29.400",
   "city": "KOTA BANDAR LAMPUNG",
-  "province": "LAMPUNG"
+  "province": "LAMPUNG",
+  "sku": "BINTANG 10/ 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "2601287CYE9P41",
@@ -2559,7 +2923,9 @@
   "subtotal": "30.000",
   "total_payment": "31.900",
   "city": "KAB. BANDUNG BARAT",
-  "province": "JAWA BARAT"
+  "province": "JAWA BARAT",
+  "sku": "BINTANG 10/ 1KG",
+  "weight_g": 1000
  },
  {
   "order_id": "2601287H0HMAYH",
@@ -2573,7 +2939,9 @@
   "subtotal": "111.000",
   "total_payment": "0",
   "city": "KAB. PURBALINGGA",
-  "province": "JAWA TENGAH"
+  "province": "JAWA TENGAH",
+  "sku": "PANDAWA 1 BALL PLASTK 20PCS / 2KG",
+  "weight_g": 4000
  },
  {
   "order_id": "2601287KPD5YHG",
@@ -2587,7 +2955,9 @@
   "subtotal": "57.000",
   "total_payment": "0",
   "city": "KAB. TEMANGGUNG",
-  "province": "JAWA TENGAH"
+  "province": "JAWA TENGAH",
+  "sku": "BINTANG 10/ 1KG",
+  "weight_g": 2000
  },
  {
   "order_id": "2601287KTA22P4",
@@ -2601,7 +2971,9 @@
   "subtotal": "85.500",
   "total_payment": "83.225",
   "city": "KAB. TEMANGGUNG",
-  "province": "JAWA TENGAH"
+  "province": "JAWA TENGAH",
+  "sku": "BINTANG 10/ 1KG",
+  "weight_g": 3000
  },
  {
   "order_id": "2601287TNVSKGF",
@@ -2615,7 +2987,9 @@
   "subtotal": "57.500",
   "total_payment": "0",
   "city": "KOTA JAKARTA PUSAT",
-  "province": "DKI JAKARTA"
+  "province": "DKI JAKARTA",
+  "sku": "MIE UNYIL 2KG",
+  "weight_g": 2000
  },
  {
   "order_id": "2601287TPDX46U",
@@ -2629,6 +3003,8 @@
   "subtotal": "166.500",
   "total_payment": "0",
   "city": "KOTA TANGERANG SELATAN",
-  "province": "BANTEN"
+  "province": "BANTEN",
+  "sku": "PANDAWA 1 BALL PLASTK 20PCS / 2KG",
+  "weight_g": 6000
  }
 ]

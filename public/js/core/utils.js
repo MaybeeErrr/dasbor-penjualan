@@ -22,6 +22,16 @@ function parseIDNumber(v){
   var n = parseFloat(s);
   return isNaN(n) ? 0 : n;
 }
+// "1000 gr" -> 1000, "1,5 kg" -> 1500, 2000 -> 2000 (angka polos dianggap gram).
+function parseWeightGrams(v){
+  if(v === null || v === undefined || v === '') return 0;
+  if(typeof v === 'number') return isFinite(v) ? v : 0;
+  var m = String(v).toLowerCase().replace(/\s+/g,' ').match(/(\d+(?:[.,]\d+)?)\s*(kg|kilo|gram|gr|g)?/);
+  if(!m) return 0;
+  var n = parseFloat(m[1].replace(',', '.'));
+  if(isNaN(n)) return 0;
+  return /^(kg|kilo)/.test(m[2] || '') ? n * 1000 : n;
+}
 function toDate(v){
   if(v instanceof Date) return isNaN(v.getTime()) ? null : v;
   if(!v) return null;

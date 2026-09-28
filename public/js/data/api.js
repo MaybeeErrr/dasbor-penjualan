@@ -64,7 +64,8 @@ var Api = (function(){
       order_id: r.order_id, status: r.status, created_at: toLocalIso(r.created_at),
       payment_method: r.payment_method, product: r.product, variation: r.variation,
       price: r.price, qty: r.qty, subtotal: r.subtotal, total_payment: r.total_payment,
-      city: r.city, province: r.province, customer_id: r.customer_id || ''
+      city: r.city, province: r.province, customer_id: r.customer_id || '',
+      sku: r.sku || '', weight_g: r.weight_g || 0
     };
   }
 

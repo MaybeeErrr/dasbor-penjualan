@@ -21,6 +21,8 @@ export function cleanRow(r) {
     city: str(r.city, 100),
     province: str(r.province, 100),
     customer_id: str(r.customer_id, 200),
+    sku: str(r.sku, 300),
+    weight_g: num(r.weight_g),
   };
 }
 
@@ -29,11 +31,11 @@ export function insertQuery(datasetId, cleanRows) {
   const payload = JSON.stringify(cleanRows);
   return sql`
     INSERT INTO orders (dataset_id, order_id, status, created_at, payment_method, product, variation,
-                        price, qty, subtotal, total_payment, city, province, customer_id)
+                        price, qty, subtotal, total_payment, city, province, customer_id, sku, weight_g)
     SELECT ${datasetId}, order_id, status, created_at, payment_method, product, variation,
-           price, qty, subtotal, total_payment, city, province, customer_id
+           price, qty, subtotal, total_payment, city, province, customer_id, sku, weight_g
     FROM jsonb_to_recordset(${payload}::jsonb) AS t(
       order_id text, status text, created_at timestamp, payment_method text, product text,
       variation text, price float8, qty float8, subtotal float8, total_payment float8,
-      city text, province text, customer_id text)`;
+      city text, province text, customer_id text, sku text, weight_g float8)`;
 }

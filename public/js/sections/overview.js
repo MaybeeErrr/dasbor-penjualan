@@ -10,6 +10,7 @@ function render(){
   renderTopProvinces();
   renderStatusChart();
   renderProductAnalytics();
+  renderNetIncome();
   renderTable();
   renderPreprocessingOverview();
   renderCustomerAnalytics();

@@ -7,6 +7,8 @@ var COLUMN_ALIASES = {
   created_at: ['waktu pesanan dibuat','tanggal pesanan','tanggal','order date','created at','waktu pesanan'],
   payment_method: ['metode pembayaran','payment method','metode bayar'],
   product: ['nama produk','product name','produk'],
+  sku: ['sku induk','sku','parent sku'],
+  weight: ['berat produk','berat','weight','product weight'],
   variation: ['nama variasi','variation'],
   price: ['harga setelah diskon','harga','price'],
   qty: ['jumlah','qty','quantity'],
@@ -25,7 +27,7 @@ function normalizeHeader(h){
 // lalu ditampilkan apa adanya pada panel "Preprocessing & Validasi Data" ----
 var FIELD_LABELS = {
   order_id:'No. Pesanan', status:'Status Pesanan', created_at:'Waktu/Tanggal Pesanan', payment_method:'Metode Pembayaran',
-  product:'Nama Produk', variation:'Nama Variasi', price:'Harga', qty:'Jumlah', subtotal:'Subtotal Pesanan',
+  product:'Nama Produk', sku:'SKU Induk', weight:'Berat Produk', variation:'Nama Variasi', price:'Harga', qty:'Jumlah', subtotal:'Subtotal Pesanan',
   total_payment:'Total Pembayaran', city:'Kota/Kabupaten', province:'Provinsi', customer_id:'Identitas Pelanggan'
 };
 state.preprocessing = null;
@@ -82,6 +84,8 @@ function mapRowsToRecords(rows){
       payment_method: colMap.payment_method ? String(r[colMap.payment_method] || '').trim() : 'Tidak diketahui',
       product: colMap.product ? String(r[colMap.product] || '').trim() : 'Tidak diketahui',
       variation: colMap.variation ? String(r[colMap.variation] || '').trim() : '',
+      sku: colMap.sku ? String(r[colMap.sku] || '').trim() : '',
+      weight_g: colMap.weight ? parseWeightGrams(r[colMap.weight]) : 0,
       price: colMap.price ? parseIDNumber(r[colMap.price]) : 0,
       qty: colMap.qty ? parseIDNumber(r[colMap.qty]) : 1,
       subtotal: colMap.subtotal ? parseIDNumber(r[colMap.subtotal]) : parseIDNumber(r[colMap.total_payment] ? r[colMap.total_payment] : 0),
@@ -103,6 +107,8 @@ function normalizeDemoRecords(raw){
       payment_method: r.payment_method || 'Tidak diketahui',
       product: r.product || 'Tidak diketahui',
       variation: r.variation || '',
+      sku: r.sku || '',
+      weight_g: parseWeightGrams(r.weight_g),
       price: parseIDNumber(r.price),
       qty: parseIDNumber(r.qty),
       subtotal: parseIDNumber(r.subtotal),

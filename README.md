@@ -50,6 +50,14 @@ Catatan: file JS memakai *global scope* bersama (tanpa bundler), jadi **urutan `
 
 ---
 
+## Menu Pendapatan Bersih
+
+Menu **Pendapatan Bersih** (sidebar → Analisis) membaca semua produk pada dataset aktif (kunci: kolom *SKU Induk*), menampilkan berat terjual per produk (kolom *Berat Produk*, dalam kg), dan menyediakan kolom isian **pendapatan bersih per kg**. Total pendapatan bersih = Σ (kg terjual × pendapatan bersih per kg). Pesanan batal/dikembalikan tidak dihitung.
+
+- Isian disimpan di `localStorage` per akun dan berlaku untuk semua dataset.
+- Dua kolom baru di tabel `orders`: `sku` dan `weight_g`. **Jalankan ulang `db/schema.sql` (atau `npm run db:migrate`) sekali** di Neon agar kolom ini dibuat; perintahnya idempotent.
+- Dataset yang diunggah sebelum update ini tidak punya berat tersimpan; berat diperkirakan dari teks SKU/nama (mis. "1KG", "450gram") dan menu memberi peringatan. Unggah ulang berkas asli agar memakai kolom *Berat Produk*.
+
 ## Langkah 1 — Siapkan database di Neon
 
 1. Daftar/masuk di <https://neon.com> → **Create project**.
