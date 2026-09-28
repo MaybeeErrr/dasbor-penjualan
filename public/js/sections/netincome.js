@@ -81,6 +81,7 @@ var NetIncome = (function(){
     var v = margins[p.key];
     return (typeof v === 'number' && isFinite(v) && v > 0) ? v : 0;
   }
+  function netText(p){ var m = marginOf(p); return m > 0 ? idr(p.kg * m) : '—'; }
   function fmtKg(n){ return n.toLocaleString('id-ID', { maximumFractionDigits: 2 }); }
 
   function totals(){
@@ -178,14 +179,14 @@ var NetIncome = (function(){
     tbody.innerHTML = rows.map(function(p, i){
       var m = margins[p.key];
       var val = (typeof m === 'number' && m > 0) ? String(m) : '';
-      return '<tr>' +
-        '<td title="' + escapeHtml(p.name || p.key) + '"><div class="ni-name">' + escapeHtml(p.key) + '</div>' +
+      return '<tr id="niRow' + i + '" class="' + (val ? 'filled' : '') + '">' +
+        '<td class="ni-prod" title="' + escapeHtml(p.name || p.key) + '"><div class="ni-name">' + escapeHtml(p.key) + '</div>' +
           (p.name && p.name !== p.key ? '<div class="ni-sub">' + escapeHtml(p.name) + '</div>' : '') + '</td>' +
-        '<td class="tabular">' + p.units.toLocaleString('id-ID') + '</td>' +
-        '<td class="tabular">' + fmtKg(p.kg) + '</td>' +
-        '<td class="tabular">' + idr(p.revenue) + '</td>' +
-        '<td><div class="ni-input-wrap"><span>Rp</span><input class="search-box ni-input" type="text" inputmode="numeric" autocomplete="off" placeholder="0" data-i="' + i + '" value="' + escapeHtml(val) + '" aria-label="Pendapatan bersih per kg untuk ' + escapeHtml(p.key) + '"><span>/kg</span></div></td>' +
-        '<td class="tabular ni-net" id="niNet' + i + '">' + idr(p.kg * marginOf(p)) + '</td>' +
+        '<td class="tabular" data-label="Unit">' + p.units.toLocaleString('id-ID') + '</td>' +
+        '<td class="tabular" data-label="Berat">' + fmtKg(p.kg) + ' kg</td>' +
+        '<td class="tabular" data-label="Omzet">' + idr(p.revenue) + '</td>' +
+        '<td class="ni-in-cell" data-label="Bersih / kg"><div class="ni-input-wrap"><span>Rp</span><input class="search-box ni-input" type="text" inputmode="numeric" autocomplete="off" placeholder="0" data-i="' + i + '" value="' + escapeHtml(val) + '" aria-label="Pendapatan bersih per kg untuk ' + escapeHtml(p.key) + '"><span>/kg</span></div></td>' +
+        '<td class="tabular ni-net" data-label="Total bersih" id="niNet' + i + '">' + netText(p) + '</td>' +
         '</tr>';
     }).join('');
 
@@ -205,7 +206,9 @@ var NetIncome = (function(){
     var v = parseIDNumber(el.value);
     if(v > 0) margins[p.key] = v; else delete margins[p.key];
     saveMargins();
-    document.getElementById('niNet' + i).textContent = idr(p.kg * marginOf(p));
+    document.getElementById('niNet' + i).textContent = netText(p);
+    var rowEl = document.getElementById('niRow' + i);
+    if(rowEl) rowEl.classList.toggle('filled', marginOf(p) > 0);
     var t = totals();
     renderSummary(t);
     renderFooter(t);
@@ -214,11 +217,24 @@ var NetIncome = (function(){
 
   document.getElementById('niTableBody').addEventListener('input', onInput);
   document.getElementById('niBtnClear').addEventListener('click', function(){
-    if(!Object.keys(margins).length) return;
-    if(!window.confirm('Hapus semua isian pendapatan bersih per kg?')) return;
-    margins = {};
-    saveMargins();
-    render();
+    var n = Object.keys(margins).length;
+    if(!n){
+      if(typeof dsToast === 'function') dsToast('Belum ada isian yang perlu dihapus');
+      return;
+    }
+    showConfirmModal({
+      title: 'Hapus semua isian?',
+      desc: n + ' isian pendapatan bersih per kg akan dihapus dari akun ini, dan total pendapatan bersih kembali menjadi Rp0. Tindakan ini tidak dapat dibatalkan.',
+      confirmText: 'Ya, hapus semua',
+      cancelText: 'Batal',
+      danger: true
+    }).then(function(ok){
+      if(!ok) return;
+      margins = {};
+      saveMargins();
+      render();
+      if(typeof dsToast === 'function') dsToast('Semua isian dihapus');
+    });
   });
 
   document.addEventListener('auth:ready', function(e){

@@ -794,12 +794,40 @@ footer.app-footer { padding: 26px 0 40px; font-size: 12px; color: var(--ink-mute
 
 /* ---------------- Pendapatan Bersih ---------------- */
 #niContent.hidden { display: none; }
-#niTable thead th:nth-child(n+2) { text-align: right; }
-.ni-name { font-weight: 600; }
-.ni-sub { font-size: 11.5px; color: var(--ink-muted); max-width: 340px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ni-table-wrap { border: 1px solid var(--border); border-radius: var(--radius-md); overflow: hidden; background: var(--surface); }
+#niTable { table-layout: fixed; width: 100%; }
+#niTable th, #niTable td { padding: 12px 14px; vertical-align: middle; }
+#niTable thead th { background: var(--surface-2); font-size: 11.5px; text-transform: uppercase; letter-spacing: .03em; white-space: nowrap; }
+#niTable thead th:nth-child(n+2), #niTable tbody td:nth-child(n+2), #niTable tfoot td:nth-child(n+2) { text-align: right; }
+#niTable tbody tr { transition: background .15s ease; }
+#niTable tbody tr:hover { background: var(--surface-2); }
+#niTable tbody td { border-top: 1px solid var(--border); }
+#niTable tbody tr.filled td:first-child { box-shadow: inset 3px 0 0 var(--brand); }
+.ni-prod { min-width: 0; }
+.ni-name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ni-sub { font-size: 11.5px; color: var(--ink-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 2px; }
 .ni-input-wrap { display: flex; align-items: center; justify-content: flex-end; gap: 6px; color: var(--ink-muted); font-size: 12.5px; }
-.ni-input { min-width: 0; width: 120px; text-align: right; padding: 7px 10px; }
-.ni-net { font-weight: 600; }
+.ni-input { min-width: 0; width: 100%; max-width: 110px; text-align: right; padding: 8px 10px; font-weight: 600; }
+.ni-net { font-weight: 700; color: var(--ink-muted); }
+#niTable tr.filled .ni-net { color: var(--brand); }
+#niTable tfoot td { border-top: 2px solid var(--border); background: var(--surface-2); font-weight: 700; }
 .ni-note { margin: 0 0 18px; padding: 12px 14px; border: 1px solid var(--border); border-left: 3px solid var(--amber); border-radius: var(--radius-sm); background: var(--surface-2); font-size: 12.5px; color: var(--ink-muted); line-height: 1.55; }
-#niTable tfoot td { border-top: 2px solid var(--border); font-weight: 700; padding-top: 12px; }
-#niTable tfoot td:nth-child(n+2) { text-align: right; }
+
+/* Layar sempit: tiap produk jadi kartu (tanpa geser horizontal) */
+@media (max-width: 860px) {
+  .ni-table-wrap { border: none; background: transparent; overflow: visible; }
+  #niTable, #niTable tbody, #niTable tfoot { display: block; }
+  #niTable colgroup, #niTable thead { display: none; }
+  #niTable tbody tr { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 14px; padding: 14px; margin-bottom: 12px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface); }
+  #niTable tbody tr.filled { border-left: 3px solid var(--brand); }
+  #niTable tbody tr.filled td:first-child { box-shadow: none; }
+  #niTable th, #niTable td { padding: 0; }
+  #niTable tbody td { border: none; text-align: left !important; }
+  #niTable tbody td.ni-prod { grid-column: 1 / -1; padding-bottom: 6px; border-bottom: 1px solid var(--border); margin-bottom: 4px; }
+  #niTable tbody td[data-label]::before { content: attr(data-label); display: block; font-size: 10.5px; text-transform: uppercase; letter-spacing: .03em; color: var(--ink-muted); font-weight: 600; margin-bottom: 2px; }
+  #niTable .ni-in-cell .ni-input-wrap { justify-content: flex-start; }
+  #niTable .ni-in-cell .ni-input { max-width: none; text-align: left; }
+  #niTable tfoot tr { display: flex; justify-content: space-between; gap: 12px; padding: 14px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface-2); }
+  #niTable tfoot td { border: none; padding: 0; background: none; }
+  #niTable tfoot td:empty { display: none; }
+}
