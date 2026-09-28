@@ -729,3 +729,65 @@ footer.app-footer { padding: 26px 0 40px; font-size: 12px; color: var(--ink-mute
 
 @media (max-width: 900px) { .cmp-grid-2 { grid-template-columns: 1fr; } }
 @media (max-width: 640px) { .cmp-chart { height: 260px; } .cmp-table td.cmp-label { width: auto; } }
+
+/* ================= Perbandingan dataset: tabel yang lebih visual + toolbar ================= */
+.cmp-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+.cmp-count { font-size: 12.5px; color: var(--ink-muted); }
+.cmp-count b { color: var(--ink); font-size: 14px; }
+.cmp-count span { opacity: .8; }
+.cmp-add { display: inline-flex; align-items: center; gap: 7px; padding: 8px 14px; font-size: 12.5px; border-style: dashed; border-color: color-mix(in srgb, var(--brand) 55%, var(--border)); color: var(--brand); }
+.cmp-add:hover { background: color-mix(in srgb, var(--brand) 10%, transparent); }
+
+/* papan skor */
+.cmp-score { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; margin-bottom: 20px; }
+.cmp-score-card { background: var(--surface-2); border: 1px solid var(--border); border-top: 3px solid var(--c); border-radius: var(--radius-md); padding: 12px 14px 13px; min-width: 0; }
+.cmp-score-card.lead { border-color: color-mix(in srgb, var(--c) 55%, var(--border)); border-top-color: var(--c); background: color-mix(in srgb, var(--c) 8%, var(--surface-2)); }
+.cmp-score-card .nm { display: flex; align-items: center; gap: 8px; font-size: 12.5px; font-weight: 600; min-width: 0; }
+.cmp-score-card .nm > span:nth-child(2) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cmp-score-card .crown, .cmp-star { color: var(--amber); font-size: 13px; line-height: 1; flex-shrink: 0; }
+.cmp-score-card .big { margin-top: 8px; font-family: 'Space Grotesk', sans-serif; font-size: 26px; font-weight: 700; letter-spacing: -0.02em; }
+.cmp-score-card .big small { font-family: inherit; font-size: 11.5px; font-weight: 500; color: var(--ink-muted); letter-spacing: 0; }
+.cmp-score-card .bar { height: 5px; border-radius: 999px; background: var(--border); margin-top: 9px; overflow: hidden; }
+.cmp-score-card .bar i { display: block; height: 100%; background: var(--c); border-radius: 999px; }
+
+/* tabel */
+.cmp-table { border-collapse: separate; border-spacing: 0; min-width: 620px; }
+.cmp-table th, .cmp-table td { border-bottom: 1px solid var(--border); }
+.cmp-table thead th { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 12px 10px; }
+.cmp-table thead .cmp-corner { vertical-align: bottom; padding-left: 14px; }
+.cmp-table thead .cmp-thv { text-align: left; min-width: 180px; border-top: 3px solid var(--c); padding-top: 10px; background: linear-gradient(180deg, color-mix(in srgb, var(--c) 9%, transparent), transparent 75%); border-radius: 8px 8px 0 0; }
+.cmp-th-name { font-size: 12.5px; font-weight: 600; color: var(--ink); text-transform: none; letter-spacing: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 220px; }
+.cmp-thv .cmp-tag { display: inline-block; margin: 5px 0 0; }
+.cmp-th-sub { display: block; margin-top: 5px; font-size: 10.5px; font-weight: 500; color: var(--ink-muted); text-transform: none; letter-spacing: 0; }
+
+.cmp-sec td { background: transparent; padding: 18px 14px 8px; border-bottom: 1px solid color-mix(in srgb, var(--brand) 35%, var(--border)); font-size: 11px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--brand); }
+.cmp-sec .ic { display: inline-flex; vertical-align: -3px; margin-right: 8px; width: 22px; height: 22px; border-radius: 7px; align-items: center; justify-content: center; background: color-mix(in srgb, var(--brand) 14%, transparent); }
+.cmp-sec .ic svg { width: 13px; height: 13px; }
+
+.cmp-row td { padding: 11px 12px; vertical-align: middle; transition: background .12s ease; }
+.cmp-row:hover td { background: color-mix(in srgb, var(--brand) 5%, transparent); }
+.cmp-table td.cmp-label { width: 28%; min-width: 190px; padding-left: 14px; }
+.cmp-label .l { display: block; font-size: 13px; font-weight: 500; color: var(--ink); }
+.cmp-label .h { display: block; font-size: 11px; color: var(--ink-muted); margin-top: 2px; line-height: 1.4; }
+.cmp-table td.cmp-val, .cmp-table td.cmp-val.txt { text-align: left; }
+.cmp-val.best { background: color-mix(in srgb, var(--amber) 8%, transparent); }
+.cmp-row:hover td.cmp-val.best { background: color-mix(in srgb, var(--amber) 13%, transparent); }
+.cmp-valtop { display: flex; align-items: center; gap: 6px; }
+.cmp-main { font-family: 'Space Grotesk', sans-serif; font-size: 14.5px; font-weight: 600; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; }
+.cmp-main.cmp-text { font-family: inherit; font-size: 12.5px; font-weight: 500; letter-spacing: 0; }
+.cmp-bar { height: 4px; border-radius: 999px; background: color-mix(in srgb, var(--border) 80%, transparent); margin: 7px 0 0; overflow: hidden; max-width: 170px; }
+.cmp-bar i { display: block; height: 100%; border-radius: 999px; opacity: .9; }
+.cmp-delta { display: inline-block; margin-top: 7px; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.cmp-delta.good { color: var(--brand); background: color-mix(in srgb, var(--brand) 14%, transparent); }
+.cmp-delta.bad { color: var(--brick); background: var(--brick-soft); }
+.cmp-delta.neutral { color: var(--ink-muted); background: var(--surface-2); font-weight: 500; }
+
+/* kolom metrik menempel saat tabel digeser */
+.cmp-table th:first-child, .cmp-table td.cmp-label { position: sticky; left: 0; z-index: 2; background: var(--surface); }
+.cmp-sec td { position: static; }
+.cmp-row:hover td.cmp-label { background: color-mix(in srgb, var(--brand) 5%, var(--surface)); }
+
+@media (max-width: 640px) {
+  .cmp-table td.cmp-label { min-width: 140px; }
+  .cmp-toolbar { align-items: flex-start; }
+}

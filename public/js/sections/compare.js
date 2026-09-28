@@ -18,6 +18,9 @@ var DatasetCompare = (function(){
   var charts = [];
   var lastResult = null;      // [{ds, label, m, color}]
   var trendState = { metric: 'revenue', mode: 'index' };
+  var tableMode = 'all';      // 'all' | 'key'
+  var awaitingNewUntil = 0;   // auto-pilih dataset yang baru diunggah
+  var knownIds = null;
 
   /* ---------- util umum ---------- */
   function $(id){ return document.getElementById(id); }
@@ -160,8 +163,8 @@ var DatasetCompare = (function(){
       } else if(o.day == null && f.date){ o.day = toDayNum(r[f.date]); }
       var q = f.qty ? num(r[f.qty]) : 1;
       o.units += q;
-      if(f.total){ var t = num(r[f.total]); if(t > o.total) o.total = t; }
-      if(f.subtotal){ var s = num(r[f.subtotal]); if(s > o.sub) o.sub = s; }
+      if(f.total && !o.total) o.total = num(r[f.total]);       // nilai per pesanan: ambil baris pertama yang terisi
+      if(f.subtotal && !o.sub) o.sub = num(r[f.subtotal]);
       var line = f.price ? num(r[f.price]) * q : 0;
       o.line += line;
       if(f.product){ var pn = str(r, f.product); if(pn) o.items.push({ n: pn, q: q, v: line }); }
@@ -270,8 +273,9 @@ var DatasetCompare = (function(){
 
   /* ---------- pemilih dataset ---------- */
   function updateControls(){
-    var btn = $('btnRunCompare'), empty = $('compareEmpty');
+    var btn = $('btnRunCompare'), empty = $('compareEmpty'), cnt = $('cmpCount');
     if(btn) btn.disabled = selected.length < 2;
+    if(cnt) cnt.innerHTML = '<b>' + selected.length + '</b> dari ' + datasets().length + ' dataset dipilih <span>\u00B7 maks. ' + MAX_SELECT + '</span>';
     if(empty && !lastResult){
       empty.style.display = '';
       empty.textContent = selected.length < 2 ? 'Pilih minimal 2 dataset (maksimal ' + MAX_SELECT + ') untuk dibandingkan.' : 'Klik \u201cBandingkan dataset terpilih\u201d untuk melihat hasilnya.';
@@ -283,6 +287,13 @@ var DatasetCompare = (function(){
     if(!el) return;
     var list = datasets();
     selected = selected.filter(function(id){ return !!findDs(id); });
+    // dataset yang baru saja ditambahkan lewat tombol "Tambah dataset" ikut terpilih otomatis
+    if(knownIds){
+      list.forEach(function(ds){
+        if(knownIds.indexOf(String(ds.id)) === -1 && Date.now() < awaitingNewUntil && selected.length < MAX_SELECT && selected.indexOf(String(ds.id)) === -1) selected.push(String(ds.id));
+      });
+    }
+    knownIds = list.map(function(ds){ return String(ds.id); });
     if(!list.length){
       el.innerHTML = '<div class="picker-empty">Belum ada dataset tersimpan.</div>';
       updateControls();
@@ -329,38 +340,38 @@ var DatasetCompare = (function(){
   /* ---------- baris tabel metrik ---------- */
   // b: 1 = makin tinggi makin baik, -1 = makin rendah makin baik, 0 = netral
   var ROWS = [
-    { sec: 'Volume & pendapatan' },
-    { k: 'revenue', l: 'Total pendapatan', t: 'money', b: 1 },
-    { k: 'orders', l: 'Total pesanan (semua status)', t: 'int', b: 1 },
-    { k: 'baseOrders', l: 'Pesanan yang dihitung (selesai)', t: 'int', b: 1 },
-    { k: 'aov', l: 'Rata-rata nilai pesanan', t: 'money', b: 1 },
-    { k: 'medianOrder', l: 'Median nilai pesanan', t: 'money', b: 1 },
+    { sec: 'Volume & pendapatan', ic: 'bars' },
+    { k: 'revenue', l: 'Total pendapatan', h: 'Dari pesanan berstatus selesai', t: 'money', b: 1, key: 1 },
+    { k: 'orders', l: 'Total pesanan', h: 'Semua status', t: 'int', b: 1, key: 1 },
+    { k: 'baseOrders', l: 'Pesanan yang dihitung', h: 'Pesanan selesai', t: 'int', b: 1 },
+    { k: 'aov', l: 'Rata-rata nilai pesanan', h: 'Pendapatan \u00F7 pesanan dihitung', t: 'money', b: 1, key: 1 },
+    { k: 'medianOrder', l: 'Median nilai pesanan', h: 'Nilai tengah, tahan pencilan', t: 'money', b: 1 },
     { k: 'maxOrder', l: 'Nilai pesanan tertinggi', t: 'money', b: 0 },
     { k: 'units', l: 'Total unit terjual', t: 'int', b: 1 },
-    { k: 'unitsPerOrder', l: 'Rata-rata unit per pesanan', t: 'dec', b: 1 },
-    { sec: 'Pelanggan' },
-    { k: 'customers', l: 'Pelanggan unik', t: 'int', b: 1 },
-    { k: 'repeatCustomers', l: 'Pelanggan repeat (\u22652 pesanan)', t: 'int', b: 1 },
-    { k: 'repeatRate', l: 'Tingkat repeat customer', t: 'pct', b: 1 },
+    { k: 'unitsPerOrder', l: 'Unit per pesanan', t: 'dec', b: 1 },
+    { sec: 'Pelanggan', ic: 'users' },
+    { k: 'customers', l: 'Pelanggan unik', t: 'int', b: 1, key: 1 },
+    { k: 'repeatCustomers', l: 'Pelanggan repeat', h: 'Membeli \u22652 kali', t: 'int', b: 1 },
+    { k: 'repeatRate', l: 'Tingkat repeat customer', h: 'Repeat \u00F7 pelanggan unik', t: 'pct', b: 1, key: 1 },
     { k: 'ordersPerCustomer', l: 'Pesanan per pelanggan', t: 'dec', b: 1 },
     { k: 'revPerCustomer', l: 'Pendapatan per pelanggan', t: 'money', b: 1 },
-    { sec: 'Kualitas pesanan' },
+    { sec: 'Kualitas pesanan', ic: 'check' },
     { k: 'completionRate', l: 'Tingkat pesanan selesai', t: 'pct', b: 1 },
-    { k: 'cancelRate', l: 'Tingkat pembatalan', t: 'pct', b: -1 },
-    { sec: 'Waktu & tren' },
-    { k: 'period', l: 'Periode data', t: 'text' },
-    { k: 'span', l: 'Rentang periode (hari)', t: 'int', b: 0 },
+    { k: 'cancelRate', l: 'Tingkat pembatalan', h: 'Makin rendah makin baik', t: 'pct', b: -1, key: 1 },
+    { sec: 'Waktu & tren', ic: 'clock' },
+    { k: 'period', l: 'Periode data', t: 'text', key: 1 },
+    { k: 'span', l: 'Rentang periode', h: 'Dalam hari', t: 'int', b: 0 },
     { k: 'activeDays', l: 'Hari dengan transaksi', t: 'int', b: 1 },
-    { k: 'activeRate', l: 'Rasio hari aktif', t: 'pct', b: 1 },
-    { k: 'revPerDay', l: 'Pendapatan rata-rata per hari', t: 'money', b: 1 },
-    { k: 'ordersPerDay', l: 'Pesanan rata-rata per hari', t: 'dec', b: 1 },
+    { k: 'activeRate', l: 'Rasio hari aktif', h: 'Hari ada transaksi \u00F7 rentang', t: 'pct', b: 1 },
+    { k: 'revPerDay', l: 'Pendapatan per hari', h: 'Adil untuk periode berbeda', t: 'money', b: 1, key: 1 },
+    { k: 'ordersPerDay', l: 'Pesanan per hari', t: 'dec', b: 1 },
     { k: 'bestDayRev', l: 'Pendapatan harian tertinggi', t: 'money', b: 0 },
-    { k: 'bestDay', l: 'Hari dengan pendapatan tertinggi', t: 'text' },
-    { k: 'trend', l: 'Tren paruh kedua vs pertama', t: 'chg', b: 1 },
-    { sec: 'Produk & sebaran' },
+    { k: 'bestDay', l: 'Hari terbaik', t: 'text' },
+    { k: 'trend', l: 'Tren paruh kedua vs pertama', h: 'Rata-rata harian tiap paruh', t: 'chg', b: 1, key: 1 },
+    { sec: 'Produk & sebaran', ic: 'box' },
     { k: 'distinctProducts', l: 'Jumlah produk berbeda', t: 'int', b: 0 },
-    { k: 'topProduct', l: 'Produk terlaris', t: 'text' },
-    { k: 'top3Share', l: 'Porsi 3 produk teratas (unit)', t: 'pct', b: 0 },
+    { k: 'topProduct', l: 'Produk terlaris', t: 'text', key: 1 },
+    { k: 'top3Share', l: 'Porsi 3 produk teratas', h: 'Dari total unit; tinggi = terkonsentrasi', t: 'pct', b: 0 },
     { k: 'topProvince', l: 'Provinsi terbanyak', t: 'text' },
     { k: 'topPayment', l: 'Metode bayar terbanyak', t: 'text' }
   ];
@@ -380,43 +391,84 @@ var DatasetCompare = (function(){
     var d, txt;
     if(row.t === 'pct' || row.t === 'chg'){
       d = v - base;
-      if(Math.abs(d) < 0.05) return '<div class="cmp-delta neutral">\u2248 sama</div>';
+      if(Math.abs(d) < 0.05) return '<span class="cmp-delta neutral">\u2248 sama</span>';
       txt = (d > 0 ? '+' : '\u2212') + fmtDec(Math.abs(d), 1) + ' poin';
     } else {
-      if(base === 0){ return v === 0 ? '<div class="cmp-delta neutral">\u2248 sama</div>' : ''; }
+      if(base === 0){ return v === 0 ? '<span class="cmp-delta neutral">\u2248 sama</span>' : ''; }
       d = (v - base) / Math.abs(base) * 100;
-      if(Math.abs(d) < 0.05) return '<div class="cmp-delta neutral">\u2248 sama</div>';
+      if(Math.abs(d) < 0.05) return '<span class="cmp-delta neutral">\u2248 sama</span>';
       txt = (d > 0 ? '\u25B2 ' : '\u25BC ') + fmtPct(Math.abs(d));
     }
     var cls = 'neutral';
     if(row.b){ cls = ((d > 0) === (row.b > 0)) ? 'good' : 'bad'; }
-    return '<div class="cmp-delta ' + cls + '">' + txt + '</div>';
+    return '<span class="cmp-delta ' + cls + '">' + txt + '</span>';
   }
 
-  function tableHtml(R){
-    var head = '<tr><th>Metrik</th>' + R.map(function(r, i){
-      return '<th class="cmp-thv"><span class="cmp-th"><span class="cmp-swatch" style="background:' + r.color + '"></span><span class="cmp-th-name" title="' + esc(r.label) + '">' + esc(trunc(r.label, 28)) + '</span></span>' +
+  var ICONS = {
+    bars: '<path d="M3 13V8M8 13V3M13 13V6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
+    users: '<circle cx="6" cy="5.5" r="2.2" stroke="currentColor" stroke-width="1.5"/><path d="M2 13c.4-2.4 2-3.5 4-3.5s3.6 1.1 4 3.5M11 4.2a2 2 0 010 3.8M12.5 9.8c1 .5 1.6 1.5 1.8 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>',
+    check: '<circle cx="8" cy="8" r="5.5" stroke="currentColor" stroke-width="1.5"/><path d="M5.5 8.2l1.8 1.8 3.2-3.6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>',
+    clock: '<circle cx="8" cy="8" r="5.5" stroke="currentColor" stroke-width="1.5"/><path d="M8 5v3.2l2 1.3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>',
+    box: '<path d="M2.5 5L8 2.5 13.5 5v6L8 13.5 2.5 11V5zM2.5 5L8 7.5 13.5 5M8 7.5v6" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>'
+  };
+  function icon(n){ return '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">' + (ICONS[n] || '') + '</svg>'; }
+
+  /* hitung nilai terbaik per baris */
+  function analyze(R){
+    var res = {}, score = R.map(function(){ return 0; }), decided = 0;
+    ROWS.forEach(function(row){
+      if(row.sec) return;
+      var vals = R.map(function(r){ return r.m[row.k]; });
+      var nums = vals.map(function(v){ return typeof v === 'number' && isFinite(v) ? v : null; });
+      var valid = nums.filter(function(v){ return v != null; });
+      var best = -1;
+      if(row.b && row.t !== 'text' && valid.length >= 2 && Math.max.apply(null, valid) !== Math.min.apply(null, valid)){
+        var target = row.b > 0 ? Math.max.apply(null, valid) : Math.min.apply(null, valid);
+        best = nums.indexOf(target);
+        score[best]++; decided++;
+      }
+      res[row.k] = { vals: vals, nums: nums, best: best, max: valid.length ? Math.max.apply(null, valid.map(Math.abs)) : 0 };
+    });
+    return { rows: res, score: score, decided: decided };
+  }
+
+  function scoreHtml(R, A){
+    return '<div class="cmp-score">' + R.map(function(r, i){
+      var pct = A.decided ? A.score[i] / A.decided * 100 : 0;
+      var lead = A.score[i] === Math.max.apply(null, A.score) && A.score[i] > 0;
+      return '<div class="cmp-score-card' + (lead ? ' lead' : '') + '" style="--c:' + r.color + '">' +
+        '<div class="nm"><span class="cmp-swatch" style="background:' + r.color + '"></span><span title="' + esc(r.label) + '">' + esc(trunc(r.label, 30)) + '</span>' + (lead ? '<span class="crown" title="Unggul di metrik terbanyak">\u2605</span>' : '') + '</div>' +
+        '<div class="big">' + A.score[i] + '<small> / ' + A.decided + ' metrik unggul</small></div>' +
+        '<div class="bar"><i style="width:' + pct + '%"></i></div></div>';
+    }).join('') + '</div>';
+  }
+
+  function tableHtml(R, A, mode){
+    var head = '<tr><th class="cmp-corner">Metrik</th>' + R.map(function(r, i){
+      return '<th class="cmp-thv" style="--c:' + r.color + '"><div class="cmp-th-name" title="' + esc(r.label) + '">' + esc(trunc(r.label, 30)) + '</div>' +
         (i === 0 ? '<span class="cmp-tag">Baseline</span>' : '<span class="cmp-th-sub">\u0394 vs baseline</span>') + '</th>';
     }).join('') + '</tr>';
-    var body = ROWS.map(function(row){
-      if(row.sec) return '<tr class="cmp-sec"><td colspan="' + (R.length + 1) + '">' + esc(row.sec) + '</td></tr>';
-      var vals = R.map(function(r){ return r.m[row.k]; });
-      var best = -1;
-      if(row.b && row.t !== 'text'){
-        var nums = vals.map(function(v){ return typeof v === 'number' && isFinite(v) ? v : null; });
-        var valid = nums.filter(function(v){ return v != null; });
-        if(valid.length >= 2 && Math.max.apply(null, valid) !== Math.min.apply(null, valid)){
-          var target = row.b > 0 ? Math.max.apply(null, valid) : Math.min.apply(null, valid);
-          best = nums.indexOf(target);
-        }
+    var body = '', pendingSec = null, secCount = 0;
+    function flushSec(){ if(pendingSec){ body += pendingSec; pendingSec = null; } }
+    ROWS.forEach(function(row){
+      if(row.sec){
+        pendingSec = '<tr class="cmp-sec"><td colspan="' + (R.length + 1) + '"><span class="ic">' + icon(row.ic) + '</span>' + esc(row.sec) + '</td></tr>';
+        return;
       }
-      return '<tr><td class="cmp-label">' + esc(row.l) + '</td>' + vals.map(function(v, i){
-        var txt = row.t === 'text';
-        return '<td class="cmp-val' + (txt ? ' txt' : '') + (i === best ? ' best' : '') + '">' +
-          '<div class="cmp-main' + (txt ? ' cmp-text' : '') + '"' + (txt && v ? ' title="' + esc(v) + '"' : '') + '>' + esc(fmtVal(row.t, v)) + '</div>' +
-          (i === 0 ? '' : deltaHtml(row, v, vals[0])) + '</td>';
-      }).join('') + '</tr>';
-    }).join('');
+      if(mode === 'key' && !row.key) return;
+      flushSec();
+      var a = A.rows[row.k];
+      body += '<tr class="cmp-row"><td class="cmp-label"><span class="l">' + esc(row.l) + '</span>' + (row.h ? '<span class="h">' + esc(row.h) + '</span>' : '') + '</td>' +
+        a.vals.map(function(v, i){
+          var txt = row.t === 'text';
+          var bar = (!txt && row.t !== 'chg' && a.nums[i] != null && a.max > 0)
+            ? '<div class="cmp-bar"><i style="width:' + Math.max(2, Math.abs(a.nums[i]) / a.max * 100) + '%;background:' + R[i].color + '"></i></div>' : '';
+          return '<td class="cmp-val' + (txt ? ' txt' : '') + (i === a.best ? ' best' : '') + '">' +
+            '<div class="cmp-valtop"><span class="cmp-main' + (txt ? ' cmp-text' : '') + '"' + (txt && v ? ' title="' + esc(v) + '"' : '') + '>' + esc(fmtVal(row.t, v)) + '</span>' +
+            (i === a.best ? '<span class="cmp-star" title="Nilai terbaik">\u2605</span>' : '') + '</div>' +
+            bar + (i === 0 ? '' : deltaHtml(row, v, a.vals[0])) + '</td>';
+        }).join('') + '</tr>';
+    });
     return '<div class="table-scroll"><table class="cmp-table"><thead>' + head + '</thead><tbody>' + body + '</tbody></table></div>';
   }
 
@@ -640,9 +692,11 @@ var DatasetCompare = (function(){
     if(empty) empty.style.display = 'none';
     var html = '';
     html += '<div class="compare-cards">' + cardsHtml(R) + '</div>';
+    var A = analyze(R);
     html += panel('Tabel perbandingan metrik',
-      'Selisih (\u0394) dihitung terhadap <b>' + esc(R[0].label) + '</b> sebagai baseline. Sel berlatar hijau = nilai terbaik pada metrik tersebut.',
-      tableHtml(R));
+      '\u0394 dihitung terhadap <b>' + esc(R[0].label) + '</b> (baseline). \u2605 = nilai terbaik pada metrik itu; batang kecil menunjukkan besar relatif antardataset.',
+      scoreHtml(R, A) + '<div id="cmpTableWrap">' + tableHtml(R, A, tableMode) + '</div>',
+      '<div class="cmp-controls">' + seg('table', [['all', 'Lengkap'], ['key', 'Ringkas']], tableMode) + '</div>');
     html += panel('Tren harian',
       'Mode \u201cHari ke-N\u201d menyejajarkan awal periode tiap dataset agar bisa dibandingkan langsung walau tanggalnya berbeda.',
       '<div class="cmp-chart"><canvas id="cmpTrend"></canvas></div>',
@@ -685,13 +739,32 @@ var DatasetCompare = (function(){
       renderComparePicker();
     });
     if(btn) btn.addEventListener('click', run);
+    if(picker && !$('cmpToolbar')){
+      var bar = document.createElement('div');
+      bar.id = 'cmpToolbar'; bar.className = 'cmp-toolbar';
+      bar.innerHTML = '<span class="cmp-count" id="cmpCount"></span>' +
+        '<button type="button" class="btn btn-secondary cmp-add" id="btnAddDatasetCompare"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>Tambah dataset</button>';
+      picker.parentNode.insertBefore(bar, picker);
+      bar.querySelector('#btnAddDatasetCompare').addEventListener('click', function(){
+        var fi = $('fileInput');
+        awaitingNewUntil = Date.now() + 10 * 60 * 1000;
+        if(fi) fi.click();
+      });
+    }
     if(box) box.addEventListener('click', function(e){
       var b = e.target.closest ? e.target.closest('.cmp-seg button') : null;
       if(!b) return;
       var group = b.parentNode.getAttribute('data-group');
-      trendState[group] = b.getAttribute('data-v');
+      var val = b.getAttribute('data-v');
       var sibs = b.parentNode.querySelectorAll('button');
       for(var i = 0; i < sibs.length; i++) sibs[i].classList.toggle('on', sibs[i] === b);
+      if(group === 'table'){
+        tableMode = val;
+        var wrap = $('cmpTableWrap');
+        if(wrap && lastResult) wrap.innerHTML = tableHtml(lastResult, analyze(lastResult), tableMode);
+        return;
+      }
+      trendState[group] = val;
       redrawTrend();
     });
     if(typeof MutationObserver !== 'undefined'){
