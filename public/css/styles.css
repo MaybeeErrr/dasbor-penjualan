@@ -564,7 +564,7 @@ footer.app-footer { padding: 26px 0 40px; font-size: 12px; color: var(--ink-mute
 .picker-search { display: flex; align-items: center; gap: 8px; padding: 0 12px; margin-bottom: 12px; border: 1px solid var(--border); background: var(--surface-2); border-radius: var(--radius-md); color: var(--ink-muted); transition: border-color .15s ease; }
 .picker-search:focus-within { border-color: var(--brand); }
 .picker-search input { flex: 1; min-width: 0; border: none; outline: none !important; background: transparent; color: var(--ink); font: inherit; font-size: 13.5px; padding: 11px 0; }
-.picker-list { display: flex; flex-direction: column; gap: 8px; overflow-y: auto; min-height: 0; padding: 2px 3px 4px 1px; margin: 0 -3px 0 -1px; scrollbar-width: thin; }
+.picker-list { display: flex; flex-direction: column; gap: 8px; overflow-y: auto; min-height: 0; padding: 2px 3px 4px 1px; margin: 0 -3px 0 -1px; }
 .picker-empty { text-align: center; font-size: 13px; color: var(--ink-muted); padding: 26px 10px; border: 1.5px dashed var(--border); border-radius: var(--radius-md); }
 
 .pk-item { display: flex; align-items: center; gap: 12px; padding: 11px 12px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface); cursor: pointer; transition: border-color .15s ease, background .15s ease, box-shadow .15s ease, transform .1s ease; }
@@ -848,3 +848,60 @@ footer.app-footer { padding: 26px 0 40px; font-size: 12px; color: var(--ink-mute
 .ni-sync.error, .ni-sync.offline { color: var(--brick); }
 .ni-sync.error { cursor: pointer; text-decoration: underline; }
 @media (max-width: 640px) { .ni-actions { width: 100%; } .ni-actions .ni-sync { width: 100%; text-align: left; padding: 0; } }
+
+/* =====================================================================
+   Scrollbar bertema (berlaku di semua area yang bisa di-scroll)
+   - Tanpa panah atas/bawah, track transparan, thumb tipis berbentuk pil.
+   - Warna mengikuti tema terang/gelap; saat disorot/ditarik berubah ke warna merek.
+   - Chrome, Edge, Safari: pseudo-element ::-webkit-scrollbar. Firefox: scrollbar-color.
+   ===================================================================== */
+:root {
+  --sb-thumb: color-mix(in srgb, var(--ink-muted) 38%, transparent);
+  --sb-thumb-hover: color-mix(in srgb, var(--brand) 72%, transparent);
+  --sb-thumb-active: var(--brand);
+}
+
+@supports selector(::-webkit-scrollbar) {
+  ::-webkit-scrollbar { width: 14px; height: 14px; background: transparent; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-corner { background: transparent; }
+  ::-webkit-scrollbar-button { display: none; width: 0; height: 0; }
+  /* Border transparan + background-clip membuat thumb tampak lebih tipis (6px) dan mengambang. */
+  ::-webkit-scrollbar-thumb {
+    background-color: var(--sb-thumb);
+    background-clip: padding-box;
+    border: 4px solid transparent;
+    border-radius: 999px;
+    min-height: 40px;
+    min-width: 40px;
+  }
+  ::-webkit-scrollbar-thumb:hover { background-color: var(--sb-thumb-hover); border-width: 3px; }
+  ::-webkit-scrollbar-thumb:active { background-color: var(--sb-thumb-active); border-width: 3px; }
+
+  /* Area sempit (sidebar, daftar dataset, popup, tabel): lebih ramping agar tidak memakan tempat. */
+  .sidebar::-webkit-scrollbar,
+  .picker-list::-webkit-scrollbar,
+  .dataset-list::-webkit-scrollbar,
+  .table-scroll::-webkit-scrollbar,
+  .chart-scroll::-webkit-scrollbar,
+  .ni-table-wrap::-webkit-scrollbar { width: 10px; height: 10px; }
+  .sidebar::-webkit-scrollbar-thumb,
+  .picker-list::-webkit-scrollbar-thumb,
+  .dataset-list::-webkit-scrollbar-thumb,
+  .table-scroll::-webkit-scrollbar-thumb,
+  .chart-scroll::-webkit-scrollbar-thumb,
+  .ni-table-wrap::-webkit-scrollbar-thumb { border-width: 2.5px; min-height: 32px; min-width: 32px; }
+}
+
+/* Firefox (dan peramban lain yang hanya mendukung sifat standar) */
+@supports not selector(::-webkit-scrollbar) {
+  * { scrollbar-width: thin; scrollbar-color: var(--sb-thumb) transparent; }
+}
+
+/* Layar sentuh: scrollbar melayang bawaan sistem sudah cukup; jangan tebalkan. */
+@media (hover: none) and (pointer: coarse) {
+  @supports selector(::-webkit-scrollbar) {
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-thumb { border-width: 2px; }
+  }
+}
