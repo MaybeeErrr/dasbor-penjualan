@@ -1,5 +1,116 @@
 "use strict";
 
+/* ---------- Grafik "10 produk dengan pendapatan bersih tertinggi" ----------
+   items: [{ name, fullName, net, kg, perKg }] sudah terurut turun.
+   getTheme(): { brand:'#rrggbb', ink, muted, grid } dibaca saat menggambar agar ikut mode terang/gelap. */
+function niWrapLabel(text, width, maxLines){
+  var words = String(text).split(/\s+/), lines = [], cur = '';
+  for(var i = 0; i < words.length; i++){
+    var next = cur ? cur + ' ' + words[i] : words[i];
+    if(next.length > width && cur){ lines.push(cur); cur = words[i]; } else { cur = next; }
+  }
+  if(cur) lines.push(cur);
+  if(lines.length > maxLines){
+    lines = lines.slice(0, maxLines);
+    lines[maxLines - 1] = lines[maxLines - 1].replace(/\s*\S{0,3}$/, '') + '…';
+  }
+  return lines;
+}
+function niRgba(hex, a){
+  var m = /^#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(String(hex).trim());
+  if(!m) return hex;
+  return 'rgba(' + parseInt(m[1],16) + ',' + parseInt(m[2],16) + ',' + parseInt(m[3],16) + ',' + a + ')';
+}
+function niBuildChartConfig(items, total, getTheme){
+  var fmt = function(n){ return 'Rp' + Math.round(n).toLocaleString('id-ID'); };
+  var fmtKg = function(n){ return n.toLocaleString('id-ID', { maximumFractionDigits: 2 }); };
+  var pctText = function(v){ return (total > 0 ? v / total * 100 : 0).toFixed(1).replace('.', ',') + '%'; };
+
+  var valueLabels = {
+    id: 'niValueLabels',
+    afterDatasetsDraw: function(chart){
+      var th = getTheme(), ctx = chart.ctx, meta = chart.getDatasetMeta(0);
+      ctx.save();
+      ctx.textBaseline = 'middle';
+      meta.data.forEach(function(bar, i){
+        var it = items[i]; if(!it) return;
+        var x = bar.x + 10, y = bar.y;
+        ctx.font = '700 13px "Space Grotesk", Inter, sans-serif';
+        ctx.fillStyle = th.ink;
+        ctx.textAlign = 'left';
+        ctx.fillText(fmt(it.net), x, y);
+        var w = ctx.measureText(fmt(it.net)).width;
+        ctx.font = '500 11.5px Inter, sans-serif';
+        ctx.fillStyle = th.muted;
+        ctx.fillText(pctText(it.net), x + w + 8, y);
+      });
+      ctx.restore();
+    }
+  };
+
+  return {
+    type: 'bar',
+    data: {
+      labels: items.map(function(it){ return niWrapLabel(it.name, (typeof window !== 'undefined' && window.innerWidth < 640) ? 16 : 24, 2); }),
+      datasets: [{
+        label: 'Pendapatan bersih',
+        data: items.map(function(it){ return it.net; }),
+        borderRadius: 8,
+        borderSkipped: false,
+        barPercentage: 0.72,
+        categoryPercentage: 0.9,
+        backgroundColor: function(c){
+          var th = getTheme(), chart = c.chart, area = chart.chartArea;
+          var i = c.dataIndex;
+          if(!area) return niRgba(th.brand, i === 0 ? 1 : 0.8);
+          var g = chart.ctx.createLinearGradient(area.left, 0, area.right, 0);
+          g.addColorStop(0, niRgba(th.brand, i === 0 ? 0.7 : 0.5));
+          g.addColorStop(1, niRgba(th.brand, i === 0 ? 1 : 0.9));
+          return g;
+        }
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: { duration: 350 },
+      layout: { padding: { right: (typeof window !== 'undefined' && window.innerWidth < 640) ? 96 : 130, top: 4, bottom: 4 } },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          padding: 12, displayColors: false, titleFont: { size: 12.5, weight: '600' }, bodyFont: { size: 12.5 }, bodySpacing: 4,
+          callbacks: {
+            title: function(a){ var it = items[a[0].dataIndex]; return it.fullName || it.name; },
+            label: function(c){
+              var it = items[c.dataIndex];
+              return [
+                'Pendapatan bersih: ' + fmt(it.net) + ' (' + pctText(it.net) + ' dari total)',
+                'Hitungan: ' + fmtKg(it.kg) + ' kg × ' + fmt(it.perKg) + '/kg'
+              ];
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          beginAtZero: true, grace: '4%',
+          border: { display: false },
+          grid: { color: function(){ return getTheme().grid; } },
+          ticks: { maxTicksLimit: 6, color: function(){ return getTheme().muted; }, font: { size: 11.5 }, callback: function(v){ return idrShort(v); } },
+          title: { display: true, text: 'Total pendapatan bersih (Rupiah)', color: function(){ return getTheme().muted; }, font: { size: 11.5, weight: '500' } }
+        },
+        y: {
+          border: { display: false },
+          grid: { display: false },
+          ticks: { color: function(){ return getTheme().ink; }, font: { size: 12, weight: '600' }, autoSkip: false, padding: 8 }
+        }
+      }
+    },
+    plugins: [valueLabels]
+  };
+}
+
 /* ---------------- Pendapatan Bersih (per kilogram produk) ----------------
    Alur:
    1. Daftar produk dibaca otomatis dari dataset aktif (kunci = SKU Induk; jika tidak ada, Nama Produk).
@@ -123,46 +234,48 @@ var NetIncome = (function(){
     document.getElementById('niFootNet').textContent = idr(t.net);
   }
 
-  // Peringkat 10 produk dengan pendapatan bersih tertinggi (daftar berbatang, bukan grafik).
-  function renderRank(t){
-    var wrap = document.getElementById('niRank');
+  function themeNow(){
+    var css = getComputedStyle(document.documentElement);
+    return {
+      brand: css.getPropertyValue('--chart-line').trim() || '#2F6F4E',
+      ink: css.getPropertyValue('--ink').trim() || '#16241D',
+      muted: css.getPropertyValue('--ink-muted').trim() || '#5C6F64',
+      grid: css.getPropertyValue('--chart-grid').trim() || '#E1E9E2'
+    };
+  }
+  function destroyChart(){ if(charts.niNet){ charts.niNet.destroy(); charts.niNet = null; } }
+
+  function renderChart(t){
+    var wrap = document.getElementById('niChartWrap');
+    var box = document.getElementById('niChartBox');
     var empty = document.getElementById('niChartEmpty');
     var insight = document.getElementById('niInsight');
-    var items = rows.map(function(p){ return { p:p, m:marginOf(p), net:p.kg * marginOf(p) }; })
+    var items = rows.map(function(p){ return { name:p.key, fullName:p.name || p.key, kg:p.kg, perKg:marginOf(p), net:p.kg * marginOf(p) }; })
       .filter(function(x){ return x.net > 0; })
       .sort(function(a,b){ return b.net - a.net; });
     if(!items.length){
-      wrap.innerHTML = '';
+      destroyChart();
+      wrap.style.display = 'none';
       insight.style.display = 'none';
       empty.style.display = '';
       return;
     }
     empty.style.display = 'none';
+    wrap.style.display = '';
     var total = t.net;
     var top = items.slice(0, 10);
-    var max = top[0].net;
 
     var top3 = items.slice(0, 3).reduce(function(a,x){ return a + x.net; }, 0);
-    var top3Pct = total > 0 ? Math.round(top3 / total * 100) : 0;
-    insight.innerHTML = '<b>' + escapeHtml(top[0].p.key) + '</b> adalah penyumbang terbesar: ' + idr(top[0].net) +
+    insight.innerHTML = '<b>' + escapeHtml(top[0].name) + '</b> adalah penyumbang terbesar: ' + idr(top[0].net) +
       ' (' + Math.round(top[0].net / total * 100) + '% dari total).' +
-      (items.length >= 3 ? ' Tiga produk teratas menyumbang <b>' + top3Pct + '%</b> dari seluruh pendapatan bersih.' : '');
+      (items.length >= 3 ? ' Tiga produk teratas menyumbang <b>' + Math.round(top3 / total * 100) + '%</b> dari seluruh pendapatan bersih.' : '') +
+      (items.length > 10 ? ' <span class="ni-insight-more">Grafik menampilkan 10 teratas dari ' + items.length + ' produk terisi.</span>' : '');
     insight.style.display = '';
 
-    wrap.innerHTML = top.map(function(x, i){
-      var pct = total > 0 ? x.net / total * 100 : 0;
-      var width = Math.max(3, x.net / max * 100);
-      return '<div class="ni-rank-item' + (i === 0 ? ' first' : '') + '">' +
-        '<div class="ni-rank-no">' + (i + 1) + '</div>' +
-        '<div class="ni-rank-main">' +
-          '<div class="ni-rank-top">' +
-            '<div class="ni-rank-name" title="' + escapeHtml(x.p.name || x.p.key) + '">' + escapeHtml(x.p.key) + '</div>' +
-            '<div class="ni-rank-val tabular">' + idr(x.net) + '</div>' +
-          '</div>' +
-          '<div class="ni-rank-track"><div class="ni-rank-fill" style="width:' + width.toFixed(1) + '%"></div></div>' +
-          '<div class="ni-rank-meta"><span>' + fmtKg(x.p.kg) + ' kg × ' + idr(x.m) + '/kg</span><span class="ni-rank-pct">' + pct.toFixed(1).replace('.', ',') + '% dari total</span></div>' +
-        '</div></div>';
-    }).join('') + (items.length > 10 ? '<div class="ni-rank-more">+ ' + (items.length - 10) + ' produk lain ada di tabel di atas</div>' : '');
+    box.style.height = (70 + top.length * 56) + 'px';
+    var cfg = niBuildChartConfig(top, total, themeNow);
+    if(charts.niNet){ cfg.options.animation = false; destroyChart(); } // saat mengetik: tanpa animasi ulang
+    charts.niNet = new Chart(document.getElementById('niChart').getContext('2d'), cfg);
   }
 
   // Render penuh: dipanggil saat dataset/filter berubah.
@@ -173,6 +286,7 @@ var NetIncome = (function(){
     if(!rows.length){
       contentEl.classList.add('hidden');
       emptyEl.classList.add('show');
+      destroyChart();
       emptyEl.textContent = 'Belum ada produk pada dataset/filter yang aktif. Unggah data transaksi atau ubah filter di Dashboard Utama.';
       return;
     }
@@ -197,7 +311,7 @@ var NetIncome = (function(){
     var t = totals();
     renderSummary(t);
     renderFooter(t);
-    renderRank(t);
+    renderChart(t);
   }
 
   // Pembaruan ringan saat mengetik (tanpa membangun ulang tabel, agar fokus input tidak hilang).
@@ -216,7 +330,7 @@ var NetIncome = (function(){
     var t = totals();
     renderSummary(t);
     renderFooter(t);
-    renderRank(t);
+    renderChart(t);
   }
 
   document.getElementById('niTableBody').addEventListener('input', onInput);
