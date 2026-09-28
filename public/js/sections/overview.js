@@ -464,7 +464,7 @@ function renderPaymentChart(){
   });
   var labels = Object.keys(map);
   var values = labels.map(function(k){ return map[k]; });
-  var palette = ['#2F6F4E','#C98A22','#B0473B','#5C6F64','#8FBFA3','#E2C68C','#D69C93','#A9B8A4'];
+  var palette = ['#4338CA','#E08A1E','#D64550','#5F6488','#8FBFA3','#E2C68C','#D69C93','#A9B8A4'];
   var ctx = document.getElementById('paymentChart').getContext('2d');
   if(charts.payment) charts.payment.destroy();
   var css = getComputedStyle(document.documentElement);
@@ -488,7 +488,7 @@ function renderStatusChart(){
   });
   var labels = Object.keys(map);
   var values = labels.map(function(k){ return map[k]; });
-  var palette = labels.map(function(l){ return /selesai|complete|delivered/i.test(l) ? '#2F6F4E' : (/batal|cancel/i.test(l) ? '#B0473B' : '#C98A22'); });
+  var palette = labels.map(function(l){ return /selesai|complete|delivered/i.test(l) ? '#4338CA' : (/batal|cancel/i.test(l) ? '#D64550' : '#E08A1E'); });
   var ctx = document.getElementById('statusChart').getContext('2d');
   if(charts.status) charts.status.destroy();
   var css = getComputedStyle(document.documentElement);

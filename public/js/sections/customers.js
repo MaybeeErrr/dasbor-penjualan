@@ -134,7 +134,7 @@ function renderCustomerAnalytics(){
         data: rfmBubbles,
         backgroundColor: rfmBubbles.map(function(b){
           var alpha = 0.35 + 0.5 * (b.count / rfmMaxCount);
-          return 'rgba(47,111,78,' + alpha.toFixed(2) + ')';
+          return 'rgba(67,56,202,' + alpha.toFixed(2) + ')';
         }),
         borderColor: css.getPropertyValue('--chart-line').trim(),
         borderWidth: 1

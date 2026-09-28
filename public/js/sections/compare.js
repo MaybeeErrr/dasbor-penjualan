@@ -93,7 +93,7 @@ function renderCompareResults(ids, recordsList){
   var tableBodyEl = document.getElementById('compareTableBody');
   if(resultsEl) resultsEl.style.display = '';
 
-  var palette = ['#2F6F4E','#3E7CB1','#C9862B','#9B5DE5','#E4572E','#118AB2','#EF476F','#06D6A0'];
+  var palette = ['#4338CA','#3E7CB1','#C9862B','#9B5DE5','#E4572E','#118AB2','#EF476F','#06D6A0'];
   var summaries = ids.map(function(id, i){
     var ds = null;
     for(var j=0;j<state.datasets.length;j++){ if(state.datasets[j].id === id){ ds = state.datasets[j]; break; } }
