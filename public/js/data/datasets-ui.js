@@ -1,6 +1,16 @@
 "use strict";
 
 /* ---------------- Manajer dataset: daftar, ganti nama, hapus, pindah aktif ---------------- */
+function dsToast(msg, type){
+  var t = document.createElement('div');
+  t.className = 'ds-toast' + (type === 'error' ? ' error' : '');
+  t.setAttribute('role', type === 'error' ? 'alert' : 'status');
+  t.textContent = msg;
+  document.body.appendChild(t);
+  requestAnimationFrame(function(){ t.classList.add('show'); });
+  setTimeout(function(){ t.classList.remove('show'); setTimeout(function(){ t.remove(); }, 250); }, type === 'error' ? 6000 : 2600);
+}
+
 var DatasetsUI = (function(){
   var listElLanding = document.getElementById('datasetListLanding');
   var addBtnLanding = document.getElementById('btnAddDatasetLanding');
@@ -135,11 +145,17 @@ var DatasetsUI = (function(){
       var name = input.value.trim();
       if(!save || !name || name === ds.name){ renderPicker(); return; }
       input.disabled = true;
+      input.style.opacity = '.6';
       Api.datasets.rename(id, name).then(function(updated){
         ds.name = updated.name;
         renderList();
         if(state.activeDatasetId === id) setActiveDatasetLabel(updated.name);
-      }).catch(function(err){ renderPicker(); showError('Gagal mengganti nama: ' + err.message); });
+        dsToast('Nama dataset diperbarui');
+      }).catch(function(err){
+        console.error('[dataset] gagal ganti nama', err);
+        renderPicker();
+        dsToast('Gagal mengganti nama: ' + (err && err.message ? err.message : err), 'error');
+      });
     }
     input.addEventListener('keydown', function(e){
       e.stopPropagation();
@@ -190,30 +206,25 @@ var DatasetsUI = (function(){
     });
   }
   function pickDataset(id){
-    closePicker();
-    var sc = document.getElementById('sidebarClose');
-    if(sc && sc.offsetParent !== null) sc.click(); // tutup drawer sidebar di layar kecil
-    if(id !== state.activeDatasetId) switchToDataset(id);
-  }
-
-  function bindListClicks(container){
-    if(!container) return;
-    container.addEventListener('click', function(e){
-      var item = e.target.closest('.dataset-item');
-      if(!item) return;
-      var id = parseInt(item.getAttribute('data-id'), 10);
-      var actionBtn = e.target.closest('button[data-action]');
-      if(actionBtn){
-        e.stopPropagation();
-        var action = actionBtn.getAttribute('data-action');
-        if(action === 'rename') renameDataset(id);
-        if(action === 'delete') deleteDataset(id);
-        return;
+    if(id === state.activeDatasetId){ closePicker(); return; }
+    var item = pickerList && pickerList.querySelector('.pk-item[data-id="' + id + '"]');
+    if(item){
+      item.classList.add('loading');
+      var av = item.querySelector('.pk-avatar'); if(av) av.innerHTML = '<span class="pk-spin"></span>';
+      var mt = item.querySelector('.pk-meta'); if(mt) mt.innerHTML = '<span>Memuat data\u2026</span>';
+    }
+    if(pickerList) pickerList.classList.add('busy');
+    switchToDataset(id).then(function(ok){
+      if(pickerList) pickerList.classList.remove('busy');
+      if(ok){
+        closePicker();
+        var sc = document.getElementById('sidebarClose');
+        if(sc && sc.offsetParent !== null) sc.click(); // tutup drawer sidebar di layar kecil
+      } else {
+        renderPicker();
       }
-      switchToDataset(id);
     });
   }
-  bindListClicks(listElLanding);
 
   function refreshDatasets(){
     return Api.datasets.list().then(function(list){
@@ -233,18 +244,28 @@ var DatasetsUI = (function(){
 
   function switchToDataset(id){
     var ds = findDataset(id);
-    if(!ds) return;
+    if(!ds) return Promise.resolve(false);
     clearError();
-    setStatusPill(true, ds.name + ' — memuat…');
-    Api.orders.load(id).then(function(res){
+    var pill = document.getElementById('dataStatusPill');
+    var prevActive = pill ? pill.classList.contains('active') : false;
+    var prevTxt = (document.getElementById('dataStatusTxt') || {}).textContent || 'Belum ada data';
+    setStatusPill(true, ds.name + ' \u2014 memuat\u2026');
+    if(switcherMeta) switcherMeta.textContent = 'Memuat ' + ds.name + '\u2026';
+    return Api.orders.load(id).then(function(res){
       state.activeDatasetId = id;
       state.preprocessing = { totalRawRows: res.records.length, missingDateDropped:0, duplicatesRemoved:0, validRows: res.records.length, colMap:null, restored:true };
       setActiveDatasetLabel(ds.name);
-      setRecords(res.records, ds.name + ' — ' + res.records.length.toLocaleString('id-ID') + ' baris');
+      setRecords(res.records, ds.name + ' \u2014 ' + res.records.length.toLocaleString('id-ID') + ' baris');
       renderList();
+      return true;
     }).catch(function(err){
-      setStatusPill(false, 'Belum ada data');
-      showError('Gagal memuat dataset "' + ds.name + '": ' + err.message);
+      console.error('[dataset] gagal memuat', err);
+      setStatusPill(prevActive, prevTxt);
+      renderSwitcher();
+      var msg = 'Gagal memuat dataset "' + ds.name + '": ' + (err && err.message ? err.message : err);
+      showError(msg);
+      dsToast(msg, 'error');
+      return false;
     });
   }
 
@@ -259,7 +280,7 @@ var DatasetsUI = (function(){
       ds.name = updated.name;
       renderList();
       if(state.activeDatasetId === id) setActiveDatasetLabel(updated.name);
-    }).catch(function(err){ showError('Gagal mengganti nama: ' + err.message); });
+    }).catch(function(err){ console.error(err); showError('Gagal mengganti nama: ' + err.message); dsToast('Gagal mengganti nama: ' + err.message, 'error'); });
   }
 
   function deleteDataset(id){
@@ -283,7 +304,7 @@ var DatasetsUI = (function(){
           setActiveDatasetLabel(null);
         }
         renderList();
-      }).catch(function(err){ showError('Gagal menghapus dataset: ' + err.message); });
+      }).catch(function(err){ console.error(err); showError('Gagal menghapus dataset: ' + err.message); dsToast('Gagal menghapus dataset: ' + err.message, 'error'); });
     });
   }
 
