@@ -17,7 +17,7 @@ function getCustomerAnalytics(){
   }
 
   var orders = uniqueOrders(state.filtered).filter(function(o){
-    return /selesai|complete|delivered/i.test(o.status) && o.customer_id && String(o.customer_id).trim() !== '';
+    return OrderStatus.isCompleted(o.status) && o.customer_id && String(o.customer_id).trim() !== '';
   });
   if(!orders.length){
     return { ok:false, reason:'no_data' };

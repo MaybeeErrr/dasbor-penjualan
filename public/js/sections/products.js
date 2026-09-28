@@ -10,8 +10,7 @@
 // (bisa mencakup beberapa produk sekaligus) sehingga sudah direpresentasikan
 // pada KPI ringkasan di bagian atas dasbor, bukan pada level produk di sini.
 function computeProductAnalytics(){
-  var recs = state.filtered.filter(function(r){ return /selesai|complete|delivered/i.test(r.status); });
-  var base = recs.length ? recs : state.filtered;
+  var base = OrderStatus.counted(state.filtered);
   var map = {};
   base.forEach(function(r){
     var key = (r.product || 'Tidak diketahui').trim() || 'Tidak diketahui';
@@ -232,7 +231,7 @@ function renderTable(){
       var productSummary = items.length > 1 ? (items[0].product + ' +' + (items.length-1) + ' lainnya') : (items[0] ? items[0].product : '—');
       var d = toDate(o.created_at);
       var dateStr = d ? d.toLocaleDateString('id-ID', {day:'2-digit', month:'short', year:'numeric'}) : '—';
-      var badgeCls = /selesai|complete|delivered/i.test(o.status) ? 'selesai' : (/batal|cancel/i.test(o.status) ? 'batal' : 'other');
+      var badgeCls = OrderStatus.isCompleted(o.status) ? 'selesai' : (OrderStatus.isCancelled(o.status) ? 'batal' : 'other');
       return '<tr><td>'+escapeHtml(o.order_id)+'</td><td>'+dateStr+'</td><td title="'+escapeHtml(productSummary)+'" style="max-width:220px;overflow:hidden;text-overflow:ellipsis;">'+escapeHtml(productSummary)+'</td><td>'+escapeHtml(o.city||'—')+'</td><td><span class="badge '+badgeCls+'">'+escapeHtml(o.status)+'</span></td><td class="tabular">'+idr(o.total_payment)+'</td></tr>';
     }).join('');
   }

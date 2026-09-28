@@ -836,3 +836,14 @@ footer.app-footer { padding: 26px 0 40px; font-size: 12px; color: var(--ink-mute
 .ni-insight { margin: 4px 0 16px; padding: 12px 14px; border-radius: var(--radius-sm); background: var(--chart-line-soft); border: 1px solid color-mix(in srgb, var(--brand) 30%, var(--border)); font-size: 13px; line-height: 1.55; color: var(--ink); }
 .ni-insight-more { color: var(--ink-muted); }
 .ni-chart-box { position: relative; width: 100%; padding: 8px 4px 0; }
+
+/* Pendapatan Bersih: tombol ekspor & status simpan */
+.ni-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; flex: 0 0 auto; }
+.ni-actions .btn { flex: 0 0 auto; padding: 9px 14px; }
+.ni-actions .btn:disabled { opacity: .6; cursor: progress; }
+.ni-sync { border: none; background: none; padding: 0 4px; font: inherit; font-size: 12px; color: var(--ink-muted); cursor: default; }
+.ni-sync.saved { color: var(--brand); }
+.ni-sync.saving { color: var(--ink-muted); }
+.ni-sync.error, .ni-sync.offline { color: var(--brick); }
+.ni-sync.error { cursor: pointer; text-decoration: underline; }
+@media (max-width: 640px) { .ni-actions { width: 100%; } .ni-actions .ni-sync { width: 100%; text-align: left; padding: 0; } }

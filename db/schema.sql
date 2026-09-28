@@ -47,3 +47,13 @@ CREATE INDEX IF NOT EXISTS idx_orders_order_id ON orders (order_id);
 -- Aman dijalankan berulang; dataset lama tetap terbaca (nilai default '' / 0).
 ALTER TABLE orders ADD COLUMN IF NOT EXISTS sku TEXT NOT NULL DEFAULT '';
 ALTER TABLE orders ADD COLUMN IF NOT EXISTS weight_g DOUBLE PRECISION NOT NULL DEFAULT 0;
+
+-- Isian "pendapatan bersih per kg" menu Pendapatan Bersih, tersimpan per akun
+-- (berlaku untuk semua dataset milik akun itu; kuncinya SKU Induk / nama produk).
+CREATE TABLE IF NOT EXISTS net_income_rates (
+  user_id     BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  product_key TEXT NOT NULL,
+  per_kg      DOUBLE PRECISION NOT NULL CHECK (per_kg > 0),
+  updated_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+  PRIMARY KEY (user_id, product_key)
+);

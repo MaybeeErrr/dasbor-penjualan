@@ -6,8 +6,7 @@
 function computeBusinessInsight(){
   var recs = state.filtered;
   var orders = uniqueOrders(recs);
-  var completed = orders.filter(function(o){ return /selesai|complete|delivered/i.test(o.status); });
-  var base = completed.length ? completed : orders;
+  var base = OrderStatus.counted(orders);
   var totalRevenue = base.reduce(function(s,o){ return s+o.total_payment; }, 0);
   var totalTransactions = orders.length;
   var avgTransaction = base.length ? totalRevenue/base.length : 0;

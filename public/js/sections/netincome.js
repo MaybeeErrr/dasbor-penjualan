@@ -118,26 +118,126 @@ function niBuildChartConfig(items, total, getTheme){
       Dataset lama yang belum menyimpan berat: berat diperkirakan dari teks SKU/nama (mis. "1KG", "450gram") x Jumlah.
    3. Pengguna mengisi pendapatan bersih per kg untuk tiap produk.
    4. Pendapatan bersih produk = kg terjual x pendapatan bersih per kg; total = jumlah seluruh produk.
-   Pesanan berstatus batal / pengembalian tidak dihitung. Isian disimpan di peramban, per akun (localStorage),
-   dan berlaku untuk semua dataset karena satu produk punya pendapatan bersih per kg yang sama. */
+   Pesanan yang dihitung mengikuti definisi bersama di core/order-status.js (sama dengan menu lain).
+   Isian disimpan di database per akun (tabel net_income_rates, endpoint /api/net-income-rates), sehingga ikut ke
+   perangkat mana pun, dan berlaku untuk semua dataset karena satu produk punya pendapatan bersih per kg yang sama.
+   Isian lama di localStorage otomatis dipindahkan ke akun saat pertama kali masuk setelah update ini. */
 var NetIncome = (function(){
-  var STORE_PREFIX = 'sales-dash-net-per-kg:';
+  var LEGACY_PREFIX = 'sales-dash-net-per-kg:';   // penyimpanan lama (peramban); hanya dipakai untuk pemindahan/cadangan
+  var SAVE_DELAY = 700;
   var margins = {};     // { productKey: rupiah per kg }
   var rows = [];        // hasil hitung terakhir (urutan sama dengan baris tabel)
   var username = '';
-  var CANCELLED = /batal|cancel|pengembalian|return|refund/i;
+  var pending = {};     // perubahan yang belum terkirim ke server: { productKey: number | null }
+  var loaded = false;   // isian dari server sudah dimuat
+  var offline = false;  // gagal menghubungi server -> sementara memakai localStorage
+  var inFlight = false;
+  var flushTimer = null;
 
-  /* ---------- penyimpanan isian ---------- */
-  function storeKey(){ return STORE_PREFIX + (username || '_'); }
-  function loadMargins(){
-    margins = {};
+  /* ---------- penyimpanan lama (localStorage) ---------- */
+  function legacyKey(){ return LEGACY_PREFIX + (username || '_'); }
+  function readLegacy(){
+    var out = {};
     try {
-      var raw = localStorage.getItem(storeKey());
-      if(raw){ var obj = JSON.parse(raw); if(obj && typeof obj === 'object') margins = obj; }
-    } catch(e){ margins = {}; }
+      var raw = localStorage.getItem(legacyKey());
+      if(raw){
+        var obj = JSON.parse(raw);
+        if(obj && typeof obj === 'object') Object.keys(obj).forEach(function(k){
+          if(typeof obj[k] === 'number' && isFinite(obj[k]) && obj[k] > 0) out[k] = obj[k];
+        });
+      }
+    } catch(e){ out = {}; }
+    return out;
   }
-  function saveMargins(){
-    try { localStorage.setItem(storeKey(), JSON.stringify(margins)); } catch(e){ /* mode privat/penuh: abaikan */ }
+  function writeLegacy(){ try { localStorage.setItem(legacyKey(), JSON.stringify(margins)); } catch(e){ /* mode privat/penuh: abaikan */ } }
+  function dropLegacy(){ try { localStorage.removeItem(legacyKey()); } catch(e){} }
+
+  /* ---------- sinkronisasi ke akun (database) ---------- */
+  function toast(msg, type){ if(typeof dsToast === 'function') dsToast(msg, type); }
+  function setSync(kind){
+    var el = document.getElementById('niSync');
+    if(!el) return;
+    var text = { saving:'Menyimpan…', saved:'Tersimpan di akun', error:'Gagal menyimpan. Klik untuk coba lagi', offline:'Tidak terhubung: isian hanya tersimpan di peramban ini' }[kind] || '';
+    el.textContent = text;
+    el.className = 'ni-sync' + (kind ? ' ' + kind : '');
+    el.disabled = kind !== 'error';
+    el.style.display = kind ? '' : 'none';
+  }
+
+  function hasPending(){ return Object.keys(pending).length > 0; }
+
+  function flush(){
+    clearTimeout(flushTimer); flushTimer = null;
+    if(inFlight || !hasPending() || !loaded || offline) return;
+    var batch = pending;
+    pending = {};
+    inFlight = true;
+    setSync('saving');
+    Api.netRates.save(batch, { keepalive: true }).then(function(){
+      inFlight = false;
+      if(hasPending()) flush(); else setSync('saved');
+    }).catch(function(err){
+      inFlight = false;
+      var merged = {};                                   // perubahan yang lebih baru menimpa yang gagal terkirim
+      Object.keys(batch).forEach(function(k){ merged[k] = batch[k]; });
+      Object.keys(pending).forEach(function(k){ merged[k] = pending[k]; });
+      pending = merged;
+      setSync('error');
+      if(err && err.status === 401) toast('Sesi berakhir. Masuk kembali agar isian tersimpan.', 'error');
+    });
+  }
+
+  function queueSave(key, value){
+    pending[key] = value;                                // value: angka > 0, atau null untuk menghapus
+    if(offline){ writeLegacy(); return; }
+    if(!loaded) return;                                  // akan dikirim setelah isian dari server selesai dimuat
+    setSync('saving');
+    clearTimeout(flushTimer);
+    flushTimer = setTimeout(flush, SAVE_DELAY);
+  }
+
+  function refreshAfterLoad(){
+    if(!state.filtered.length) return;
+    var ae = document.activeElement;
+    var idx = (ae && ae.classList && ae.classList.contains('ni-input')) ? ae.getAttribute('data-i') : null;
+    render();
+    if(idx !== null){
+      var el = document.querySelector('.ni-input[data-i="' + idx + '"]');
+      if(el) el.focus();
+    }
+  }
+
+  function loadMargins(){
+    margins = {}; pending = {}; loaded = false; offline = false; inFlight = false;
+    clearTimeout(flushTimer); flushTimer = null;
+    setSync('');
+    Api.netRates.load().then(function(server){
+      var legacy = readLegacy();
+      var merged = {};
+      Object.keys(server).forEach(function(k){ if(server[k] > 0) merged[k] = server[k]; });
+      if(!Object.keys(merged).length && Object.keys(legacy).length){
+        // Pemindahan satu kali: isian lama di peramban ini dikirim ke akun.
+        merged = legacy;
+        Api.netRates.save(legacy).then(dropLegacy).catch(function(){ /* dicoba lagi saat masuk berikutnya */ });
+        toast('Isian pendapatan bersih per kg dipindahkan ke akun Anda');
+      } else if(Object.keys(legacy).length){
+        dropLegacy();                                    // data di akun yang dipakai; salinan lama sudah tidak relevan
+      }
+      Object.keys(pending).forEach(function(k){          // ketikan sebelum data selesai dimuat tetap menang
+        if(pending[k] === null) delete merged[k]; else merged[k] = pending[k];
+      });
+      margins = merged;
+      loaded = true;
+      refreshAfterLoad();
+      if(hasPending()) flush();
+    }).catch(function(){
+      offline = true;
+      var merged = readLegacy();
+      Object.keys(pending).forEach(function(k){ if(pending[k] === null) delete merged[k]; else merged[k] = pending[k]; });
+      margins = merged;
+      setSync('offline');
+      refreshAfterLoad();
+    });
   }
 
   /* ---------- berat ---------- */
@@ -163,7 +263,7 @@ var NetIncome = (function(){
 
   /* ---------- perhitungan ---------- */
   function compute(){
-    var base = state.filtered.filter(function(r){ return !CANCELLED.test(r.status || ''); });
+    var base = OrderStatus.counted(state.filtered);
     var map = {};
     base.forEach(function(r){
       var key = (r.sku || r.product || 'Tidak diketahui').trim() || 'Tidak diketahui';
@@ -212,7 +312,7 @@ var NetIncome = (function(){
     var avg = t.filledKg > 0 ? t.net / t.filledKg : 0;
     var cards = [
       { label:'Total pendapatan bersih', value: idr(t.net), delta:'jumlah (kg terjual x pendapatan bersih per kg) seluruh produk', cls:'' },
-      { label:'Total berat terjual', value: fmtKg(t.kg) + ' kg', delta:'dari pesanan yang tidak batal/dikembalikan', cls:'amber' },
+      { label:'Total berat terjual', value: fmtKg(t.kg) + ' kg', delta:'dari pesanan yang dihitung (status selesai)', cls:'amber' },
       { label:'Produk sudah diisi', value: t.filled + ' / ' + t.count, delta:'produk tanpa isian dihitung Rp0', cls: (t.filled < t.count ? 'warn' : '') },
       { label:'Rata-rata bersih per kg', value: idr(avg), delta:'tertimbang berat, hanya produk yang sudah diisi', cls:'' }
     ];
@@ -323,7 +423,7 @@ var NetIncome = (function(){
     if(!p) return;
     var v = parseIDNumber(el.value);
     if(v > 0) margins[p.key] = v; else delete margins[p.key];
-    saveMargins();
+    queueSave(p.key, v > 0 ? v : null);
     document.getElementById('niNet' + i).textContent = netText(p);
     var rowEl = document.getElementById('niRow' + i);
     if(rowEl) rowEl.classList.toggle('filled', marginOf(p) > 0);
@@ -334,10 +434,15 @@ var NetIncome = (function(){
   }
 
   document.getElementById('niTableBody').addEventListener('input', onInput);
+
+  document.getElementById('niSync').addEventListener('click', function(){ flush(); });
+  // Kirim sisa perubahan bila tab disembunyikan / ditutup sebelum jeda simpan habis.
+  document.addEventListener('visibilitychange', function(){ if(document.visibilityState === 'hidden') flush(); });
+
   document.getElementById('niBtnClear').addEventListener('click', function(){
     var n = Object.keys(margins).length;
     if(!n){
-      if(typeof dsToast === 'function') dsToast('Belum ada isian yang perlu dihapus');
+      toast('Belum ada isian yang perlu dihapus');
       return;
     }
     showConfirmModal({
@@ -348,11 +453,72 @@ var NetIncome = (function(){
       danger: true
     }).then(function(ok){
       if(!ok) return;
-      margins = {};
-      saveMargins();
-      render();
-      if(typeof dsToast === 'function') dsToast('Semua isian dihapus');
+      var done = function(){
+        margins = {}; pending = {};
+        clearTimeout(flushTimer); flushTimer = null;
+        if(offline) writeLegacy();
+        render();
+        toast('Semua isian dihapus');
+      };
+      if(offline || !loaded){ done(); return; }
+      Api.netRates.clear().then(done).catch(function(err){
+        toast('Gagal menghapus isian: ' + ((err && err.message) || 'coba lagi'), 'error');
+      });
     });
+  });
+
+  /* ---------- ekspor ---------- */
+  function activeDatasetName(){
+    var id = state.activeDatasetId;
+    var ds = (state.datasets || []).filter(function(d){ return String(d.id) === String(id); })[0];
+    return ds ? ds.name : 'Dataset aktif';
+  }
+  function selectText(id, allValue){
+    var el = document.getElementById(id);
+    if(!el || el.value === allValue) return '';
+    var opt = el.options[el.selectedIndex];
+    return opt ? opt.textContent : '';
+  }
+  // Data untuk NetIncomeExport: mengikuti persis tabel yang tampil (dataset & filter aktif, isian terbaru).
+  function getExportData(){
+    var t = totals();
+    var list = rows.map(function(p){
+      var m = marginOf(p);
+      return { key: p.key, name: p.name, units: p.units, kg: p.kg, revenue: p.revenue, perKg: m, net: m > 0 ? p.kg * m : 0 };
+    });
+    var notes = [];
+    if(t.count && t.filled < t.count) notes.push((t.count - t.filled) + ' produk belum diisi pendapatan bersih per kg-nya, sehingga tidak masuk ke total.');
+    if(t.guessed) notes.push(t.guessed + ' baris pesanan tidak menyimpan berat; beratnya diperkirakan dari teks SKU/nama produk.');
+    if(t.missing) notes.push(t.missing + ' baris pesanan tidak punya data berat yang bisa dibaca dan dihitung 0 kg.');
+    var units = 0, revenue = 0;
+    rows.forEach(function(p){ units += p.units; revenue += p.revenue; });
+    return {
+      meta: {
+        dataset: activeDatasetName(),
+        status: selectText('filterStatus', '__all__'),
+        province: selectText('filterProvince', '__all__'),
+        generatedAt: new Date()
+      },
+      rows: list,
+      totals: { units: units, kg: t.kg, revenue: revenue, net: t.net, filled: t.filled, count: t.count },
+      notes: notes
+    };
+  }
+
+  function runExport(btn, fn, okMsg){
+    if(!rows.length){ toast('Belum ada data untuk diekspor', 'error'); return; }
+    var label = btn.textContent;
+    btn.disabled = true; btn.textContent = 'Menyiapkan…';
+    Promise.resolve().then(function(){ return fn(getExportData()); })
+      .then(function(name){ toast(okMsg + ': ' + name); })
+      .catch(function(err){ toast((err && err.message) || 'Ekspor gagal', 'error'); })
+      .then(function(){ btn.disabled = false; btn.textContent = label; });
+  }
+  document.getElementById('niBtnExcel').addEventListener('click', function(){
+    runExport(this, NetIncomeExport.toExcel, 'Excel diunduh');
+  });
+  document.getElementById('niBtnPdf').addEventListener('click', function(){
+    runExport(this, NetIncomeExport.toPdf, 'PDF diunduh');
   });
 
   document.addEventListener('auth:ready', function(e){
@@ -360,7 +526,7 @@ var NetIncome = (function(){
     loadMargins();
   });
 
-  return { render: render };
+  return { render: render, getExportData: getExportData };
 })();
 
 function renderNetIncome(){ NetIncome.render(); }

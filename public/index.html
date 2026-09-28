@@ -500,9 +500,14 @@
           <div class="panel-head">
             <div>
               <h3>Pendapatan Bersih per Produk</h3>
-              <div class="desc">Daftar produk dibaca otomatis dari dataset yang aktif. Isi pendapatan bersih per kilogram tiap produk, lalu total pendapatan bersih dihitung dari berat terjual (kolom Berat Produk) pada pesanan yang tidak batal/dikembalikan. Isian tersimpan di peramban untuk akun ini dan berlaku di semua dataset.</div>
+              <div class="desc">Daftar produk dibaca otomatis dari dataset yang aktif. Isi pendapatan bersih per kilogram tiap produk, lalu total pendapatan bersih dihitung dari berat terjual (kolom Berat Produk) pada pesanan yang tidak batal/dikembalikan. Isian tersimpan di akun Anda (database), jadi ikut ke perangkat mana pun dan berlaku di semua dataset.</div>
             </div>
-            <button class="btn btn-secondary" id="niBtnClear" type="button" style="flex:0 0 auto;">Hapus semua isian</button>
+            <div class="ni-actions">
+              <button class="ni-sync" id="niSync" type="button" style="display:none;" disabled aria-live="polite"></button>
+              <button class="btn btn-secondary" id="niBtnExcel" type="button">Ekspor Excel</button>
+              <button class="btn btn-secondary" id="niBtnPdf" type="button">Ekspor PDF</button>
+              <button class="btn btn-secondary" id="niBtnClear" type="button">Hapus semua isian</button>
+            </div>
           </div>
           <div class="forecast-empty" id="niEmpty">Belum ada produk yang dapat dianalisis.</div>
           <div id="niContent">
@@ -815,12 +820,14 @@
 <script src="/js/core/utils.js"></script>
 <script src="/js/core/bubble.js"></script>
 <script src="/js/core/state.js"></script>
+<script src="/js/core/order-status.js"></script>
 <script src="/js/data/mapping.js"></script>
 <script src="/js/data/api.js"></script>
 <script src="/js/data/upload.js"></script>
 <script src="/js/core/records.js"></script>
 <script src="/js/sections/overview.js"></script>
 <script src="/js/sections/products.js"></script>
+<script src="/js/sections/netincome-export.js"></script>
 <script src="/js/sections/netincome.js"></script>
 <script src="/js/sections/customers.js"></script>
 <script src="/js/sections/segmentation.js"></script>

@@ -72,7 +72,7 @@ function nonEmptyProperSubsets(items){
 }
 
 function computeMarketBasket(){
-  var recs = state.filtered.filter(function(r){ return /selesai|complete|delivered/i.test(r.status); });
+  var recs = state.filtered.filter(function(r){ return OrderStatus.isCompleted(r.status); });
   if(!recs.length) return { ok:false, reason:'no_data' };
   var byOrder = {};
   recs.forEach(function(r){

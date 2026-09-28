@@ -19,15 +19,16 @@ dasbor-penjualan/
 │   ├── css/styles.css
 │   ├── data/demo-orders.json    ← data contoh (pratinjau saja, tidak disimpan)
 │   └── js/
-│       ├── core/      theme, utils, bubble, state, records, auth-ui (gerbang login/daftar)
+│       ├── core/      theme, utils, bubble, state, order-status (definisi status pesanan), records, auth-ui (gerbang login/daftar)
 │       ├── data/      mapping (pemetaan kolom), api (fetch ke backend), upload (parse & popup), datasets-ui (manajer dataset)
-│       ├── sections/  overview, products, customers, segmentation, insight, basket, evaluation, compare (perbandingan)
+│       ├── sections/  overview, products, netincome (+ netincome-export: Excel/PDF), customers, segmentation, insight, basket, evaluation, compare (perbandingan)
 │       ├── main.js    inisialisasi statistik data contoh di landing
 │       └── navigation.js
 ├── api/
 │   ├── auth.js                  ← POST (register/login) & GET (pulihkan sesi)  →  /api/auth
 │   ├── datasets.js              ← GET/POST/PATCH/DELETE dataset milik akun     →  /api/datasets
 │   ├── orders.js                ← GET/POST/DELETE pesanan per dataset          →  /api/orders?datasetId=
+│   ├── net-income-rates.js      ← GET/PUT/DELETE isian pendapatan bersih per kg  →  /api/net-income-rates
 │   └── _lib/  db.js, auth.js (token & kata sandi), orders-sql.js
 ├── db/  schema.sql, migrate.js, seed.js
 ├── package.json  vercel.json  .env.example  .gitignore
@@ -52,11 +53,25 @@ Catatan: file JS memakai *global scope* bersama (tanpa bundler), jadi **urutan `
 
 ## Menu Pendapatan Bersih
 
-Menu **Pendapatan Bersih** (sidebar → Analisis) membaca semua produk pada dataset aktif (kunci: kolom *SKU Induk*), menampilkan berat terjual per produk (kolom *Berat Produk*, dalam kg), dan menyediakan kolom isian **pendapatan bersih per kg**. Total pendapatan bersih = Σ (kg terjual × pendapatan bersih per kg). Pesanan batal/dikembalikan tidak dihitung.
+Menu **Pendapatan Bersih** (sidebar → Analisis) membaca semua produk pada dataset aktif (kunci: kolom *SKU Induk*), menampilkan berat terjual per produk (kolom *Berat Produk*, dalam kg), dan menyediakan kolom isian **pendapatan bersih per kg**. Total pendapatan bersih = Σ (kg terjual × pendapatan bersih per kg). Hanya pesanan yang dihitung menurut definisi status bersama (lihat bagian *Definisi pesanan yang dihitung*) yang masuk.
 
-- Isian disimpan di `localStorage` per akun dan berlaku untuk semua dataset.
-- Dua kolom baru di tabel `orders`: `sku` dan `weight_g`. **Jalankan ulang `db/schema.sql` (atau `npm run db:migrate`) sekali** di Neon agar kolom ini dibuat; perintahnya idempotent.
+- **Isian disimpan di database per akun** (tabel `net_income_rates`, endpoint `/api/net-income-rates`), berlaku untuk semua dataset dan ikut ke perangkat mana pun. Perubahan dikirim otomatis ±0,7 detik setelah berhenti mengetik; status simpan tampil di sebelah tombol. Bila server tidak terjangkau, isian sementara disimpan di peramban dan menu memberi peringatan.
+- **Pemindahan otomatis:** isian lama yang tersimpan di `localStorage` (versi sebelumnya) dikirim ke akun sekali saat masuk pertama setelah update, lalu salinan lokalnya dihapus.
+- **Ekspor:** tombol *Ekspor Excel* (.xlsx, dengan rumus total bersih dan SUM sehingga angka bisa diubah di Excel) dan *Ekspor PDF* (A4 lanskap, ringkasan + tabel + catatan). Isi ekspor sama persis dengan tabel yang tampil (dataset dan filter aktif). Pustaka PDF (jsPDF + AutoTable) dimuat dari cdnjs hanya saat tombol PDF ditekan pertama kali; karakter di luar Latin-1 (mis. emoji) pada nama produk dibuang dari PDF.
+- Kolom baru di tabel `orders`: `sku` dan `weight_g`, serta tabel baru `net_income_rates`. **Jalankan ulang `db/schema.sql` (atau `npm run db:migrate`) sekali** di Neon agar semuanya dibuat; perintahnya idempotent.
 - Dataset yang diunggah sebelum update ini tidak punya berat tersimpan; berat diperkirakan dari teks SKU/nama (mis. "1KG", "450gram") dan menu memberi peringatan. Unggah ulang berkas asli agar memakai kolom *Berat Produk*.
+
+## Definisi pesanan yang dihitung
+
+Semua menu (Dasbor Utama, Product Analytics, Pendapatan Bersih, RFM, Market Basket, Insight, Perbandingan Dataset) memakai satu fungsi bersama, `OrderStatus` di `public/js/core/order-status.js`:
+
+| Status | Diperlakukan sebagai | Contoh |
+|---|---|---|
+| Memuat *batal, cancel, gagal, pengembalian, return, kembali, refund* | **Batal** (dicek lebih dulu) | Batal, Dibatalkan, Pengembalian Selesai |
+| Bukan batal, memuat *selesai, complete, deliver, diterima* | **Selesai** (dihitung) | Selesai, Completed, Pesanan Diterima |
+| Lainnya | Netral: tidak dihitung dan tidak dianggap batal | Sedang Dikirim, Belum Bayar |
+
+Bila dataset sama sekali tidak punya pesanan selesai, dipakai semua yang tidak batal (dan bila itu pun kosong, semua baris) agar dasbor tetap menampilkan data. Mengubah aturan cukup di satu file itu.
 
 ## Langkah 1 — Siapkan database di Neon
 

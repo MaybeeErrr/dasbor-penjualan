@@ -10,8 +10,6 @@ var DatasetCompare = (function(){
   var COLOR_VARS = ['--brand', '--blue', '--amber', '--brick'];
   var COLOR_FALLBACK = ['#6FBE8F', '#4A86C5', '#E2B15C', '#E08579'];
   var DAY_NAMES = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
-  var DONE_RE = /selesai|complete|deliver|diterima/i;
-  var CANCEL_RE = /batal|cancel|gagal|return|kembali|refund/i;
 
   var selected = [];          // id dataset (string) sesuai urutan dipilih; urutan pertama = baseline
   var cache = {};             // metrik per dataset agar tidak dihitung ulang
@@ -171,14 +169,15 @@ var DatasetCompare = (function(){
     });
     orders.forEach(function(o){
       o.value = o.total || o.sub || o.line;
-      o.cancel = !!o.status && CANCEL_RE.test(o.status);
-      o.done = !!o.status && !o.cancel && DONE_RE.test(o.status);
+      o.cancel = !!o.status && OrderStatus.isCancelled(o.status);
+      o.done = !!o.status && OrderStatus.isCompleted(o.status);
     });
 
     m.orders = orders.length;
     var done = orders.filter(function(o){ return o.done; });
-    m.fallbackAll = done.length === 0;
-    var base = m.fallbackAll ? orders : done;
+    var picked = OrderStatus.pick(orders, function(o){ return o.status; });
+    m.fallbackAll = picked.mode !== 'completed';
+    var base = picked.items;
     m.baseOrders = base.length;
     m.cancelled = orders.filter(function(o){ return o.cancel; }).length;
     m.completionRate = orders.length ? done.length / orders.length * 100 : null;
@@ -548,7 +547,7 @@ var DatasetCompare = (function(){
       var uniq = tops.filter(function(x, i){ return tops.indexOf(x) === i; });
       out.push(uniq.length === 1 ? 'Produk terlaris <b>sama di semua dataset</b>: ' + esc(trunc(uniq[0], 90)) + ', sehingga performa produk andalan konsisten antarperiode.' : 'Produk terlaris <b>berbeda antardataset</b>, menandakan pergeseran produk andalan antarperiode \u2014 lihat daftar Produk terlaris di bawah.');
     }
-    R.forEach(function(r){ if(r.m.fallbackAll) out.push('Pada ' + nm(r) + ' tidak ditemukan pesanan berstatus selesai, sehingga seluruh pesanan dihitung dalam pendapatan.'); });
+    R.forEach(function(r){ if(r.m.fallbackAll) out.push('Pada ' + nm(r) + ' tidak ditemukan pesanan berstatus selesai, sehingga pesanan yang tidak batal dihitung dalam pendapatan.'); });
     var miss = [];
     R.forEach(function(r){ r.m.missing.forEach(function(x){ if(miss.indexOf(x) === -1) miss.push(x); }); });
     if(miss.length) out.push('Kolom berikut tidak terdeteksi pada sebagian data sehingga metrik terkait ditampilkan \u201c\u2014\u201d: ' + esc(miss.join(', ')) + '.');

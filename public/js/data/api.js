@@ -4,6 +4,7 @@
    - auth.register/login/logout/restoreSession : akun per pengguna (token disimpan di localStorage)
    - datasets.list/create/rename/remove         : dataset penjualan milik akun yang sedang login
    - orders.load/save/clear                     : baris pesanan, selalu terikat ke satu datasetId
+   - netRates.load/save/clear                   : isian pendapatan bersih per kg (per akun, semua dataset)
    - loadDemo()                                 : ambil data contoh statis (/data/demo-orders.json) */
 var Api = (function(){
   var TOKEN_KEY = 'sales-dash-auth-token';
@@ -13,11 +14,11 @@ var Api = (function(){
   function getToken(){ try { return localStorage.getItem(TOKEN_KEY) || ''; } catch(e){ return ''; } }
   function setToken(t){ try { if(t) localStorage.setItem(TOKEN_KEY, t); else localStorage.removeItem(TOKEN_KEY); } catch(e){} }
 
-  function request(method, url, body){
+  function request(method, url, body, opts){
     var headers = { 'Content-Type': 'application/json' };
     var token = getToken();
     if(token) headers['Authorization'] = 'Bearer ' + token;
-    return fetch(url, { method: method, headers: headers, body: body ? JSON.stringify(body) : undefined })
+    return fetch(url, { method: method, headers: headers, body: body ? JSON.stringify(body) : undefined, keepalive: !!(opts && opts.keepalive) })
       .then(function(res){
         return res.json().catch(function(){ return {}; }).then(function(data){
           if(!res.ok){
@@ -99,6 +100,12 @@ var Api = (function(){
 
   function clearOrders(datasetId){ return request('DELETE', '/api/orders?datasetId=' + datasetId); }
 
+  /* ---------------- Isian pendapatan bersih per kg (per akun) ---------------- */
+  function loadRates(){ return request('GET', '/api/net-income-rates').then(function(d){ return d.rates || {}; }); }
+  // rates: { kunciProduk: rupiahPerKg | null } — null/0 menghapus isian produk itu.
+  function saveRates(rates, opts){ return request('PUT', '/api/net-income-rates', { rates: rates }, opts); }
+  function clearRates(){ return request('DELETE', '/api/net-income-rates'); }
+
   function loadDemo(){
     return fetch('/data/demo-orders.json').then(function(res){
       if(!res.ok) throw new Error('Berkas data contoh tidak ditemukan.');
@@ -111,6 +118,7 @@ var Api = (function(){
     auth: { register: register, login: login, logout: logout, restoreSession: restoreSession },
     datasets: { list: listDatasets, create: createDataset, rename: renameDataset, remove: removeDataset },
     orders: { load: loadOrders, save: saveOrders, clear: clearOrders },
+    netRates: { load: loadRates, save: saveRates, clear: clearRates },
     loadDemo: loadDemo
   };
 })();

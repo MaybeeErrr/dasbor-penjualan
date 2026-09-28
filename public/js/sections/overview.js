@@ -53,7 +53,7 @@ function renderPreprocessingOverview(){
   steps.push({ b:'4. Penanganan duplikat', t: p.duplicatesRemoved > 0
     ? p.duplicatesRemoved + ' baris duplikat (identik pada No. Pesanan, Produk, Variasi, Harga, Jumlah, Subtotal, Total Pembayaran, dan Tanggal) dihapus agar tidak dihitung ganda.'
     : 'Tidak ditemukan baris duplikat persis pada data ini.' });
-  steps.push({ b:'5. Filtering transaksi', t: 'Perhitungan pendapatan, RFM, dan forecasting memakai transaksi berstatus "Selesai" secara default; jika tidak ada transaksi selesai pada filter aktif, seluruh transaksi dipakai sebagai fallback agar dasbor tetap menampilkan data apa adanya.' });
+  steps.push({ b:'5. Filtering transaksi', t: 'Perhitungan pendapatan, RFM, dan forecasting memakai transaksi berstatus "Selesai" secara default; status lain seperti "Sedang Dikirim" atau "Belum Bayar" tidak dihitung, dan definisi ini sama di semua menu. Jika tidak ada transaksi selesai pada filter aktif, transaksi yang tidak batal dipakai sebagai fallback agar dasbor tetap menampilkan data apa adanya.' });
   steps.push({ b:'6. Standardisasi sebelum K-Means', t: 'Nilai Recency, Frequency, dan Monetary distandardisasi (z-score) sebelum dipakai K-Means, agar skala Monetary yang jauh lebih besar tidak mendominasi perhitungan jarak antar pelanggan.' });
   stepsEl.innerHTML = steps.map(function(s){
     return '<div class="pre-step"><span class="dot"></span><div><b>'+escapeHtml(s.b)+'</b><br><span class="muted-txt">'+escapeHtml(s.t)+'</span></div></div>';
@@ -63,12 +63,13 @@ function renderPreprocessingOverview(){
 function renderKPIs(){
   var recs = state.filtered;
   var orders = uniqueOrders(recs);
-  var completedOrders = orders.filter(function(o){ return /selesai|complete|delivered/i.test(o.status); });
-  var revenueBase = completedOrders.length ? completedOrders : orders;
+  var completedOrders = orders.filter(function(o){ return OrderStatus.isCompleted(o.status); });
+  var cancelledOrders = orders.filter(function(o){ return OrderStatus.isCancelled(o.status); });
+  var revenueBase = OrderStatus.counted(orders);
   var totalRevenue = revenueBase.reduce(function(s,o){ return s + o.total_payment; }, 0);
   var totalOrders = orders.length;
   var avgOrder = revenueBase.length ? totalRevenue / revenueBase.length : 0;
-  var qtyTerjual = recs.filter(function(r){ return revenueBase.indexOf(orders.find(function(o){return o.order_id===r.order_id;})) !== -1 || /selesai|complete|delivered/i.test(r.status); })
+  var qtyTerjual = recs.filter(function(r){ return revenueBase.indexOf(orders.find(function(o){return o.order_id===r.order_id;})) !== -1 || OrderStatus.isCompleted(r.status); })
     .reduce(function(s,r){ return s + r.qty; }, 0);
 
   // week over week
@@ -78,13 +79,13 @@ function renderKPIs(){
   var prev7 = days.slice(-14,-7).reduce(function(s,k){ return s + byDay[k]; }, 0);
   var delta = prev7 > 0 ? ((last7 - prev7) / prev7 * 100) : null;
 
-  var cancelRate = totalOrders ? ( (totalOrders - completedOrders.length) / totalOrders * 100 ) : 0;
+  var cancelRate = totalOrders ? ( cancelledOrders.length / totalOrders * 100 ) : 0;
 
   var kpis = [
     {label:'Total pendapatan', value: idr(totalRevenue), delta: delta === null ? '7 hari terakhir tidak cukup data' : ( (delta>=0?'▲ ':'▼ ') + Math.abs(delta).toFixed(1) + '% vs 7 hari sebelumnya'), cls: delta===null?'':(delta>=0?'up':'down')},
     {label:'Total pesanan', value: totalOrders.toLocaleString('id-ID'), delta: completedOrders.length + ' selesai', cls:''},
     {label:'Rata-rata nilai pesanan', value: idr(avgOrder), delta:'per pesanan selesai', cls:''},
-    {label:'Tingkat pembatalan', value: cancelRate.toFixed(1) + '%', delta: (totalOrders-completedOrders.length)+' pesanan dibatalkan', cls: cancelRate>15?'down':''}
+    {label:'Tingkat pembatalan', value: cancelRate.toFixed(1) + '%', delta: cancelledOrders.length+' pesanan dibatalkan', cls: cancelRate>15?'down':''}
   ];
   var grid = document.getElementById('kpiGrid');
   grid.innerHTML = kpis.map(function(k, i){
@@ -140,8 +141,7 @@ var MIN_FORECAST_DAYS = 2; // minimum distinct days of history needed to fit a l
 
 function getForecastModel(){
   var recs = state.filtered;
-  var orders = uniqueOrders(recs).filter(function(o){ return /selesai|complete|delivered/i.test(o.status); });
-  var byDay = groupByDay(orders.length ? orders : uniqueOrders(recs));
+  var byDay = groupByDay(OrderStatus.counted(uniqueOrders(recs)));
   var series = fillDayRange(byDay);
   var actualDays = series.values.length;
   var hasEnoughData = actualDays >= MIN_FORECAST_DAYS;
@@ -422,8 +422,7 @@ function renderForecast(){
 }
 
 function renderTopProducts(){
-  var recs = state.filtered.filter(function(r){ return /selesai|complete|delivered/i.test(r.status); });
-  var base = recs.length ? recs : state.filtered;
+  var base = OrderStatus.counted(state.filtered);
   var map = {};
   base.forEach(function(r){
     var key = r.product || 'Tidak diketahui';
@@ -489,7 +488,7 @@ function renderStatusChart(){
   });
   var labels = Object.keys(map);
   var values = labels.map(function(k){ return map[k]; });
-  var palette = labels.map(function(l){ return /selesai|complete|delivered/i.test(l) ? '#2F6F4E' : (/batal|cancel/i.test(l) ? '#B0473B' : '#C98A22'); });
+  var palette = labels.map(function(l){ return OrderStatus.isCompleted(l) ? '#2F6F4E' : (OrderStatus.isCancelled(l) ? '#B0473B' : '#C98A22'); });
   var ctx = document.getElementById('statusChart').getContext('2d');
   if(charts.status) charts.status.destroy();
   var css = getComputedStyle(document.documentElement);
