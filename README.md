@@ -19,7 +19,7 @@ dasbor-penjualan/
 │   ├── css/styles.css
 │   ├── data/demo-orders.json    ← data contoh (pratinjau saja, tidak disimpan)
 │   └── js/
-│       ├── core/      theme, utils, bubble, state, order-status (definisi status pesanan), records, auth-ui (gerbang login/daftar)
+│       ├── core/      theme, utils, bubble, state, order-status (definisi status pesanan), forecast (mesin forecasting murni: model, backtest, pita), records, auth-ui (gerbang login/daftar)
 │       ├── data/      mapping (pemetaan kolom), api (fetch ke backend), upload (parse & popup), datasets-ui (manajer dataset)
 │       ├── sections/  overview, products, netincome (+ netincome-export: Excel/PDF), customers, segmentation, insight, basket, evaluation, compare (perbandingan)
 │       ├── main.js    inisialisasi statistik data contoh di landing
@@ -169,7 +169,7 @@ vercel --prod                # deploy produksi
 - Data pesanan bisa memuat kota/pelanggan; jaga repo GitHub tetap *private* dan jangan commit `.env`.
 - Seluruh perhitungan analitik (forecasting, K-Means, Apriori, perbandingan dataset) berjalan di sisi klien/peramban, bukan di server — lihat batasan skalabilitas terkait di `docs/metodologi-dan-pengujian.md`.
 
-> Untuk justifikasi pemilihan tiap algoritma (kenapa regresi linier, K-Means, dan Apriori — bukan alternatif lain), peta metodologi CRISP-DM, serta rencana pengujian black-box, lihat **`docs/metodologi-dan-pengujian.md`**. Dokumen itu dirancang untuk dikutip langsung ke bab Metodologi Penelitian dan bab Pengujian pada laporan skripsi.
+> Untuk justifikasi pemilihan tiap algoritma (kenapa model level × pola hari, K-Means, dan Apriori — bukan alternatif lain), peta metodologi CRISP-DM, serta rencana pengujian black-box, lihat **`docs/metodologi-dan-pengujian.md`**. Dokumen itu dirancang untuk dikutip langsung ke bab Metodologi Penelitian dan bab Pengujian pada laporan skripsi.
 
 ## Pemecahan masalah
 
@@ -190,7 +190,7 @@ vercel --prod                # deploy produksi
 - Menghapus dataset akan menghapus permanen seluruh baris pesanan di dalamnya (tidak bisa dibatalkan).
 - Silhouette Score dilewati bila pelanggan pada dataset aktif > 1.500 (batas asli dasbor agar tetap responsif).
 - Market Basket Analysis (Apriori) dibatasi ke produk terpopuler (`MBA_MAX_PRODUCTS`) dan itemset maksimum 3 produk (`MBA_MAX_ITEMSET_SIZE`) agar tetap responsif di peramban pada data besar.
-- Model forecasting (regresi linier) tidak menangani pola musiman.
+- Model forecasting = level terbaru × faktor hari dalam seminggu. Hanya pola **mingguan** yang ditangani (tanpa tren yang diperpanjang, tanpa musim bulanan/tahunan). Data < 4 minggu diberi peringatan dan horizon dibatasi 7 hari; hari kosong beruntun (≥ 3 hari) dianggap data hilang. Evaluasi memakai backtest bergulir (MAE, RMSE, WAPE) dan dibandingkan dengan rata-rata biasa; pita ketidakpastian berasal dari galat backtest. Satuan prediksi dapat dipilih: Rupiah, jumlah pesanan, atau kg. Rincian di `docs/metodologi-dan-pengujian.md` bagian 2.1.
 - Mode Perbandingan menghitung metrik ringkasan (pendapatan, pesanan, AOV, produk terlaris, tren harian) per dataset — bukan menjalankan seluruh analisis mendalam (RFM, K-Means, forecasting, Apriori) secara berdampingan; untuk analisis mendalam per dataset, buka dataset tersebut satu per satu dari daftar dataset.
 - Seluruh perhitungan analitik tetap berjalan di peramban; database hanya menyimpan/menyajikan data mentah per dataset.
 

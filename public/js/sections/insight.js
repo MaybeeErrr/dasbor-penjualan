@@ -109,7 +109,7 @@ function renderIntelligentInsight(){
     paras.push('Dibandingkan paruh pertama periode data pada filter aktif, rata-rata pendapatan harian pada paruh kedua '+trendWord+(Math.abs(ins.trendPct)>=0.05?' sekitar '+Math.abs(ins.trendPct).toFixed(1)+'%':'')+'.');
   }
   if(ins.forecastModel.hasEnoughData){
-    paras.push('Model forecasting memproyeksikan tren penjualan ke depan berdasarkan '+ins.forecastModel.actualDays+' hari data historis pada filter aktif — lihat halaman Sales Forecasting dan Model Evaluation untuk detail akurasinya.');
+    paras.push('Model forecasting (level terbaru dikali pola hari dalam seminggu) memproyeksikan penjualan ke depan berdasarkan '+ins.forecastModel.validDays+' hari data valid dari rentang '+ins.forecastModel.actualDays+' hari pada filter aktif — lihat halaman Forecasting dan Model Evaluation untuk detail akurasinya, termasuk perbandingan dengan rata-rata biasa.');
   }
   narrEl.innerHTML = paras.map(function(p){ return '<p>'+p+'</p>'; }).join('');
 }
@@ -151,9 +151,9 @@ function renderBusinessRecommendation(){
   if(model.hasEnoughData){
     var relSlope = model.avgDaily>0 ? model.reg.slope/model.avgDaily : 0;
     if(relSlope > 0.01){
-      cards.push({tag:'Manajemen Stok', tone:'brand', condition:'Tren penjualan pada '+model.actualDays+' hari data historis menunjukkan kenaikan rata-rata sekitar '+(relSlope*100).toFixed(1)+'%/hari (regresi linier).', insight:'Permintaan diproyeksikan terus meningkat pada horizon ke depan.', action:'Tingkatkan stok produk terlaris ('+(ins.topProductByUnits?ins.topProductByUnits.name:'produk terlaris')+') dan siapkan kapasitas operasional untuk mengantisipasi lonjakan permintaan.'});
+      cards.push({tag:'Manajemen Stok', tone:'brand', condition:'Tren penjualan pada '+model.actualDays+' hari data historis menunjukkan kenaikan rata-rata sekitar '+(relSlope*100).toFixed(1)+'%/hari (kemiringan riwayat data setelah pola hari dinormalkan).', insight:'Permintaan cenderung meningkat berdasarkan riwayat data; prediksi ke depan memakai level terbaru dan tidak memperpanjang tren ini.', action:'Tingkatkan stok produk terlaris ('+(ins.topProductByUnits?ins.topProductByUnits.name:'produk terlaris')+') dan siapkan kapasitas operasional untuk mengantisipasi lonjakan permintaan.'});
     } else if(relSlope < -0.01){
-      cards.push({tag:'Strategi Promosi', tone:'brick', condition:'Tren penjualan pada '+model.actualDays+' hari data historis menunjukkan penurunan rata-rata sekitar '+(Math.abs(relSlope)*100).toFixed(1)+'%/hari (regresi linier).', insight:'Permintaan diproyeksikan melambat pada horizon ke depan.', action:'Pertimbangkan promosi bertarget, diskon musiman, atau kampanye pemasaran untuk mendorong kembali permintaan sebelum tren penurunan berlanjut.'});
+      cards.push({tag:'Strategi Promosi', tone:'brick', condition:'Tren penjualan pada '+model.actualDays+' hari data historis menunjukkan penurunan rata-rata sekitar '+(Math.abs(relSlope)*100).toFixed(1)+'%/hari (kemiringan riwayat data setelah pola hari dinormalkan).', insight:'Permintaan cenderung melambat berdasarkan riwayat data; prediksi ke depan memakai level terbaru dan tidak memperpanjang tren ini.', action:'Pertimbangkan promosi bertarget, diskon musiman, atau kampanye pemasaran untuk mendorong kembali permintaan sebelum tren penurunan berlanjut.'});
     }
   }
 

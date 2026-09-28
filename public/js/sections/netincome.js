@@ -241,25 +241,7 @@ var NetIncome = (function(){
   }
 
   /* ---------- berat ---------- */
-  // Perkiraan berat 1 unit (gram) dari teks; dipakai hanya bila berat tidak tersimpan pada dataset.
-  function guessUnitGrams(r){
-    var texts = [r.sku, r.variation, r.product];
-    for(var i = 0; i < texts.length; i++){
-      var m = String(texts[i] || '').match(/(\d+(?:[.,]\d+)?)\s*(kg|kilo|gram|gr|g)\b/i);
-      if(m){
-        var n = parseFloat(m[1].replace(',', '.'));
-        if(!isNaN(n) && n > 0) return /^(kg|kilo)/i.test(m[2]) ? n * 1000 : n;
-      }
-    }
-    return 0;
-  }
-  function lineWeight(r){
-    var qty = (typeof r.qty === 'number' && !isNaN(r.qty)) ? r.qty : 0;
-    if(r.weight_g > 0) return { grams: r.weight_g, source: 'data' };
-    var unit = guessUnitGrams(r);
-    if(unit > 0 && qty > 0) return { grams: unit * qty, source: 'guess' };
-    return { grams: 0, source: 'none' };
-  }
+  // guessUnitGrams() dan lineWeight() ada di core/utils.js (dipakai bersama menu Forecasting).
 
   /* ---------- perhitungan ---------- */
   function compute(){

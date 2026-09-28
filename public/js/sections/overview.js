@@ -107,89 +107,53 @@ function groupByDay(orders){
   return byDay;
 }
 
-function fillDayRange(byDay){
-  var keys = Object.keys(byDay).sort();
-  if(!keys.length) return {labels:[], values:[]};
-  var start = new Date(keys[0]);
-  var end = new Date(keys[keys.length-1]);
-  var labels = [], values = [];
-  var cur = new Date(start);
-  while(cur <= end){
-    var k = dayKey(cur);
-    labels.push(k);
-    values.push(byDay[k] || 0);
-    cur.setDate(cur.getDate()+1);
-  }
-  return {labels: labels, values: values};
+/* ---------------- Forecasting (level terbaru x pola hari dalam seminggu) ----------------
+   Mesin hitungnya ada di core/forecast.js (murni, tanpa DOM). Bagian ini hanya mengambil data dari
+   filter yang aktif, lalu menampilkan hasilnya. Metrik: 'revenue' (Rp), 'orders' (pesanan), 'kg'. */
+function getForecastPlan(metric, horizon){
+  var series = buildForecastSeries(state.filtered, metric || 'revenue');
+  return planForecast(series, horizon || state.horizon);
 }
 
-function linearRegression(values){
-  var n = values.length;
-  if(n < 2) return {slope:0, intercept: values[0] || 0, residualStd:0};
-  var sumX=0,sumY=0,sumXY=0,sumXX=0;
-  for(var i=0;i<n;i++){ sumX+=i; sumY+=values[i]; sumXY+=i*values[i]; sumXX+=i*i; }
-  var denom = (n*sumXX - sumX*sumX) || 1;
-  var slope = (n*sumXY - sumX*sumY) / denom;
-  var intercept = (sumY - slope*sumX) / n;
-  var sqErr = 0;
-  for(i=0;i<n;i++){ var pred = slope*i+intercept; sqErr += Math.pow(values[i]-pred,2); }
-  var residualStd = Math.sqrt(sqErr/n);
-  return {slope:slope, intercept:intercept, residualStd:residualStd};
-}
-
-var MIN_FORECAST_DAYS = 2; // minimum distinct days of history needed to fit a linear trend
-
+// Dipakai Insight & Ringkasan Eksekutif: selalu pendapatan. Properti yang dibaca pemanggil lama
+// (reg.slope, avgDaily, actualDays, hasEnoughData) tetap ada.
 function getForecastModel(){
-  var recs = state.filtered;
-  var byDay = groupByDay(OrderStatus.counted(uniqueOrders(recs)));
-  var series = fillDayRange(byDay);
-  var actualDays = series.values.length;
-  var hasEnoughData = actualDays >= MIN_FORECAST_DAYS;
-  var reg = hasEnoughData ? linearRegression(series.values) : {slope:0, intercept:0, residualStd:0};
-  var avgDaily = actualDays ? series.values.reduce(function(a,b){ return a+b; }, 0) / actualDays : 0;
-  return {series: series, reg: reg, actualDays: actualDays, hasEnoughData: hasEnoughData, avgDaily: avgDaily};
+  return getForecastPlan('revenue', state.horizon).model;
 }
 
-function renderRevenueChart(canvasId, chartKey){
+function forecastAxisTick(metric, v){
+  return metric === 'revenue' ? idrShort(v) : v.toLocaleString('id-ID', { maximumFractionDigits: 1 });
+}
+
+function renderRevenueChart(canvasId, chartKey, plan){
   canvasId = canvasId || 'revenueChart';
   chartKey = chartKey || 'revenue';
   var canvasEl = document.getElementById(canvasId);
   if(!canvasEl) return;
-  var model = getForecastModel();
-  var series = model.series, reg = model.reg;
-  var horizon = state.horizon;
+  plan = plan || getForecastPlan('revenue', state.horizon);
+  var metric = plan.metric;
+  var series = plan.series;
   var labels = series.labels.slice();
-  var actual = series.values.slice();
-  var forecastLine = new Array(actual.length).fill(null);
-  var forecastUpper = new Array(actual.length).fill(null);
-  var forecastLower = new Array(actual.length).fill(null);
-  var forecastBoundaryIndex = actual.length - 1;
-  var willForecast = model.hasEnoughData && actual.length > 0;
+  // Hari data hilang digambar sebagai celah (null), bukan sebagai penjualan Rp0.
+  var actual = series.values.map(function(v, i){ return series.missing[i] ? null : v; });
+  var n = actual.length;
+  var forecastLine = new Array(n).fill(null);
+  var forecastUpper = new Array(n).fill(null);
+  var forecastLower = new Array(n).fill(null);
+  var forecastBoundaryIndex = n - 1;
+  var willForecast = plan.hasEnoughData && n > 0;
 
   if(willForecast){
-    forecastLine[actual.length-1] = actual[actual.length-1];
-    forecastUpper[actual.length-1] = actual[actual.length-1];
-    forecastLower[actual.length-1] = actual[actual.length-1];
-
-    var lastDate = series.labels.length ? new Date(series.labels[series.labels.length-1]) : new Date();
-    for(var i=0;i<horizon;i++){
-      var idx = actual.length + i;
-      var pred = reg.slope*idx + reg.intercept;
-      pred = Math.max(0, pred);
-      var d = new Date(lastDate); d.setDate(d.getDate()+i+1);
-      labels.push(dayKey(d));
-      forecastLine.push(pred);
-      forecastUpper.push(Math.max(0, pred + reg.residualStd));
-      forecastLower.push(Math.max(0, pred - reg.residualStd));
-    }
+    forecastLine[n-1] = actual[n-1];
+    forecastUpper[n-1] = plan.band ? actual[n-1] : null;
+    forecastLower[n-1] = plan.band ? actual[n-1] : null;
+    plan.future.forEach(function(f){
+      labels.push(f.label);
+      forecastLine.push(f.pred);
+      forecastUpper.push(f.upper);   // null bila galat backtest belum cukup untuk menghitung pita
+      forecastLower.push(f.lower);
+    });
   }
-
-  var legendProyeksi = document.getElementById('legendProyeksi');
-  if(legendProyeksi) legendProyeksi.style.display = willForecast ? '' : 'none';
-  var legendProyeksiView = document.getElementById('legendProyeksiView');
-  if(legendProyeksiView) legendProyeksiView.style.display = willForecast ? '' : 'none';
-  var legendProyeksiViewHorizon = document.getElementById('legendProyeksiViewHorizon');
-  if(legendProyeksiViewHorizon) legendProyeksiViewHorizon.textContent = horizon;
 
   var ctx = canvasEl.getContext('2d');
   if(charts[chartKey]) charts[chartKey].destroy();
@@ -203,7 +167,7 @@ function renderRevenueChart(canvasId, chartKey){
         {
           label: 'Aktual', data: actual, borderColor: css.getPropertyValue('--chart-line').trim(),
           backgroundColor: css.getPropertyValue('--chart-line-soft').trim(), fill: true, tension: 0.3,
-          pointRadius: 0, borderWidth: 2.4
+          pointRadius: 0, borderWidth: 2.4, spanGaps: false
         },
         {
           label: 'Batas atas', data: forecastUpper, borderColor: 'transparent',
@@ -227,10 +191,16 @@ function renderRevenueChart(canvasId, chartKey){
         legend: {display:false},
         tooltip: {
           callbacks: {
-            label: function(ctx){
-              if(ctx.dataset.label==='Batas atas' || ctx.dataset.label==='Batas bawah') return null;
-              if(ctx.parsed.y === null) return null;
-              return ctx.dataset.label + ': ' + idr(ctx.parsed.y);
+            label: function(c){
+              if(c.dataset.label==='Batas atas' || c.dataset.label==='Batas bawah') return null;
+              if(c.parsed.y === null) return null;
+              return c.dataset.label + ': ' + fmtForecastValue(c.parsed.y, metric);
+            },
+            afterLabel: function(c){
+              if(c.dataset.label !== 'Proyeksi' || c.dataIndex < n) return null;
+              var up = forecastUpper[c.dataIndex], lo = forecastLower[c.dataIndex];
+              if(up === null || lo === null || up === undefined || lo === undefined) return null;
+              return 'Rentang 80%: ' + fmtForecastValue(lo, metric) + ' – ' + fmtForecastValue(up, metric);
             }
           },
           filter: function(item){ return item.dataset.label !== 'Batas atas' && item.dataset.label !== 'Batas bawah'; }
@@ -238,7 +208,7 @@ function renderRevenueChart(canvasId, chartKey){
       },
       scales: {
         x: {grid:{display:false}, ticks:{maxRotation:0, autoSkip:true, maxTicksLimit:10, color: css.getPropertyValue('--ink-muted').trim()}},
-        y: {grid:{color: css.getPropertyValue('--chart-grid').trim()}, ticks:{callback:function(v){return idrShort(v);}, color: css.getPropertyValue('--ink-muted').trim()}}
+        y: {grid:{color: css.getPropertyValue('--chart-grid').trim()}, ticks:{callback:function(v){ return forecastAxisTick(metric, v); }, color: css.getPropertyValue('--ink-muted').trim()}}
       }
     },
     plugins: [{
@@ -265,160 +235,192 @@ function renderRevenueChart(canvasId, chartKey){
   });
 }
 
-/* ---------------- Evaluasi forecasting (MAE / RMSE / MAPE) ---------------- */
-// Evaluasi dilakukan lewat backtesting sederhana: sebagian hari transaksi
-// TERBARU disisihkan sebagai data uji, model regresi linier yang sama
-// (fungsi linearRegression di atas, tidak diubah) dilatih ulang hanya pada
-// sisa data (data latih), lalu prediksinya dibandingkan dengan penjualan
-// aktual pada hari-hari yang disisihkan tadi. Ini memberi ukuran akurasi
-// yang jujur terhadap data yang belum "dilihat" oleh model, bukan sekadar
-// mengukur kecocokan model pada data yang sama yang dipakai untuk melatihnya.
-var EVAL_MIN_TRAIN_DAYS = 5;  // minimal hari data latih agar tren cukup stabil untuk diuji
-var EVAL_MIN_TEST_DAYS = 3;   // minimal hari data uji agar rata-rata metrik tidak goyah oleh 1-2 hari saja
-var EVAL_TEST_RATIO = 0.2;    // porsi data historis yang disisihkan sebagai data uji
+/* ---------------- Evaluasi forecasting (backtest bergulir: MAE / RMSE / WAPE) ---------------- */
+var EVAL_LOW_POINTS = 20;   // di bawah ini, perbandingan dengan rata-rata biasa diberi catatan "belum stabil"
 
-function evaluateForecast(model){
-  var values = model.series.values;
-  var n = values.length;
-  var minNeeded = EVAL_MIN_TRAIN_DAYS + EVAL_MIN_TEST_DAYS;
-  if(n < minNeeded){
-    return { ok:false, n:n, minNeeded:minNeeded };
-  }
-
-  var testSize = Math.max(EVAL_MIN_TEST_DAYS, Math.round(n * EVAL_TEST_RATIO));
-  testSize = Math.min(testSize, n - EVAL_MIN_TRAIN_DAYS);
-  if(testSize < EVAL_MIN_TEST_DAYS){
-    return { ok:false, n:n, minNeeded:minNeeded };
-  }
-
-  var trainSize = n - testSize;
-  var trainValues = values.slice(0, trainSize);
-  var testValues = values.slice(trainSize);
-  var reg = linearRegression(trainValues); // metode regresi linier yang sama, dilatih ulang pada data latih saja
-
-  var sumAbsErr = 0, sumSqErr = 0, sumAbsPct = 0, pctCount = 0;
-  for(var i=0;i<testSize;i++){
-    var idx = trainSize + i;
-    var pred = Math.max(0, reg.slope*idx + reg.intercept);
-    var actual = testValues[i];
-    var err = actual - pred;
-    sumAbsErr += Math.abs(err);
-    sumSqErr += err*err;
-    if(actual !== 0){
-      sumAbsPct += Math.abs(err/actual);
-      pctCount++;
-    }
-  }
-
-  return {
-    ok:true,
-    trainSize: trainSize,
-    testSize: testSize,
-    mae: sumAbsErr / testSize,
-    rmse: Math.sqrt(sumSqErr / testSize),
-    mape: pctCount ? (sumAbsPct / pctCount * 100) : null,
-    mapeSkipped: testSize - pctCount
-  };
+function compareVerdict(imp){
+  if(imp === null || imp === undefined) return { cls: '', text: 'Pembanding tidak dapat dihitung', short: '—' };
+  if(imp > 0.05) return { cls: 'pos', text: 'Model lebih baik ' + fmtPct(imp) + ' dari rata-rata biasa', short: '▲ lebih baik ' + fmtPct(imp) };
+  if(imp < -0.05) return { cls: 'neg', text: 'Model lebih buruk ' + fmtPct(Math.abs(imp)) + ' dari rata-rata biasa', short: '▼ lebih buruk ' + fmtPct(Math.abs(imp)) };
+  return { cls: '', text: 'Model setara dengan rata-rata biasa', short: '≈ setara' };
 }
 
-function renderForecastEvaluation(model){
+function foldTableHtml(bt){
+  var rows = bt.folds.map(function(f, i){
+    var v = compareVerdict(f.improvement);
+    return '<tr><td>' + (i + 1) + '</td><td>' + fmtDayShort(f.from) + ' – ' + fmtDayShort(f.to) + '</td>' +
+      '<td class="tabular">' + f.n + ' / ' + bt.horizon + '</td>' +
+      '<td class="tabular">' + fmtPct(f.wape) + '</td><td class="tabular">' + fmtPct(f.baseWape) + '</td>' +
+      '<td class="tabular eval-res ' + v.cls + '">' + v.short + '</td></tr>';
+  }).join('');
+  return '<div class="table-scroll"><table class="eval-folds-table"><thead><tr><th>#</th><th>Periode uji</th><th>Hari dinilai</th><th>WAPE model</th><th>WAPE rata-rata biasa</th><th>Hasil</th></tr></thead><tbody>' + rows + '</tbody></table></div>';
+}
+
+function renderForecastEvaluation(plan){
   var gridEl = document.getElementById('evalGrid');
   var emptyEl = document.getElementById('evalEmpty');
   var noteEl = document.getElementById('evalNote');
+  var cmpEl = document.getElementById('evalCompare');
+  var foldsEl = document.getElementById('evalFolds');
+  var descEl = document.getElementById('evalDesc');
   if(!gridEl) return;
 
-  var res = evaluateForecast(model);
+  var bt = plan.backtest;
+  var metric = plan.metric;
+  var H = plan.horizon;
 
-  if(!res.ok){
+  if(descEl){
+    descEl.textContent = 'Model dilatih ulang pada beberapa titik potong (backtest bergulir): pada tiap potongan, model hanya melihat data sebelum titik potong, memprediksi ' + H + ' hari berikutnya, lalu dibandingkan dengan aktual. Titik potong bergeser ' + FORECAST_CFG.EVAL_STRIDE + ' hari dan hanya ' + FORECAST_CFG.EVAL_MAX_FOLDS + ' potongan terbaru yang dipakai; hari data hilang tidak dinilai. Pembanding "rata-rata biasa" = rata-rata seluruh hari valid pada data latih potongan yang sama. Panjang uji mengikuti horizon yang dipilih (' + H + ' hari).';
+  }
+
+  if(!bt.ok){
     gridEl.classList.add('muted');
-    document.getElementById('evalMae').textContent = '—';
-    document.getElementById('evalRmse').textContent = '—';
-    document.getElementById('evalMape').textContent = '—';
+    ['evalMae','evalRmse','evalWape'].forEach(function(id){ var el = document.getElementById(id); if(el) el.textContent = '—'; });
+    if(cmpEl){ cmpEl.className = 'eval-compare'; cmpEl.textContent = ''; }
+    if(foldsEl) foldsEl.innerHTML = '';
     if(emptyEl){
       emptyEl.classList.add('show');
-      emptyEl.textContent = 'Evaluasi belum dapat dilakukan: data historis pada filter ini hanya ' + res.n + ' hari, sedangkan evaluasi memerlukan minimal ' + res.minNeeded + ' hari data transaksi (dibagi menjadi data latih dan data uji). Coba ubah filter, atau unggah data dengan rentang tanggal yang lebih panjang.';
+      emptyEl.textContent = 'Evaluasi belum dapat dilakukan: backtest butuh minimal ' + FORECAST_CFG.EVAL_MIN_TRAIN + ' hari data latih ditambah ' + H + ' hari data uji (total ' + (FORECAST_CFG.EVAL_MIN_TRAIN + H) + ' hari), sedangkan data pada filter ini mencakup ' + plan.series.span + ' hari' + (plan.series.missingDays ? ' (' + plan.series.validDays + ' hari valid)' : '') + '. Coba ubah filter, pilih horizon lebih pendek, atau unggah data dengan rentang tanggal yang lebih panjang.';
     }
-    if(noteEl) noteEl.textContent = '';
+    if(noteEl) noteEl.textContent = 'Pita ketidakpastian tidak ditampilkan karena dihitung dari galat backtest, dan backtest belum bisa dijalankan.';
     return;
   }
 
   gridEl.classList.remove('muted');
   if(emptyEl) emptyEl.classList.remove('show');
+  document.getElementById('evalMae').textContent = fmtForecastValue(bt.mae, metric);
+  document.getElementById('evalRmse').textContent = fmtForecastValue(bt.rmse, metric);
+  document.getElementById('evalWape').textContent = bt.wape === null ? 'Tidak dapat dihitung' : fmtPct(bt.wape);
 
-  document.getElementById('evalMae').textContent = idr(res.mae);
-  document.getElementById('evalRmse').textContent = idr(res.rmse);
-  document.getElementById('evalMape').textContent = res.mape === null ? 'Tidak dapat dihitung' : res.mape.toFixed(1) + '%';
+  if(cmpEl){
+    var v = compareVerdict(bt.improvement);
+    cmpEl.className = 'eval-compare show ' + v.cls;
+    var detail = bt.baseWape === null ? '' : ' WAPE model ' + fmtPct(bt.wape) + ' vs WAPE rata-rata biasa ' + fmtPct(bt.baseWape) + ' (galat model ' + fmtPct(Math.abs(bt.improvement)) + (bt.improvement >= 0 ? ' lebih kecil' : ' lebih besar') + '), dinilai pada ' + bt.points + ' hari dalam ' + bt.folds.length + ' potongan.';
+    var caution = bt.points < EVAL_LOW_POINTS ? ' Hanya ' + bt.points + ' hari yang dinilai, jadi perbandingan ini belum stabil — anggap sebagai indikasi awal.' : '';
+    cmpEl.innerHTML = '<b>' + v.text + '.</b>' + escapeHtml(detail) + escapeHtml(caution);
+  }
+  if(foldsEl) foldsEl.innerHTML = foldTableHtml(bt);
 
   if(noteEl){
-    var mapeNote = res.mape === null
-      ? ' MAPE tidak dapat dihitung karena seluruh hari pada data uji memiliki penjualan aktual sebesar Rp0.'
-      : (res.mapeSkipped > 0 ? ' ' + res.mapeSkipped + ' hari pada data uji dilewati dari perhitungan MAPE karena penjualan aktualnya Rp0 (pembagian dengan nol tidak terdefinisi).' : '');
-    noteEl.textContent = 'Dihitung dengan melatih ulang model pada ' + res.trainSize + ' hari data historis paling awal (data latih), lalu membandingkan hasil prediksinya dengan penjualan aktual pada ' + res.testSize + ' hari data historis terbaru (data uji) yang tidak ikut dipakai untuk melatih model.' + mapeNote;
+    var bandNote = plan.band
+      ? 'Pita ketidakpastian pada grafik = persentil 10–90 dari ' + plan.band.n + ' galat backtest (' + fmtForecastValue(plan.band.lo, metric) + ' sampai +' + fmtForecastValue(plan.band.hi, metric) + ' dari nilai prediksi), bukan dari residu data latih.'
+      : 'Pita ketidakpastian tidak ditampilkan: galat backtest baru ' + bt.errors.length + ' titik, sedangkan minimal ' + FORECAST_CFG.BAND_MIN_POINTS + ' titik dibutuhkan.';
+    var wapeNote = bt.wape === null ? ' WAPE tidak dapat dihitung karena seluruh aktual pada hari yang dinilai bernilai 0.' : '';
+    noteEl.textContent = bandNote + wapeNote;
   }
 }
 
-function renderForecast(){
-  var model = getForecastModel();
-  var horizon = state.horizon;
-  // Dashboard Utama summary card + Forecasting page summary (mirrored so the
-  // horizon picker on the Forecasting page has a visible effect there too).
-  var targets = [
-    { total: document.getElementById('fcTotal'), avg: document.getElementById('fcAvg'), trend: document.getElementById('fcTrend'), note: document.getElementById('forecastNote'), empty: document.getElementById('forecastEmpty'), grid: document.getElementById('forecastGrid') },
-    { total: document.getElementById('fcTotalView'), avg: document.getElementById('fcAvgView'), trend: document.getElementById('fcTrendView'), note: document.getElementById('forecastNoteView'), empty: document.getElementById('forecastEmptyView'), grid: document.getElementById('forecastGridView') }
-  ];
+/* ---------------- Ringkasan forecasting (Dashboard Utama & halaman Forecasting) ---------------- */
+function forecastConfidence(plan){
+  var d = plan.model.validDays;
+  if(d >= 56) return 'tinggi';
+  if(d >= FORECAST_CFG.WARN_DAYS) return 'sedang';
+  return 'rendah — data historis kurang dari 4 minggu';
+}
 
-  if(!model.hasEnoughData){
+function fillForecastSummary(t, plan){
+  var metric = plan.metric;
+  var meta = FORECAST_METRICS[metric];
+  var model = plan.model;
+
+  if(t.lbl) t.lbl.textContent = meta.totalLbl;
+  if(t.warn){
+    if(plan.warnings.length){
+      t.warn.innerHTML = plan.warnings.map(function(w){ return '<div>⚠ ' + escapeHtml(w) + '</div>'; }).join('');
+      t.warn.classList.add('show');
+    } else {
+      t.warn.innerHTML = '';
+      t.warn.classList.remove('show');
+    }
+  }
+
+  if(!plan.hasEnoughData){
     var emptyMsg = model.actualDays === 0
       ? 'Belum ada data transaksi pada filter yang aktif, sehingga prediksi belum dapat dihitung.'
-      : 'Data historis pada filter ini hanya mencakup ' + model.actualDays + ' hari. Prediksi memerlukan minimal ' + MIN_FORECAST_DAYS + ' hari data transaksi yang berbeda.';
-    targets.forEach(function(t){
-      if(t.total) t.total.textContent = '—';
-      if(t.avg) t.avg.textContent = '—';
-      if(t.trend) t.trend.textContent = '—';
-      if(t.grid) t.grid.classList.add('muted');
-      if(t.empty){ t.empty.classList.add('show'); t.empty.textContent = emptyMsg; }
-      if(t.note) t.note.textContent = 'Prediksi nonaktif sementara karena data historis belum mencukupi. Coba ubah filter status/provinsi, atau unggah data dengan rentang tanggal yang lebih panjang.';
-    });
-    renderRevenueChart('revenueChart', 'revenue');
-    renderRevenueChart('forecastViewChart', 'revenueForecastView');
-    renderForecastEvaluation(model);
+      : 'Data historis pada filter ini hanya mencakup ' + model.validDays + ' hari valid. Prediksi memerlukan minimal ' + FORECAST_CFG.MIN_DAYS + ' hari data transaksi yang berbeda.';
+    if(t.total) t.total.textContent = '—';
+    if(t.avg) t.avg.textContent = '—';
+    if(t.trend) t.trend.textContent = '—';
+    if(t.grid) t.grid.classList.add('muted');
+    if(t.empty){ t.empty.classList.add('show'); t.empty.textContent = emptyMsg; }
+    if(t.note) t.note.textContent = 'Prediksi nonaktif sementara karena data historis belum mencukupi. Coba ubah filter status/provinsi, atau unggah data dengan rentang tanggal yang lebih panjang.';
     return;
   }
 
-  var reg = model.reg;
-  var actualLen = model.actualDays;
   var total = 0;
-  for(var i=0;i<horizon;i++){
-    var pred = reg.slope*(actualLen+i) + reg.intercept;
-    total += Math.max(0,pred);
-  }
-  var totalTxt = idr(total);
-  var avgTxt = idr(total/horizon);
+  plan.future.forEach(function(f){ total += f.pred; });
+  var H = plan.horizon;
 
-  // Trend arah dihitung relatif terhadap rata-rata pendapatan harian, bukan
-  // ambang tetap dalam Rupiah, supaya tetap masuk akal untuk toko kecil
-  // maupun besar. Tetap berbasis kemiringan (slope) regresi linier yang sama.
+  // Arah tren dihitung relatif terhadap rata-rata harian (bukan ambang tetap), dari kemiringan nilai
+  // yang sudah dinormalkan pola harinya. Hanya dilaporkan; prediksi TIDAK memperpanjang tren ini.
   var avgDaily = model.avgDaily;
-  var relSlope = avgDaily > 0 ? (reg.slope / avgDaily) : 0;
+  var relSlope = avgDaily > 0 ? (model.reg.slope / avgDaily) : 0;
   var trendPct = relSlope * 100;
   var trendLabel = relSlope > 0.01 ? '▲ Naik' : (relSlope < -0.01 ? '▼ Turun' : '▬ Stabil');
   var trendTxt = trendLabel + (avgDaily > 0 ? ' (' + (trendPct>=0?'+':'') + trendPct.toFixed(1) + '%/hari)' : '');
 
-  var confidence = actualLen >= 14 ? 'tinggi' : (actualLen >= 7 ? 'sedang' : 'rendah — data historis masih singkat');
-  var noteTxt = 'Dihitung otomatis dengan regresi linier atas ' + actualLen + ' hari data transaksi pada filter yang aktif, dengan horizon ' + horizon + ' hari ke depan. Tingkat keyakinan: ' + confidence + '. Ini perkiraan statistik, bukan jaminan hasil — semakin panjang riwayat data, semakin andal proyeksinya.';
+  var noteTxt = 'Dihitung dari level terbaru (rata-rata ' + FORECAST_CFG.LEVEL_DAYS + ' hari valid terakhir, sudah dinormalkan) dikali faktor hari dalam seminggu' +
+    (model.useDow ? '' : ' — pola hari belum dipakai karena data valid kurang dari ' + FORECAST_CFG.DOW_MIN_DAYS + ' hari') +
+    ', untuk ' + H + ' hari ke depan, dari ' + model.validDays + ' hari data valid (' + meta.name + '). Arah tren hanya menggambarkan riwayat data dan tidak diperpanjang ke depan. Tingkat keyakinan: ' + forecastConfidence(plan) + '. Ini perkiraan statistik, bukan jaminan hasil.';
 
-  targets.forEach(function(t){
-    if(t.grid) t.grid.classList.remove('muted');
-    if(t.empty) t.empty.classList.remove('show');
-    if(t.total) t.total.textContent = totalTxt;
-    if(t.avg) t.avg.textContent = avgTxt;
-    if(t.trend) t.trend.textContent = trendTxt;
-    if(t.note) t.note.textContent = noteTxt;
+  if(t.grid) t.grid.classList.remove('muted');
+  if(t.empty) t.empty.classList.remove('show');
+  if(t.total) t.total.textContent = fmtForecastValue(total, metric);
+  if(t.avg) t.avg.textContent = fmtForecastValue(total / H, metric);
+  if(t.trend) t.trend.textContent = trendTxt;
+  if(t.note) t.note.textContent = noteTxt;
+}
+
+function syncForecastTabs(plan){
+  var hTabs = document.getElementById('horizonTabs');
+  if(hTabs) Array.from(hTabs.children).forEach(function(b){
+    var h = parseInt(b.getAttribute('data-h'), 10);
+    b.classList.toggle('active', h === state.horizon);
+    var over = h > plan.cap;
+    b.classList.toggle('capped', over);
+    b.title = over ? ('Dibatasi menjadi ' + plan.cap + ' hari pada data ini') : '';
   });
+  var mTabs = document.getElementById('metricTabs');
+  if(mTabs) Array.from(mTabs.children).forEach(function(b){
+    b.classList.toggle('active', b.getAttribute('data-m') === (state.forecastMetric || 'revenue'));
+  });
+}
 
-  renderRevenueChart('revenueChart', 'revenue');
-  renderRevenueChart('forecastViewChart', 'revenueForecastView');
-  renderForecastEvaluation(model);
+function renderForecast(){
+  var metric = state.forecastMetric || 'revenue';
+  var revPlan = getForecastPlan('revenue', state.horizon);          // Dashboard Utama: selalu pendapatan
+  var viewPlan = metric === 'revenue' ? revPlan : getForecastPlan(metric, state.horizon);
+
+  fillForecastSummary({
+    lbl: document.getElementById('fcTotalLbl'), total: document.getElementById('fcTotal'), avg: document.getElementById('fcAvg'),
+    trend: document.getElementById('fcTrend'), note: document.getElementById('forecastNote'), empty: document.getElementById('forecastEmpty'),
+    grid: document.getElementById('forecastGrid'), warn: document.getElementById('forecastWarn')
+  }, revPlan);
+  fillForecastSummary({
+    lbl: document.getElementById('fcTotalLblView'), total: document.getElementById('fcTotalView'), avg: document.getElementById('fcAvgView'),
+    trend: document.getElementById('fcTrendView'), note: document.getElementById('forecastNoteView'), empty: document.getElementById('forecastEmptyView'),
+    grid: document.getElementById('forecastGridView'), warn: document.getElementById('forecastWarnView')
+  }, viewPlan);
+
+  // Legenda (pita hanya muncul bila benar-benar dihitung dari backtest)
+  function show(id, on){ var el = document.getElementById(id); if(el) el.style.display = on ? '' : 'none'; }
+  show('legendProyeksi', revPlan.hasEnoughData);
+  show('legendBand', revPlan.hasEnoughData && !!revPlan.band);
+  show('legendProyeksiView', viewPlan.hasEnoughData);
+  show('legendBandView', viewPlan.hasEnoughData && !!viewPlan.band);
+  var hz = document.getElementById('legendProyeksiViewHorizon');
+  if(hz) hz.textContent = viewPlan.horizon;
+  var titleEl = document.getElementById('forecastViewTitle');
+  if(titleEl) titleEl.textContent = 'Prediksi ' + FORECAST_METRICS[viewPlan.metric].title + ' ke depan';
+  var noteBox = document.getElementById('legendGapView');
+  if(noteBox) noteBox.style.display = viewPlan.series.missingDays ? '' : 'none';
+  var noteBoxDash = document.getElementById('legendGap');
+  if(noteBoxDash) noteBoxDash.style.display = revPlan.series.missingDays ? '' : 'none';
+
+  syncForecastTabs(viewPlan);
+  renderRevenueChart('revenueChart', 'revenue', revPlan);
+  renderRevenueChart('forecastViewChart', 'revenueForecastView', viewPlan);
+  renderForecastEvaluation(viewPlan);
 }
 
 function renderTopProducts(){

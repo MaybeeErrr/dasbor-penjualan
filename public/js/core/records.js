@@ -39,6 +39,17 @@ horizonTabs.addEventListener('click', function(e){
   state.horizon = parseInt(btn.getAttribute('data-h'), 10);
   Array.from(horizonTabs.children).forEach(function(b){ b.classList.toggle('active', b === btn); });
   renderForecast();
+  renderModelEvaluation();
+});
+
+var metricTabs = document.getElementById('metricTabs');
+metricTabs.addEventListener('click', function(e){
+  var btn = e.target.closest('button');
+  if(!btn) return;
+  state.forecastMetric = btn.getAttribute('data-m');
+  Array.from(metricTabs.children).forEach(function(b){ b.classList.toggle('active', b === btn); });
+  renderForecast();
+  renderModelEvaluation();
 });
 
 function applyFilters(){

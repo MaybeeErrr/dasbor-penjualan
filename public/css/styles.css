@@ -325,6 +325,26 @@ footer.landing-footer { padding: 34px 0 56px; font-size: 12px; color: var(--ink-
 .eval-empty.show { display: block; }
 .eval-note { font-size: 11.5px; color: var(--ink-muted); margin-top: 12px; line-height: 1.6; }
 
+/* Forecasting: pilihan satuan, peringatan data, pembanding, tabel potongan backtest */
+.tab-stack { display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
+.horizon-tabs button.capped { opacity: .5; }
+.forecast-warn { display: none; margin: 0 0 12px; font-size: 12.5px; line-height: 1.6; color: var(--amber); background: color-mix(in srgb, var(--amber) 10%, var(--surface)); border-radius: var(--radius-md); padding: 10px 14px; }
+.forecast-warn.show { display: block; }
+.forecast-warn div + div { margin-top: 4px; }
+.summary-card .forecast-warn { margin: 12px 0 0; font-size: 12px; }
+.legend-row i.band-swatch { width: 12px; height: 9px; background: var(--chart-forecast-soft); border: 1px solid var(--chart-forecast); border-radius: 2px; }
+.legend-row i.gap-swatch { width: 12px; height: 0; border-top: 2px dotted var(--ink-muted); border-radius: 0; background: none; }
+.eval-compare { display: none; margin: 0 0 14px; padding: 12px 14px; border-radius: var(--radius-md); background: var(--surface-2); font-size: 13px; line-height: 1.6; border-left: 3px solid var(--border); }
+.eval-compare.show { display: block; }
+.eval-compare.pos { border-left-color: var(--brand); }
+.eval-compare.neg { border-left-color: var(--brick); background: var(--brick-soft); }
+.eval-folds { margin-top: 14px; }
+.eval-folds-table { font-size: 12.5px; }
+.eval-folds-table th, .eval-folds-table td { text-align: left; padding: 7px 10px; }
+.eval-folds-table th:nth-child(n+3), .eval-folds-table td:nth-child(n+3) { text-align: right; }
+.eval-res.pos { color: var(--brand); font-weight: 600; }
+.eval-res.neg { color: var(--brick); font-weight: 600; }
+
 .rfm-subpanel { background: var(--surface-2); border-radius: var(--radius-md); padding: 16px 18px; min-width: 0; }
 .rfm-subhead h4 { margin: 0 0 3px; font-size: 13.5px; font-weight: 600; letter-spacing: -0.005em; }
 .rfm-subhead .desc { font-size: 12px; color: var(--ink-muted); margin-bottom: 12px; line-height: 1.5; }

@@ -49,22 +49,27 @@ function renderModelEvaluation(){
     narrParas.push('Segmentasi pelanggan saat ini menggunakan <b>K = '+k+'</b> dengan Silhouette Score <b>'+silTxt+'</b>'+(suggestedK!==null?', sementara metode Elbow menyarankan sekitar <b>K = '+suggestedK+'</b> berdasarkan titik penurunan WCSS paling tajam':'')+'. Silhouette Score mengukur seberapa baik tiap pelanggan cocok dengan cluster-nya sendiri dibanding cluster lain, pada rentang -1 sampai 1.');
   }
 
-  var model = getForecastModel();
-  var evalRes = evaluateForecast(model);
+  var metric = state.forecastMetric || 'revenue';
+  var plan = getForecastPlan(metric, state.horizon);
+  var evalRes = plan.backtest;
+  var metaName = FORECAST_METRICS[metric].name;
   if(!evalRes.ok){
     fEl.innerHTML='';
     fEmptyEl.style.display='';
-    fEmptyEl.textContent = 'Evaluasi forecasting belum dapat dihitung: data historis pada filter ini hanya '+evalRes.n+' hari, sedangkan evaluasi memerlukan minimal '+evalRes.minNeeded+' hari data transaksi.';
+    fEmptyEl.textContent = 'Evaluasi forecasting ('+metaName+') belum dapat dihitung: backtest butuh minimal '+FORECAST_CFG.EVAL_MIN_TRAIN+' hari data latih ditambah '+plan.horizon+' hari data uji, sedangkan data historis pada filter ini mencakup '+plan.series.span+' hari'+(plan.series.missingDays?' ('+plan.series.validDays+' hari valid)':'')+'.';
   } else {
     fEmptyEl.style.display='none';
+    var verdict = compareVerdict(evalRes.improvement);
     var fCards = [
-      {label:'MAE', value: idr(evalRes.mae), delta:'rata-rata selisih absolut prediksi vs aktual'},
-      {label:'RMSE', value: idr(evalRes.rmse), delta:'lebih sensitif terhadap kesalahan besar'},
-      {label:'MAPE', value: evalRes.mape===null?'Tidak dapat dihitung':evalRes.mape.toFixed(1)+'%', delta:'rata-rata persentase kesalahan'},
-      {label:'Data latih / data uji', value: evalRes.trainSize+' / '+evalRes.testSize+' hari', delta:'pembagian data historis untuk backtesting'}
+      {label:'MAE ('+metaName+')', value: fmtForecastValue(evalRes.mae, metric), delta:'rata-rata selisih absolut prediksi vs aktual'},
+      {label:'RMSE', value: fmtForecastValue(evalRes.rmse, metric), delta:'lebih sensitif terhadap kesalahan besar'},
+      {label:'WAPE', value: evalRes.wape===null?'Tidak dapat dihitung':fmtPct(evalRes.wape), delta:'total galat absolut dibagi total aktual — makin kecil makin akurat'},
+      {label:'Dibanding rata-rata biasa', value: verdict.short, delta: evalRes.baseWape===null?'':'WAPE rata-rata biasa '+fmtPct(evalRes.baseWape)},
+      {label:'Potongan backtest', value: evalRes.folds.length+' × '+evalRes.horizon+' hari', delta: evalRes.points+' hari dinilai (hari data hilang tidak dinilai)'}
     ];
     fEl.innerHTML = fCards.map(function(c){ return '<div class="kpi-card"><div class="kpi-label">'+c.label+'</div><div class="kpi-value tabular">'+c.value+'</div><div class="kpi-delta">'+c.delta+'</div></div>'; }).join('');
-    narrParas.push('Model forecasting (regresi linier) diuji dengan melatih ulang model pada '+evalRes.trainSize+' hari data historis paling awal, lalu membandingkan hasil prediksinya dengan '+evalRes.testSize+' hari data terbaru yang tidak dipakai untuk melatih model. Hasilnya: MAE <b>'+idr(evalRes.mae)+'</b>, RMSE <b>'+idr(evalRes.rmse)+'</b>'+(evalRes.mape!==null?', dan MAPE <b>'+evalRes.mape.toFixed(1)+'%</b>':'')+'.');
+    var cmpPara = evalRes.improvement===null ? '' : ' Dibandingkan dengan menebak rata-rata biasa, galat model (WAPE) '+fmtPct(Math.abs(evalRes.improvement))+(evalRes.improvement>=0?' lebih kecil':' lebih besar')+', sehingga model ini '+(evalRes.improvement>0.05?'lebih baik':(evalRes.improvement<-0.05?'lebih buruk':'setara'))+' dari pembanding sederhana tersebut.'+(evalRes.points<EVAL_LOW_POINTS?' Karena hanya '+evalRes.points+' hari yang dinilai, perbandingan ini masih belum stabil.':'');
+    narrParas.push('Model forecasting ('+metaName+': level terbaru dikali faktor hari dalam seminggu) diuji dengan backtest bergulir: model dilatih ulang pada '+evalRes.folds.length+' titik potong berbeda, tiap kali memprediksi '+evalRes.horizon+' hari berikutnya yang tidak dipakai untuk melatih. Hasilnya: MAE <b>'+fmtForecastValue(evalRes.mae, metric)+'</b>, RMSE <b>'+fmtForecastValue(evalRes.rmse, metric)+'</b>'+(evalRes.wape!==null?', dan WAPE <b>'+fmtPct(evalRes.wape)+'</b>':'')+'.'+cmpPara);
   }
 
   narrEl.innerHTML = narrParas.length ? narrParas.map(function(p){ return '<p>'+p+'</p>'; }).join('') : '<p>Evaluasi model akan tersedia setelah data cukup untuk menjalankan clustering dan/atau forecasting.</p>';
@@ -106,7 +111,7 @@ function renderExecutiveSummary(){
   if(model.hasEnoughData){
     var relSlope = model.avgDaily>0 ? model.reg.slope/model.avgDaily : 0;
     var trendWord = relSlope>0.01?'tren kenaikan':(relSlope<-0.01?'tren penurunan':'tren yang relatif stabil');
-    paras.push('Proyeksi penjualan ke depan menunjukkan '+trendWord+' berdasarkan regresi linier atas '+model.actualDays+' hari data historis. Detail akurasi model (MAE/RMSE/MAPE) tersedia pada halaman Model Evaluation.');
+    paras.push('Riwayat penjualan menunjukkan '+trendWord+' pada '+model.validDays+' hari data valid; prediksi ke depan memakai level terbaru dikali pola hari dalam seminggu dan tidak memperpanjang tren tersebut. Detail akurasi model (MAE/RMSE/WAPE, termasuk perbandingan dengan rata-rata biasa) tersedia pada halaman Model Evaluation.');
   }
 
   if(mba.ok && mba.rules.length){
