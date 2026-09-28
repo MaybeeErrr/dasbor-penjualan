@@ -54,25 +54,17 @@ function renderModelEvaluation(){
   if(!evalRes.ok){
     fEl.innerHTML='';
     fEmptyEl.style.display='';
-    fEmptyEl.textContent = 'Evaluasi forecasting belum dapat dihitung: data historis pada filter ini hanya '+evalRes.n+' hari, sedangkan rolling backtest memerlukan minimal '+evalRes.minNeeded+' hari data transaksi.';
+    fEmptyEl.textContent = 'Evaluasi forecasting belum dapat dihitung: data historis pada filter ini hanya '+evalRes.n+' hari, sedangkan evaluasi memerlukan minimal '+evalRes.minNeeded+' hari data transaksi.';
   } else {
     fEmptyEl.style.display='none';
-    var vsTxt = evalRes.modelKey==='naive' ? 'model ini adalah pembandingnya' : (evalRes.beatsBaseline ? (evalRes.skill.toFixed(0)+'% lebih akurat (MAE)') : (Math.abs(evalRes.skill).toFixed(0)+'% lebih buruk (MAE)'));
     var fCards = [
-      {label:'Model dievaluasi', value: escapeHtml(evalRes.modelName.replace(' (pembanding)','')), delta: state.forecastModel==='auto' ? 'dipilih otomatis (MAE backtest terendah)' : 'dipilih manual di halaman Forecasting'},
       {label:'MAE', value: idr(evalRes.mae), delta:'rata-rata selisih absolut prediksi vs aktual'},
       {label:'RMSE', value: idr(evalRes.rmse), delta:'lebih sensitif terhadap kesalahan besar'},
       {label:'MAPE', value: evalRes.mape===null?'Tidak dapat dihitung':evalRes.mape.toFixed(1)+'%', delta:'rata-rata persentase kesalahan'},
-      {label:'Rolling backtest', value: evalRes.folds+' × '+evalRes.hEval+' hari', delta: evalRes.points+' titik uji, jendela latih bertambah'},
-      {label:'Vs model pembanding', value: evalRes.modelKey==='naive' ? '—' : (evalRes.beatsBaseline?'Lebih baik':'Belum lebih baik'), delta: vsTxt+' dibanding rata-rata 7 hari terakhir'}
+      {label:'Data latih / data uji', value: evalRes.trainSize+' / '+evalRes.testSize+' hari', delta:'pembagian data historis untuk backtesting'}
     ];
     fEl.innerHTML = fCards.map(function(c){ return '<div class="kpi-card"><div class="kpi-label">'+c.label+'</div><div class="kpi-value tabular">'+c.value+'</div><div class="kpi-delta">'+c.delta+'</div></div>'; }).join('');
-    var cmpTxt = evalRes.modelKey==='naive'
-      ? (evalRes.bestKey==='naive' ? ' Model pembanding ini justru paling akurat, artinya model yang lebih rumit belum memberi keuntungan pada data ini.' : ' Model terbaik menurut backtest adalah <b>'+Forecast.name(evalRes.bestKey)+'</b>.')
-      : (evalRes.beatsBaseline ? ' Model ini '+evalRes.skill.toFixed(0)+'% lebih akurat (MAE) dibanding model pembanding rata-rata 7 hari terakhir.' : ' Model ini belum lebih baik dibanding model pembanding rata-rata 7 hari terakhir.');
-    narrParas.push('Model forecasting <b>'+evalRes.modelName.replace(' (pembanding)','')+'</b> diuji dengan <b>rolling backtest</b>: model dilatih ulang pada '+evalRes.folds+' titik awal (mulai dari '+evalRes.minTrain+' hari data pertama, jendela latih terus bertambah), tiap kali meramal '+evalRes.hEval+' hari berikutnya, lalu '+evalRes.points+' titik uji digabung. Hasilnya: MAE <b>'+idr(evalRes.mae)+'</b>, RMSE <b>'+idr(evalRes.rmse)+'</b>'+(evalRes.mape!==null?', dan MAPE <b>'+evalRes.mape.toFixed(1)+'%</b>':'')+'.'+cmpTxt);
-    var relRun = getForecastRun(model);
-    if(relRun) narrParas.push('Indikator keandalan proyeksi saat ini: <b>'+relRun.reliability.label+'</b>. '+relRun.reliability.reasons.join(' '));
+    narrParas.push('Model forecasting (regresi linier) diuji dengan melatih ulang model pada '+evalRes.trainSize+' hari data historis paling awal, lalu membandingkan hasil prediksinya dengan '+evalRes.testSize+' hari data terbaru yang tidak dipakai untuk melatih model. Hasilnya: MAE <b>'+idr(evalRes.mae)+'</b>, RMSE <b>'+idr(evalRes.rmse)+'</b>'+(evalRes.mape!==null?', dan MAPE <b>'+evalRes.mape.toFixed(1)+'%</b>':'')+'.');
   }
 
   narrEl.innerHTML = narrParas.length ? narrParas.map(function(p){ return '<p>'+p+'</p>'; }).join('') : '<p>Evaluasi model akan tersedia setelah data cukup untuk menjalankan clustering dan/atau forecasting.</p>';

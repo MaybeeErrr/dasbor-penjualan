@@ -7,8 +7,6 @@ var state = {
   datasets: [],           // daftar dataset milik akun yang sedang login
   activeDatasetId: null,  // id dataset yang sedang ditampilkan di dashboard
   horizon: 7,
-  forecastMetric: 'revenue', // 'revenue' | 'orders' (halaman Forecasting)
-  forecastModel: 'auto',     // 'auto' = terbaik menurut rolling backtest, atau key model manual
   tablePage: 0,
   tablePageSize: 10,
   tableSearch: '',

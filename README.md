@@ -19,9 +19,9 @@ dasbor-penjualan/
 │   ├── css/styles.css
 │   ├── data/demo-orders.json    ← data contoh (pratinjau saja, tidak disimpan)
 │   └── js/
-│       ├── core/      theme, utils, forecast (mesin prediksi), bubble, state, records, auth-ui (gerbang login/daftar)
+│       ├── core/      theme, utils, bubble, state, records, auth-ui (gerbang login/daftar)
 │       ├── data/      mapping (pemetaan kolom), api (fetch ke backend), upload (parse & popup), datasets-ui (manajer dataset)
-│       ├── sections/  overview, forecast-extra (stok per produk & risiko pelanggan), products, customers, segmentation, insight, basket, evaluation, compare (perbandingan)
+│       ├── sections/  overview, products, customers, segmentation, insight, basket, evaluation, compare (perbandingan)
 │       ├── main.js    inisialisasi statistik data contoh di landing
 │       └── navigation.js
 ├── api/
@@ -167,8 +167,8 @@ vercel --prod                # deploy produksi
 - Menghapus dataset akan menghapus permanen seluruh baris pesanan di dalamnya (tidak bisa dibatalkan).
 - Silhouette Score dilewati bila pelanggan pada dataset aktif > 1.500 (batas asli dasbor agar tetap responsif).
 - Market Basket Analysis (Apriori) dibatasi ke produk terpopuler (`MBA_MAX_PRODUCTS`) dan itemset maksimum 3 produk (`MBA_MAX_ITEMSET_SIZE`) agar tetap responsif di peramban pada data besar.
-- Forecasting memilih otomatis antara 4 model (rata-rata 7 hari sebagai pembanding, Exponential Smoothing, regresi linier, regresi linier + faktor hari) lewat rolling backtest, dengan rentang skenario dan indikator keandalan. Hanya pola mingguan yang ditangani; musiman bulanan/tahunan belum. Backtesting butuh ≥14 hari data, dan pada data <60 hari hasil ditandai "kurang andal".
-- Mode Perbandingan menghitung metrik ringkasan (pendapatan, pesanan, AOV, produk terlaris, tren harian) dan proyeksi pendapatan per dataset — bukan menjalankan seluruh analisis mendalam (RFM, K-Means, Apriori) secara berdampingan; untuk analisis mendalam per dataset, buka dataset tersebut satu per satu dari daftar dataset.
+- Model forecasting (regresi linier) tidak menangani pola musiman.
+- Mode Perbandingan menghitung metrik ringkasan (pendapatan, pesanan, AOV, produk terlaris, tren harian) per dataset — bukan menjalankan seluruh analisis mendalam (RFM, K-Means, forecasting, Apriori) secara berdampingan; untuk analisis mendalam per dataset, buka dataset tersebut satu per satu dari daftar dataset.
 - Seluruh perhitungan analitik tetap berjalan di peramban; database hanya menyimpan/menyajikan data mentah per dataset.
 
 Rincian justifikasi batasan model ada di `docs/metodologi-dan-pengujian.md`.

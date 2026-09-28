@@ -41,22 +41,6 @@ horizonTabs.addEventListener('click', function(e){
   renderForecast();
 });
 
-var metricTabs = document.getElementById('metricTabs');
-if(metricTabs) metricTabs.addEventListener('click', function(e){
-  var btn = e.target.closest('button');
-  if(!btn) return;
-  state.forecastMetric = btn.getAttribute('data-m');
-  Array.from(metricTabs.children).forEach(function(b){ b.classList.toggle('active', b === btn); });
-  renderForecast();
-});
-
-var fcModelSelect = document.getElementById('fcModelSelect');
-if(fcModelSelect) fcModelSelect.addEventListener('change', function(){
-  state.forecastModel = fcModelSelect.value;
-  renderForecast();
-  renderModelEvaluation();
-});
-
 function applyFilters(){
   var statusVal = document.getElementById('filterStatus').value;
   var provVal = document.getElementById('filterProvince').value;

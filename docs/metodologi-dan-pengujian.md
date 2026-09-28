@@ -19,8 +19,8 @@ Data Mining)**, dipetakan ke bagian sistem yang sudah dibangun:
 | **Business Understanding** | Kebutuhan pemilik UMKM: memahami tren penjualan, segmen pelanggan, dan pola pembelian dari rekap pesanan marketplace, tanpa perlu tim data science | Rumusan masalah & tujuan pada laporan (di luar kode) |
 | **Data Understanding** | Struktur data pesanan gaya Shopee/marketplace diidentifikasi, kolom dipetakan otomatis berdasarkan nama header | `public/js/data/mapping.js` |
 | **Data Preparation** | Konversi tipe data (angka, tanggal), penghapusan baris tanggal kosong, penghapusan duplikat, standardisasi z-score untuk fitur RFM | `public/js/sections/overview.js` (`renderPreprocessingOverview`), `public/js/sections/segmentation.js` (`standardizeRFM`) |
-| **Modeling** | Forecasting 4 model (rata-rata 7 hari sebagai pembanding, Exponential Smoothing, regresi linier, regresi linier + faktor hari), K-Means++ (segmentasi pelanggan), Apriori berjenjang (asosiasi produk) | `core/forecast.js` (`Forecast.run`), `overview.js`, `segmentation.js` (`runKMeansBest`), `basket.js` (`computeMarketBasket`) |
-| **Evaluation** | Rolling backtest MAE/RMSE/MAPE untuk forecasting (dibandingkan dengan model pembanding); Silhouette Score dan metode Elbow untuk K-Means; ambang support/confidence/lift untuk Apriori | `evaluation.js`, `segmentation.js` (`silhouetteScore`, `computeElbow`) |
+| **Modeling** | Regresi linier (forecasting), K-Means++ (segmentasi pelanggan), Apriori berjenjang (asosiasi produk) | `overview.js` (`linearRegression`), `segmentation.js` (`runKMeansBest`), `basket.js` (`computeMarketBasket`) |
+| **Evaluation** | Backtesting MAE/RMSE/MAPE untuk forecasting; Silhouette Score dan metode Elbow untuk K-Means; ambang support/confidence/lift untuk Apriori | `evaluation.js`, `segmentation.js` (`silhouetteScore`, `computeElbow`) |
 | **Deployment** | Dasbor web (Vercel) dengan penyimpanan data di Neon Postgres, dapat diakses pemilik UMKM langsung dari peramban | `api/`, `db/`, `vercel.json` |
 
 Pemetaan ini bisa langsung dijadikan gambar/diagram alur pada bab Metodologi.
@@ -32,57 +32,21 @@ Pemetaan ini bisa langsung dijadikan gambar/diagram alur pada bab Metodologi.
 Bagian ini menjawab pertanyaan yang biasanya muncul saat sidang: **"Kenapa
 algoritma ini, bukan yang lain?"**
 
-### 2.1 Forecasting — model bertingkat dengan model pembanding (bukan ARIMA/Prophet)
+### 2.1 Forecasting — Regresi Linier (bukan ARIMA/Holt-Winters/Prophet)
 
-Sistem tidak lagi bertumpu pada satu model. Empat model dijalankan pada deret
-pendapatan (atau jumlah pesanan) harian, lalu dipilih otomatis berdasarkan
-akurasi pada **rolling backtest** (`public/js/core/forecast.js`):
-
-| Model | Peran | Keterangan |
+| Aspek | Regresi Linier (dipakai) | ARIMA / Holt-Winters / Prophet |
 |---|---|---|
-| Rata-rata 7 hari terakhir | **Pembanding (naive)** | Prediksi datar = rata-rata 7 hari terakhir. Model lain hanya layak dipakai jika lebih akurat dari ini |
-| Exponential Smoothing | Menangkap level terkini | Simple exponential smoothing; α dipilih dari grid 0,1–0,9 (SSE galat satu-langkah terkecil) |
-| Regresi linier | Menangkap tren | Model awal sistem; garis tren atas data harian |
-| Regresi linier + faktor hari | Menangkap tren + pola mingguan | Faktor aditif per hari dalam minggu dari residu tren, dipusatkan dan diperhalus (shrinkage); aktif bila data ≥14 hari |
+| Kebutuhan data historis | Bisa jalan dengan data historis pendek (≥2 hari transaksi berbeda) | Butuh data historis lebih panjang & idealnya musiman berulang untuk hasil andal |
+| Kompleksitas komputasi | Ringan, bisa dihitung langsung di peramban (client-side), real-time saat filter berubah | Umumnya butuh backend/pustaka statistik khusus (mis. Python `statsmodels`, `prophet`) — tidak praktis dijalankan di peramban |
+| Interpretasi | Mudah dijelaskan ke pemilik UMKM non-teknis (tren naik/turun linier) | Lebih sulit dijelaskan ke pengguna awam (parameter p,d,q, komponen musiman, dsb.) |
+| Musiman (seasonality) | **Tidak ditangani** — batasan yang perlu disebutkan eksplisit | Bisa menangani pola musiman/mingguan dengan baik |
 
-**Rolling backtest (expanding window).** Titik awal bergerak dari separuh
-riwayat (minimal 7 hari) sampai `n − 7`; pada tiap titik, model dilatih ulang
-pada data sebelumnya dan meramal 7 hari berikutnya. Seluruh galat digabung
-untuk menghitung MAE, RMSE, dan MAPE (titik dengan nilai aktual 0 dilewati
-pada MAPE). Cara ini menggantikan satu kali pembagian data latih/uji yang
-hasilnya bisa kebetulan bagus atau jelek. Minimal 14 hari data. Model yang
-lebih rumit harus unggul >2% (MAE) atas yang lebih sederhana agar terpilih.
-
-**Rentang skenario.** Skenario rendah/tinggi = prediksi + persentil ke-10/ke-90
-galat backtest model terpilih (±80% kejadian), melebar dengan faktor √(k/7)
-untuk langkah ke-k > 7. Bila data <14 hari, dipakai sebaran data harian
-(±1,28 simpangan baku).
-
-**Indikator keandalan (Rendah/Sedang/Tinggi).** Dasar: <60 hari = Rendah,
-60–179 = Sedang, ≥180 = Tinggi. Diturunkan satu tingkat bila MAPE backtest >50%
-atau bila model pembanding ternyata paling akurat; menjadi Rendah bila horizon
-> setengah panjang riwayat. Alasan ditampilkan ke pengguna (mis. "Data historis
-baru 31 hari, hasil kurang andal").
-
-**Cakupan prediksi.** (1) Pendapatan dan jumlah pesanan harian; (2) unit per
-produk untuk 8 produk terlaris beserta "stok aman" (skenario tinggi);
-(3) pelanggan berisiko tidak membeli lagi, memakai heuristik: skor = hari sejak
-pembelian terakhir ÷ jeda beli biasa pelanggan itu (atau median jeda seluruh
-pelanggan repeat bila baru sekali membeli); skor ≥3 = risiko tinggi, ≥1,5 =
-sedang; (4) proyeksi berdampingan per dataset di menu Perbandingan Dataset.
-
-| Aspek | Model yang dipakai | ARIMA / Prophet |
-|---|---|---|
-| Kebutuhan data historis | Berjalan dengan data pendek; backtesting butuh ≥14 hari | Butuh riwayat lebih panjang dan idealnya beberapa siklus musiman |
-| Komputasi | Ringan, dihitung di peramban dan diperbarui real-time saat filter berubah | Umumnya butuh backend/pustaka khusus (`statsmodels`, `prophet`) |
-| Interpretasi | Mudah dijelaskan ke pemilik UMKM (tren, pola per hari, rentang skenario) | Lebih sulit dijelaskan (p,d,q, komponen musiman) |
-| Musiman | Hanya pola **mingguan**; musiman bulanan/tahunan/hari besar **belum** ditangani | Dapat menangani berbagai pola musiman bila data cukup panjang |
-
-**Kesimpulan justifikasi:** Model sederhana dipilih karena data UMKM umumnya
-pendek–menengah dan sistem harus ringan di peramban. Keputusan pemilihan model
-dilakukan secara empiris (rolling backtest melawan model pembanding), bukan
-asumsi. Pada data yang lebih panjang dan musiman kuat, ARIMA/Holt-Winters/
-Prophet berpotensi lebih akurat dan menjadi arah pengembangan lanjutan.
+**Kesimpulan justifikasi:** Regresi linier dipilih karena data transaksi UMKM
+pada studi kasus ini umumnya berdurasi pendek–menengah dan sistem perlu tetap
+ringan (berjalan di peramban, tanpa server komputasi berat). Ini dicatat
+sebagai **batasan penelitian**: pada data yang lebih panjang dan musiman
+kuat, ARIMA/Holt-Winters/Prophet berpotensi memberi akurasi lebih baik dan
+menjadi arah pengembangan lanjutan (future work).
 
 ### 2.2 Segmentasi Pelanggan — K-Means++ (bukan DBSCAN/Hierarchical)
 
@@ -138,13 +102,6 @@ sistem yang sudah di-deploy.
 | BB-08 | Filter | Filter provinsi | Pilih salah satu provinsi pada filter | — | Seluruh dasbor (KPI, RFM, forecasting) menyesuaikan hanya data provinsi terpilih |
 | BB-09 | Forecasting | Ubah horizon prediksi | Ganti horizon dari 7 ke 14 dan 30 hari | — | Nilai total & rata-rata prediksi, serta grafik, berubah konsisten sesuai horizon |
 | BB-10 | Forecasting | Data historis tidak cukup | Filter data hingga hanya tersisa 1 hari transaksi | — | Sistem menampilkan pesan "data tidak cukup", bukan prediksi yang menyesatkan |
-| BB-10a | Forecasting | Indikator keandalan | Gunakan data 28–31 hari, lalu horizon 30 hari | Dataset ±1 bulan | Badge keandalan "Rendah" dengan alasan (data baru N hari; horizon terlalu panjang) |
-| BB-10b | Forecasting | Pilih model manual | Ganti pilihan model dari "otomatis" ke model lain | Data ≥14 hari | Proyeksi, rentang skenario, dan tabel evaluasi berubah; model terpilih bertanda "dipakai" |
-| BB-10c | Forecasting | Pembanding & rolling backtest | Buka evaluasi akurasi model pada data ≥14 hari | Data ≥14 hari | Tabel MAE/RMSE/MAPE 4 model, tanda ★ pada MAE terendah, dan kalimat perbandingan dengan model pembanding |
-| BB-10d | Forecasting | Metrik jumlah pesanan | Klik "Jumlah pesanan" pada halaman Forecasting | — | Grafik, ringkasan, dan evaluasi memakai satuan pesanan |
-| BB-10e | Forecasting | Prediksi stok per produk | Buka panel "Prediksi unit per produk" | — | Maksimal 8 produk terlaris dengan prediksi unit, rentang, stok aman, model, dan keandalan |
-| BB-10f | Forecasting | Pelanggan berisiko | Buka panel "Pelanggan yang berpotensi tidak membeli lagi" | Data dengan kolom pelanggan | Ringkasan risiko tinggi/sedang/rendah dan tabel 10 pelanggan teratas; pesan bila tanpa kolom pelanggan |
-| BB-10g | Perbandingan Dataset | Proyeksi berdampingan | Bandingkan ≥2 dataset lalu ganti horizon 7/14/30 | ≥2 dataset | Panel "Proyeksi berdampingan": grafik, tabel total & rentang per dataset, dan keandalan tiap dataset |
 | BB-11 | Segmentasi K-Means | Ubah nilai K | Pilih K=3, K=4, K=5 secara berurutan pada tab K-Means | — | Jumlah cluster, Silhouette Score, dan WCSS diperbarui sesuai K yang dipilih |
 | BB-12 | Segmentasi K-Means | Data pelanggan terlalu sedikit | Filter data hingga pelanggan valid < `KMEANS_MIN_CUSTOMERS` | — | Sistem menampilkan pesan bahwa clustering belum dapat dihitung, bukan hasil kosong/error |
 | BB-13 | RFM | Data tanpa identitas pelanggan | Unggah data tanpa kolom identitas pelanggan | Berkas tanpa Username Pembeli | Analisis RFM menampilkan pesan bahwa kolom identitas pelanggan tidak ditemukan (tidak membuat ID fiktif) |
@@ -189,18 +146,16 @@ yang siap:
    yang diproses (`MBA_MAX_PRODUCTS`, `MBA_MAX_CANDIDATES`,
    `KMEANS_SILHOUETTE_MAX_N`) agar dasbor tetap responsif pada data besar.
    Ini perlu disebut sebagai batasan skalabilitas, bukan kesalahan.
-4. **Forecasting hanya menangani pola mingguan.** Musiman bulanan/tahunan dan
-   efek hari besar belum ditangani, dan pada data <60 hari hasil ditandai
-   "kurang andal" oleh indikator keandalan (bagian 2.1). Prediksi per produk
-   dan risiko pelanggan memakai pendekatan sederhana/heuristik.
+4. **Model forecasting tidak menangani musiman**, sesuai justifikasi pada
+   bagian 2.1.
 5. **Data disimpan di database Neon milik pengguna sendiri** — bukan
    dikelola pihak ketiga di luar kendali pemilik data, tapi tetap perlu
    dijaga kerahasiaan `DATABASE_URL` dan `SESSION_SECRET` (jangan ikut
    ter-commit ke repository publik).
 6. **Mode Perbandingan menghitung metrik ringkasan saja** (total
    pendapatan, jumlah pesanan, rata-rata nilai pesanan, produk terlaris,
-   tren harian) plus proyeksi pendapatan per dataset — bukan menjalankan
-   seluruh pipeline analitik (RFM, K-Means, Apriori) secara paralel
+   tren harian) per dataset yang dipilih — bukan menjalankan seluruh
+   pipeline analitik (RFM, K-Means, forecasting, Apriori) secara paralel
    untuk tiap dataset sekaligus, karena itu akan sangat berat dijalankan
    di peramban. Analisis mendalam tetap dilakukan satu dataset pada satu
    waktu lewat menu-menu utama.

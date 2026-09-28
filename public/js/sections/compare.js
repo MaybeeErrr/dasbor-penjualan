@@ -19,7 +19,6 @@ var DatasetCompare = (function(){
   var lastResult = null;      // [{ds, label, m, color}]
   var trendState = { metric: 'revenue', mode: 'index' };
   var tableMode = 'all';      // 'all' | 'key'
-  var fcState = { h: 7 };     // horizon proyeksi pada panel perbandingan (hari)
   var awaitingNewUntil = 0;   // auto-pilih dataset yang baru diunggah
   var knownIds = null;
 
@@ -557,78 +556,6 @@ var DatasetCompare = (function(){
   }
 
   /* ---------- grafik ---------- */
-
-  /* ---------- proyeksi per dataset (berdampingan) ---------- */
-  function forecastRuns(R){
-    if(typeof Forecast === 'undefined') return [];
-    return R.map(function(r){
-      var m = r.m;
-      if(!m.revSeries || m.span < 2) return null;
-      // hari dalam minggu (0 = Minggu): nomor hari 0 = Kamis (1 Jan 1970)
-      return Forecast.run(m.revSeries, (m.minDay + 4) % 7, { horizon: fcState.h, modelKey: 'auto' });
-    });
-  }
-  function forecastBodyHtml(R){
-    var runs = forecastRuns(R);
-    if(!runs.some(function(x){ return x; })) return '<div class="state-empty">Proyeksi memerlukan minimal 2 hari data transaksi pada dataset.</div>';
-    var rows = '', notes = '';
-    R.forEach(function(r, i){
-      var f = runs[i], m = r.m;
-      if(!f){
-        rows += '<tr><td>' + esc(r.label) + '</td><td colspan="7" class="fc-muted">Data belum cukup untuk membuat proyeksi.</td></tr>';
-        return;
-      }
-      var hist = m.span ? sum(m.revSeries) / m.span : 0;
-      var chg = hist > 0 ? (f.total / fcState.h / hist - 1) * 100 : null;
-      var ev = f.evalRes;
-      rows += '<tr><td><span class="cmp-dot" style="background:' + r.color + '"></span> ' + esc(r.label) + '</td>' +
-        '<td class="tabular">' + fmtInt(m.span) + ' hari</td>' +
-        '<td>' + esc(f.modelName.replace(' (pembanding)', '')) + '</td>' +
-        '<td class="tabular"><b>' + fmtRp(f.total) + '</b></td>' +
-        '<td class="tabular">' + fmtRp(f.totalLow) + ' \u2013 ' + fmtRp(f.totalHigh) + '</td>' +
-        '<td class="tabular">' + (chg === null ? '\u2014' : (chg >= 0 ? '+' : '') + fmtDec(chg, 1) + '%') + '</td>' +
-        '<td class="tabular">' + (ev.ok && ev.mape !== null ? fmtDec(ev.mape, 1) + '%' : '\u2014') + '</td>' +
-        '<td><span class="fc-badge lvl-' + f.reliability.level + '">' + f.reliability.label + '</span></td></tr>';
-      notes += '<li><span class="fc-badge lvl-' + f.reliability.level + '">' + esc(r.label) + '</span><span class="fc-muted">' + f.reliability.reasons.map(esc).join(' ') + '</span></li>';
-    });
-    return '<div class="cmp-chart"><canvas id="cmpForecast"></canvas></div>' +
-      '<div class="table-scroll" style="margin-top:14px;"><table class="fc-table"><thead><tr><th>Dataset</th><th>Riwayat</th><th>Model terpilih</th><th>Proyeksi total (' + fcState.h + ' hari)</th><th>Rentang rendah\u2013tinggi</th><th>Rata-rata/hari vs riwayat</th><th>MAPE backtest</th><th>Keandalan</th></tr></thead><tbody>' + rows + '</tbody></table></div>' +
-      '<ul class="cmp-fc-notes">' + notes + '</ul>' +
-      '<div class="eval-note">Model dipilih otomatis per dataset lewat rolling backtest. Rentang rendah\u2013tinggi memakai persentil 10\u201390 galat backtest. Proyeksi disejajarkan pada langkah ke-N setelah data terakhir tiap dataset, karena tanggalnya bisa berbeda.</div>';
-  }
-  function forecastConfig(){
-    var t = themeOpts(), h = fcState.h, runs = forecastRuns(lastResult), labels = [], k;
-    for(k = 1; k <= h; k++) labels.push('H+' + k);
-    var sets = [];
-    lastResult.forEach(function(r, i){
-      var f = runs[i];
-      if(!f) return;
-      sets.push({ label: r.label, data: f.pred, low: f.low, high: f.high, borderColor: r.color, backgroundColor: withAlpha(r.color, 0.12), borderWidth: 2, tension: 0.3, pointRadius: 0, pointHoverRadius: 4, fill: false });
-    });
-    return {
-      type: 'line', data: { labels: labels, datasets: sets },
-      options: {
-        responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
-        plugins: {
-          legend: { labels: { color: t.tick, boxWidth: 12 } },
-          tooltip: { callbacks: {
-            label: function(c){ return c.dataset.label + ': ' + fmtRp(c.parsed.y); },
-            afterLabel: function(c){ var d = c.dataset; return 'Rentang: ' + fmtRp(d.low[c.dataIndex]) + ' \u2013 ' + fmtRp(d.high[c.dataIndex]); }
-          } }
-        },
-        scales: { x: { ticks: { color: t.tick, maxTicksLimit: 10 }, grid: { display: false } }, y: { beginAtZero: true, ticks: { color: t.tick, callback: function(v){ return fmtRpShort(v); } }, grid: { color: t.grid } } }
-      }
-    };
-  }
-  function redrawForecast(){
-    var body = $('cmpFcBody');
-    if(!body || !lastResult) return;
-    for(var i = charts.length - 1; i >= 0; i--){ if(charts[i].canvas && charts[i].canvas.id === 'cmpForecast'){ charts[i].destroy(); charts.splice(i, 1); } }
-    body.innerHTML = forecastBodyHtml(lastResult);
-    var cv = $('cmpForecast');
-    if(cv && typeof Chart !== 'undefined') charts.push(new Chart(cv, forecastConfig()));
-  }
-
   function destroyCharts(){ charts.forEach(function(c){ try{ c.destroy(); }catch(e){} }); charts = []; }
   function themeOpts(){
     return { tick: cssVar('--ink-muted', '#94A390'), grid: cssVar('--chart-grid', cssVar('--border', '#2B3527')), ink: cssVar('--ink', '#EAF0E6') };
@@ -736,7 +663,7 @@ var DatasetCompare = (function(){
     if(!lastResult) return;
     destroyCharts();
     if(typeof Chart === 'undefined') return;
-    [['cmpTrend', trendConfig], ['cmpForecast', forecastConfig], ['cmpStatus', statusConfig], ['cmpWeekday', weekdayConfig]].forEach(function(p){
+    [['cmpTrend', trendConfig], ['cmpStatus', statusConfig], ['cmpWeekday', weekdayConfig]].forEach(function(p){
       var cv = $(p[0]);
       if(cv) charts.push(new Chart(cv, p[1]()));
     });
@@ -775,10 +702,6 @@ var DatasetCompare = (function(){
       '<div class="cmp-chart"><canvas id="cmpTrend"></canvas></div>',
       '<div class="cmp-controls">' + seg('metric', [['revenue', 'Pendapatan'], ['orders', 'Pesanan']], trendState.metric) +
         seg('mode', [['index', 'Hari ke-N'], ['cum', 'Kumulatif'], ['calendar', 'Kalender']], trendState.mode) + '</div>');
-    html += panel('Proyeksi berdampingan',
-      'Proyeksi pendapatan harian per dataset dengan model terbaik menurut rolling backtest, lengkap dengan rentang skenario dan indikator keandalan.',
-      '<div id="cmpFcBody">' + forecastBodyHtml(R) + '</div>',
-      '<div class="cmp-controls">' + seg('fh', [['7', '7 hari'], ['14', '14 hari'], ['30', '30 hari']], String(fcState.h)) + '</div>');
     html += '<div class="cmp-grid-2">' +
       panel('Komposisi status pesanan', 'Persentase pesanan per status pada tiap dataset.', '<div class="cmp-chart short"><canvas id="cmpStatus"></canvas></div>') +
       panel('Pola pendapatan per hari dalam seminggu', 'Porsi pendapatan (%) pada tiap hari, agar adil walau panjang periode berbeda.', '<div class="cmp-chart short"><canvas id="cmpWeekday"></canvas></div>') +
@@ -841,7 +764,6 @@ var DatasetCompare = (function(){
         if(wrap && lastResult) wrap.innerHTML = tableHtml(lastResult, analyze(lastResult), tableMode);
         return;
       }
-      if(group === 'fh'){ fcState.h = parseInt(val, 10) || 7; redrawForecast(); return; }
       trendState[group] = val;
       redrawTrend();
     });

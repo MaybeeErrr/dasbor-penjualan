@@ -207,7 +207,6 @@
             <div class="legend-row">
               <span><i style="background:var(--chart-line)"></i>Aktual</span>
               <span id="legendProyeksi"><i style="background:var(--chart-forecast); background-image:none;"></i>Proyeksi</span>
-              <span><i style="background:var(--chart-forecast-soft)"></i>Rentang skenario</span>
             </div>
           </div>
           <div class="chart-scroll"><div class="chart-box"><canvas id="revenueChart"></canvas></div></div>
@@ -227,7 +226,6 @@
               <div class="forecast-item"><div class="lbl">Arah tren</div><div class="big tabular" id="fcTrend">—</div></div>
             </div>
             <div class="forecast-empty" id="forecastEmpty">Data belum cukup untuk membuat prediksi.</div>
-            <div class="fc-meta" id="fcMeta"></div>
             <div class="forecast-note" id="forecastNote">Proyeksi ini adalah perkiraan statistik sederhana berdasarkan pola data yang diunggah, bukan jaminan hasil. Semakin panjang cakupan data historis, semakin andal perkiraannya.</div>
             <button class="summary-link" type="button" data-goto="forecast">Atur horizon &amp; lihat akurasi model →</button>
           </div>
@@ -497,32 +495,18 @@
           <div class="panel-head">
             <div>
               <h3>Prediksi penjualan ke depan</h3>
-              <div class="desc">Empat model dibandingkan lewat rolling backtest dan yang paling akurat dipilih otomatis (bisa diganti manual). Proyeksi disertai rentang skenario rendah–tinggi dan indikator keandalan. Horizon di sini juga memperbarui ringkasan di Dashboard Utama.</div>
+              <div class="desc">Dihitung dari regresi linier atas tren pendapatan harian. Mengatur horizon di sini juga memperbarui ringkasan forecasting di Dashboard Utama.</div>
             </div>
-            <div class="fc-controls">
-              <div class="horizon-tabs" id="metricTabs">
-                <button data-m="revenue" class="active">Pendapatan</button>
-                <button data-m="orders">Jumlah pesanan</button>
-              </div>
-              <select id="fcModelSelect" class="fc-select" aria-label="Model prediksi">
-                <option value="auto">Model: otomatis (terbaik)</option>
-                <option value="naive">Rata-rata 7 hari (pembanding)</option>
-                <option value="ses">Exponential Smoothing</option>
-                <option value="linear">Regresi linier</option>
-                <option value="linearDow">Regresi linier + faktor hari</option>
-              </select>
-              <div class="horizon-tabs" id="horizonTabs">
-                <button data-h="7">7 hari</button>
-                <button data-h="14">14 hari</button>
-                <button data-h="30">30 hari</button>
-              </div>
+            <div class="horizon-tabs" id="horizonTabs">
+              <button data-h="7">7 hari</button>
+              <button data-h="14">14 hari</button>
+              <button data-h="30">30 hari</button>
             </div>
           </div>
 
           <div class="legend-row" style="margin-bottom:8px;">
             <span><i style="background:var(--chart-line)"></i>Aktual</span>
             <span id="legendProyeksiView"><i style="background:var(--chart-forecast); background-image:none;"></i>Proyeksi (<span id="legendProyeksiViewHorizon">7</span> hari ke depan)</span>
-            <span><i style="background:var(--chart-forecast-soft)"></i>Rentang skenario rendah–tinggi</span>
           </div>
           <div class="chart-scroll"><div class="chart-box" style="height:240px;"><canvas id="forecastViewChart"></canvas></div></div>
           <div class="forecast-grid" id="forecastGridView">
@@ -531,17 +515,16 @@
             <div class="forecast-item"><div class="lbl">Arah tren</div><div class="big tabular" id="fcTrendView">—</div></div>
           </div>
           <div class="forecast-empty" id="forecastEmptyView">Data belum cukup untuk membuat prediksi.</div>
-          <div class="fc-meta" id="fcMetaView"></div>
           <div class="forecast-note" id="forecastNoteView">Proyeksi ini adalah perkiraan statistik sederhana berdasarkan pola data yang diunggah, bukan jaminan hasil. Semakin panjang cakupan data historis, semakin andal perkiraannya.</div>
 
           <div class="eval-block" id="forecastEval">
             <div class="eval-head">
-              <h4>Evaluasi akurasi model (rolling backtest)</h4>
-              <div class="desc">Model dilatih ulang pada banyak titik awal dengan jendela latih yang terus bertambah, tiap kali meramal beberapa hari berikutnya, lalu seluruh galat digabung. Cara ini lebih andal daripada satu kali pembagian data karena hasilnya tidak bergantung pada satu periode uji yang kebetulan bagus atau jelek. Angka di bawah untuk model yang sedang dipakai dan tidak berubah mengikuti pilihan horizon 7/14/30 hari.</div>
+              <h4>Evaluasi akurasi model</h4>
+              <div class="desc">Model diuji dengan menyisihkan hari-hari transaksi terbaru sebagai data uji: model dilatih hanya pada data sebelumnya, lalu hasil prediksinya dibandingkan dengan penjualan aktual pada hari-hari yang disisihkan tersebut. <strong>Catatan:</strong> angka-angka di bawah ini memakai porsi data uji yang tetap (bukan mengikuti pilihan 7/14/30 hari di atas), agar akurasi model bisa dibandingkan secara konsisten antar filter — pilihan horizon di atas hanya memengaruhi grafik dan ringkasan proyeksi di atasnya.</div>
             </div>
             <div class="eval-grid" id="evalGrid">
               <div class="eval-item">
-                <div class="eval-lbl">MAE <span class="eval-info" title="Mean Absolute Error: rata-rata selisih absolut antara prediksi dan nilai aktual.">?</span></div>
+                <div class="eval-lbl">MAE <span class="eval-info" title="Mean Absolute Error: rata-rata selisih absolut antara prediksi dan penjualan aktual, dalam Rupiah.">?</span></div>
                 <div class="eval-val tabular" id="evalMae">—</div>
                 <div class="eval-desc">Rata-rata besar kesalahan prediksi, tanpa memandang arah (lebih tinggi/rendah).</div>
               </div>
@@ -551,46 +534,13 @@
                 <div class="eval-desc">Mirip MAE, tapi memberi bobot lebih besar pada kesalahan prediksi yang besar.</div>
               </div>
               <div class="eval-item">
-                <div class="eval-lbl">MAPE <span class="eval-info" title="Mean Absolute Percentage Error: rata-rata persentase selisih prediksi terhadap nilai aktual.">?</span></div>
+                <div class="eval-lbl">MAPE <span class="eval-info" title="Mean Absolute Percentage Error: rata-rata persentase selisih prediksi terhadap nilai penjualan aktual.">?</span></div>
                 <div class="eval-val tabular" id="evalMape">—</div>
-                <div class="eval-desc">Rata-rata persentase kesalahan prediksi terhadap nilai aktual — makin kecil makin akurat.</div>
+                <div class="eval-desc">Rata-rata persentase kesalahan prediksi terhadap penjualan aktual — makin kecil makin akurat.</div>
               </div>
             </div>
             <div class="eval-empty" id="evalEmpty">Evaluasi belum dapat dilakukan.</div>
-            <div id="evalCompareWrap" style="display:none;">
-              <div class="table-scroll" style="margin-top:14px;">
-                <table class="fc-table">
-                  <thead><tr><th>Model</th><th>MAE</th><th>RMSE</th><th>MAPE</th></tr></thead>
-                  <tbody id="evalTableBody"></tbody>
-                </table>
-              </div>
-              <div class="fc-verdict" id="evalVerdict"></div>
-            </div>
             <div class="eval-note" id="evalNote"></div>
-          </div>
-        </div>
-
-        <div class="panel">
-          <div class="panel-head"><div><h3>Prediksi unit per produk (perencanaan stok)</h3><div class="desc">Perkiraan unit terjual untuk produk terlaris selama horizon yang dipilih, dengan rentang skenario. Kolom "Stok aman" memakai skenario tinggi.</div></div></div>
-          <div class="state-empty" id="pfEmpty" style="display:none;"></div>
-          <div class="table-scroll">
-            <table class="fc-table">
-              <thead><tr><th>Produk</th><th>Rata-rata unit/hari</th><th>Prediksi unit</th><th>Rentang rendah–tinggi</th><th>Stok aman</th><th>Model</th><th>Keandalan</th></tr></thead>
-              <tbody id="pfBody"></tbody>
-            </table>
-          </div>
-          <div class="eval-note" id="pfNote"></div>
-        </div>
-
-        <div class="panel">
-          <div class="panel-head"><div><h3>Pelanggan yang berpotensi tidak membeli lagi</h3><div class="desc">Membandingkan waktu sejak pembelian terakhir dengan jeda pembelian yang biasa. Heuristik sederhana, bukan model probabilistik; pelanggan yang baru sekali membeli memakai median jeda beli ulang seluruh pelanggan.</div></div></div>
-          <div class="kpi-grid compact" id="crSummary"></div>
-          <div class="state-empty" id="crEmpty" style="display:none;margin-top:14px;"></div>
-          <div class="table-scroll" id="crTableWrap" style="margin-top:14px;">
-            <table class="fc-table">
-              <thead><tr><th>Pelanggan</th><th>Pesanan</th><th>Total belanja</th><th>Terakhir beli</th><th>Jeda beli biasa</th><th>Skor</th><th>Risiko</th></tr></thead>
-              <tbody id="crBody"></tbody>
-            </table>
           </div>
         </div>
       </section>
@@ -818,7 +768,6 @@
 
 <script src="/js/core/theme.js"></script>
 <script src="/js/core/utils.js"></script>
-<script src="/js/core/forecast.js"></script>
 <script src="/js/core/bubble.js"></script>
 <script src="/js/core/state.js"></script>
 <script src="/js/data/mapping.js"></script>
@@ -826,7 +775,6 @@
 <script src="/js/data/upload.js"></script>
 <script src="/js/core/records.js"></script>
 <script src="/js/sections/overview.js"></script>
-<script src="/js/sections/forecast-extra.js"></script>
 <script src="/js/sections/products.js"></script>
 <script src="/js/sections/customers.js"></script>
 <script src="/js/sections/segmentation.js"></script>
