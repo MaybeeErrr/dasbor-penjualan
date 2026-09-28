@@ -500,6 +500,7 @@ footer.app-footer { padding: 26px 0 40px; font-size: 12px; color: var(--ink-mute
 .dataset-panel-head h3 { margin: 0; font-size: 14.5px; font-weight: 600; }
 .dataset-list { display: flex; flex-direction: column; gap: 8px; max-height: 280px; overflow-y: auto; }
 .dataset-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface-2); cursor: pointer; transition: border-color .15s ease, background .15s ease; }
+.dataset-item.loading { opacity: .6; pointer-events: none; }
 .dataset-item:hover { border-color: color-mix(in srgb, var(--brand) 40%, var(--border)); }
 .dataset-item.active { border-color: var(--brand); background: color-mix(in srgb, var(--brand) 10%, var(--surface-2)); }
 .dataset-item-main { flex: 1; min-width: 0; }

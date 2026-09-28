@@ -326,9 +326,25 @@ var DatasetsUI = (function(){
     if(btn) btn.addEventListener('click', function(){ document.getElementById('fileInput').click(); });
   });
 
-  if(backBtn){
-    backBtn.addEventListener('click', function(){
-      document.getElementById('dashboard').classList.remove('show');
+  // Tombol "Ganti dataset" di sidebar: buka popup pemilih dataset (sama dengan kartu "Dataset aktif"),
+  // bukan kembali ke halaman awal.
+  if(backBtn) backBtn.addEventListener('click', openPicker);
+
+  // Daftar "Dataset Anda" di halaman awal: klik untuk membuka dataset, tombol ✎ / ✕ untuk ganti nama / hapus.
+  if(listElLanding){
+    listElLanding.addEventListener('click', function(e){
+      var item = e.target.closest('.dataset-item');
+      if(!item) return;
+      var id = item.getAttribute('data-id');
+      var actionBtn = e.target.closest('button[data-action]');
+      if(actionBtn){
+        if(actionBtn.getAttribute('data-action') === 'rename') renameDataset(id);
+        if(actionBtn.getAttribute('data-action') === 'delete') deleteDataset(id);
+        return;
+      }
+      if(item.classList.contains('loading')) return;
+      item.classList.add('loading');
+      switchToDataset(id).then(function(){ item.classList.remove('loading'); });
     });
   }
 

@@ -63,9 +63,9 @@
   if(dashboardEl && window.MutationObserver){
     new MutationObserver(syncShellVisibility).observe(dashboardEl, {attributes:true, attributeFilter:['class']});
   }
-  // Tombol "Ganti dataset" (id btnBackToDatasets) ditangani di data/datasets-ui.js;
-  // MutationObserver di bawah ini otomatis menampilkan kembali halaman landing
-  // begitu class "show" pada #dashboard dilepas.
+  // Tombol "Ganti dataset" (id btnBackToDatasets) membuka popup pemilih dataset (data/datasets-ui.js).
+  // MutationObserver di atas menampilkan halaman landing hanya bila class "show" pada #dashboard
+  // dilepas (mis. semua dataset dihapus).
   syncShellVisibility();
 
   /* ---------------- Mirror status pill + theme button (landing vs sidebar) ---------------- */
