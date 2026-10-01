@@ -270,8 +270,10 @@ function renderForecastEvaluation(plan){
   var H = plan.horizon;
 
   if(descEl){
-    descEl.textContent = 'Model dilatih ulang pada beberapa titik potong (backtest bergulir): pada tiap potongan, model hanya melihat data sebelum titik potong, memprediksi ' + H + ' hari berikutnya, lalu dibandingkan dengan aktual. Titik potong bergeser ' + FORECAST_CFG.EVAL_STRIDE + ' hari dan hanya ' + FORECAST_CFG.EVAL_MAX_FOLDS + ' potongan terbaru yang dipakai; hari data hilang tidak dinilai. Pembanding "rata-rata biasa" = rata-rata seluruh hari valid pada data latih potongan yang sama. Panjang uji mengikuti horizon yang dipilih (' + H + ' hari).';
+    descEl.textContent = 'Untuk mengukur akurasi, model "pura-pura tidak tahu" data terbaru: ia hanya melihat data sebelum satu titik waktu, memprediksi ' + H + ' hari berikutnya, lalu hasilnya dicocokkan dengan penjualan sebenarnya. Cara ini diulang pada beberapa titik waktu (maksimal ' + FORECAST_CFG.EVAL_MAX_FOLDS + ' terbaru, bergeser ' + FORECAST_CFG.EVAL_STRIDE + ' hari). Sebagai pembanding dipakai "rata-rata biasa", yaitu menebak semua hari sama dengan rata-rata penjualan harian.';
   }
+  var scoreEl = document.getElementById('evalScore');
+  if(scoreEl){ scoreEl.innerHTML = ''; scoreEl.className = 'fc-score'; }
 
   if(!bt.ok){
     gridEl.classList.add('muted');
@@ -291,6 +293,14 @@ function renderForecastEvaluation(plan){
   document.getElementById('evalMae').textContent = fmtForecastValue(bt.mae, metric);
   document.getElementById('evalRmse').textContent = fmtForecastValue(bt.rmse, metric);
   document.getElementById('evalWape').textContent = bt.wape === null ? 'Tidak dapat dihitung' : fmtPct(bt.wape);
+  if(scoreEl && bt.wape !== null){
+    var g = accuracyGrade(bt.wape);
+    var acc = Math.max(0, 100 - bt.wape);
+    scoreEl.className = 'fc-score show ' + g.cls;
+    scoreEl.innerHTML = '<div class="fc-score-num tabular">' + acc.toLocaleString('id-ID', { maximumFractionDigits: 0 }) + '<small>%</small></div>' +
+      '<div class="fc-score-body"><div class="fc-score-title">Akurasi ' + escapeHtml(g.label) + '</div>' +
+      '<div class="fc-score-desc">' + escapeHtml(g.text) + ' Skor = 100% dikurangi WAPE (' + fmtPct(bt.wape) + '), dinilai pada ' + bt.points + ' hari uji.</div></div>';
+  }
 
   if(cmpEl){
     var v = compareVerdict(bt.improvement);
@@ -386,6 +396,220 @@ function syncForecastTabs(plan){
   });
 }
 
+
+/* ---------------- Tampilan lengkap halaman Forecasting ---------------- */
+var FC_DAY_LONG = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+var FC_DAY_SHORT = ['Min','Sen','Sel','Rab','Kam','Jum','Sab'];
+var FC_DOW_ORDER = [1,2,3,4,5,6,0];   // tampil Senin → Minggu
+var lastForecastView = null;
+
+function fcDayLabel(key, withYear){
+  var d = parseDayKey(key);
+  return FC_DAY_SHORT[d.getDay()] + ', ' + fmtDayShort(key) + (withYear ? ' ' + d.getFullYear() : '');
+}
+function fcDayLong(key){ return FC_DAY_LONG[parseDayKey(key).getDay()]; }
+function fcSet(id, txt){ var el = document.getElementById(id); if(el) el.textContent = txt; }
+function fcHtml(id, html){ var el = document.getElementById(id); if(el) el.innerHTML = html; }
+function fcSigned(v, digits){ return (v >= 0 ? '+' : '−') + Math.abs(v).toLocaleString('id-ID', { minimumFractionDigits: digits, maximumFractionDigits: digits }) + '%'; }
+
+function accuracyGrade(wape){
+  if(wape < 10) return { label: 'sangat baik', cls: 'good', text: 'Prediksi hampir selalu mendekati kenyataan.' };
+  if(wape < 20) return { label: 'baik', cls: 'good', text: 'Prediksi cukup dekat dengan kenyataan dan layak dipakai untuk perencanaan.' };
+  if(wape < 35) return { label: 'cukup', cls: 'mid', text: 'Prediksi bisa dipakai sebagai gambaran kasar. Beri ruang aman untuk selisih.' };
+  return { label: 'rendah', cls: 'low', text: 'Penjualan harian cukup tidak beraturan sehingga prediksi sering meleset. Pakai sebagai acuan arah saja.' };
+}
+
+// Tingkat keyakinan gabungan: lamanya data + hasil backtest (bila ada).
+function forecastConfidenceLevel(plan){
+  var d = plan.model.validDays;
+  var dataRank = d >= 56 ? 3 : (d >= FORECAST_CFG.WARN_DAYS ? 2 : 1);
+  var bt = plan.backtest;
+  var accRank = null;
+  if(bt && bt.ok && bt.wape !== null) accRank = bt.wape < 20 ? 3 : (bt.wape < 35 ? 2 : 1);
+  var rank = accRank === null ? dataRank : Math.min(dataRank, accRank);
+  var names = { 3: 'Tinggi', 2: 'Sedang', 1: 'Rendah' };
+  var cls = { 3: 'good', 2: 'mid', 1: 'low' };
+  var why = [];
+  why.push(d + ' hari data valid');
+  why.push(accRank === null ? 'akurasi belum teruji' : 'akurasi uji ' + accuracyGrade(bt.wape).label);
+  return { name: names[rank], cls: cls[rank], reason: why.join(' · ') };
+}
+
+function renderForecastExtras(plan){
+  lastForecastView = plan;
+  var metric = plan.metric;
+  var meta = FORECAST_METRICS[metric];
+  var model = plan.model, series = plan.series;
+  var btn = document.getElementById('btnForecastExport');
+  var ok = plan.hasEnoughData && plan.future.length > 0;
+  if(btn) btn.disabled = !ok;
+
+  var narrEl = document.getElementById('fcNarrative');
+  var resetIds = ['fcTotalSub','fcAvgSub','fcChangeSub','fcPeakSub','fcConfSub'];
+  ['fcChange','fcPeak','fcConfidence'].forEach(function(id){ fcSet(id, '—'); var el = document.getElementById(id); if(el) el.className = (id === 'fcConfidence' ? 'big' : 'big tabular'); });
+  resetIds.forEach(function(id){ fcHtml(id, '&nbsp;'); });
+  if(narrEl){ narrEl.innerHTML = ''; narrEl.classList.remove('show'); }
+
+  renderForecastDataQuality(plan);
+  renderForecastDow(plan);
+
+  if(!ok){
+    fcHtml('fcDailyTable', '<div class="fc-empty-note">Tabel muncul setelah data cukup untuk membuat prediksi.</div>');
+    return;
+  }
+
+  var H = plan.horizon, fut = plan.future;
+  var total = fut.reduce(function(a, f){ return a + f.pred; }, 0);
+  var avgFc = total / H;
+
+  // Pembanding: rata-rata harian aktual pada H hari valid terakhir
+  var lastVals = [];
+  for(var i = series.values.length - 1; i >= 0 && lastVals.length < H; i--){ if(!series.missing[i]) lastVals.push(series.values[i]); }
+  var lastSum = lastVals.reduce(function(a, b){ return a + b; }, 0);
+  var lastAvg = lastVals.length ? lastSum / lastVals.length : 0;
+  var change = lastAvg > 0 ? (avgFc - lastAvg) / lastAvg * 100 : null;
+
+  var peak = fut.reduce(function(a, f){ return f.pred > a.pred ? f : a; }, fut[0]);
+  var low = fut.reduce(function(a, f){ return f.pred < a.pred ? f : a; }, fut[0]);
+
+  fcSet('fcTotalSub', 'Jumlah ' + H + ' hari: ' + fcDayLabel(fut[0].label) + ' – ' + fcDayLabel(fut[H-1].label));
+  fcSet('fcAvgSub', 'Rata-rata historis: ' + fmtForecastValue(model.avgDaily, metric, true));
+
+  var chEl = document.getElementById('fcChange');
+  if(change !== null && chEl){
+    chEl.textContent = (change > 0.05 ? '▲ ' : (change < -0.05 ? '▼ ' : '▬ ')) + fcSigned(change, 1);
+    chEl.className = 'big tabular ' + (change > 0.05 ? 'up' : (change < -0.05 ? 'down' : ''));
+  }
+  fcSet('fcChangeSub', change === null ? 'Pembanding tidak tersedia' : 'Rata-rata per hari ' + fmtForecastValue(lastAvg, metric, true) + ' pada ' + lastVals.length + ' hari terakhir');
+
+  fcSet('fcPeak', FC_DAY_LONG[parseDayKey(peak.label).getDay()]);
+  fcSet('fcPeakSub', fmtDayShort(peak.label) + ' · ' + fmtForecastValue(peak.pred, metric, true));
+
+  var conf = forecastConfidenceLevel(plan);
+  var cEl = document.getElementById('fcConfidence');
+  if(cEl){ cEl.innerHTML = '<span class="fc-badge ' + conf.cls + '">' + escapeHtml(conf.name) + '</span>'; }
+  fcSet('fcConfSub', conf.reason);
+
+  // Ringkasan dalam kalimat
+  if(narrEl){
+    var parts = [];
+    parts.push('Dalam <b>' + H + ' hari ke depan</b> (' + escapeHtml(fmtDayShort(fut[0].label)) + ' – ' + escapeHtml(fmtDayShort(fut[H-1].label)) + '), ' + escapeHtml(meta.name) + ' diperkirakan sekitar <b>' + escapeHtml(fmtForecastValue(total, metric, true)) + '</b> atau rata-rata <b>' + escapeHtml(fmtForecastValue(avgFc, metric, true)) + ' per hari</b>.');
+    if(change !== null){
+      var dirTxt = change > 0.5 ? 'lebih tinggi ' + fmtPct(Math.abs(change)) : (change < -0.5 ? 'lebih rendah ' + fmtPct(Math.abs(change)) : 'hampir sama');
+      parts.push('Itu ' + dirTxt + ' dibanding ' + lastVals.length + ' hari terakhir.');
+    }
+    if(model.useDow && H >= 3 && peak.label !== low.label){
+      parts.push('Hari paling ramai diperkirakan <b>' + FC_DAY_LONG[parseDayKey(peak.label).getDay()] + '</b> dan paling sepi <b>' + FC_DAY_LONG[parseDayKey(low.label).getDay()] + '</b>.');
+    }
+    parts.push('Tingkat keyakinan: <b>' + escapeHtml(conf.name.toLowerCase()) + '</b> (' + escapeHtml(conf.reason) + ').');
+    narrEl.innerHTML = parts.join(' ');
+    narrEl.classList.add('show');
+  }
+
+  // Tabel harian
+  var maxPred = Math.max.apply(null, fut.map(function(f){ return f.upper !== null ? Math.max(f.upper, f.pred) : f.pred; })) || 1;
+  var rows = fut.map(function(f){
+    var vsAvg = model.avgDaily > 0 ? (f.pred / model.avgDaily - 1) * 100 : null;
+    var cls = vsAvg === null ? '' : (vsAvg > 5 ? 'up' : (vsAvg < -5 ? 'down' : ''));
+    var barW = Math.max(2, f.pred / maxPred * 100);
+    var lo = f.lower !== null ? Math.max(0, f.lower / maxPred * 100) : null;
+    var hi = f.upper !== null ? Math.max(0, f.upper / maxPred * 100) : null;
+    var range = f.lower !== null ? fmtForecastValue(f.lower, metric, true) + ' – ' + fmtForecastValue(f.upper, metric, true) : '—';
+    var isWeekend = [0,6].indexOf(parseDayKey(f.label).getDay()) !== -1;
+    return '<tr' + (isWeekend ? ' class="wkend"' : '') + '><td>' + escapeHtml(fcDayLabel(f.label, true)) + '</td>' +
+      '<td class="fc-bar-cell"><div class="fc-minibar"><span style="width:' + barW.toFixed(1) + '%"></span>' +
+      (lo !== null ? '<i style="left:' + lo.toFixed(1) + '%;width:' + Math.max(0.5, hi - lo).toFixed(1) + '%"></i>' : '') + '</div></td>' +
+      '<td class="tabular num-r"><b>' + escapeHtml(fmtForecastValue(f.pred, metric, true)) + '</b></td>' +
+      '<td class="tabular num-r fc-muted">' + escapeHtml(range) + '</td>' +
+      '<td class="tabular num-r fc-vs ' + cls + '">' + (vsAvg === null ? '—' : fcSigned(vsAvg, 0)) + '</td></tr>';
+  }).join('');
+  fcHtml('fcDailyTable', '<div class="table-scroll fc-table-wrap"><table class="fc-table"><thead><tr><th>Tanggal</th><th></th><th class="num-r">Perkiraan</th><th class="num-r">Rentang wajar</th><th class="num-r" title="Dibanding rata-rata harian historis">vs rata-rata</th></tr></thead><tbody>' + rows + '</tbody></table></div>' +
+    '<div class="fc-table-foot">"vs rata-rata" membandingkan perkiraan hari itu dengan rata-rata harian historis (' + escapeHtml(fmtForecastValue(model.avgDaily, metric, true)) + '). Baris berlatar abu = akhir pekan.</div>');
+}
+
+function renderForecastDataQuality(plan){
+  var series = plan.series, model = plan.model, metric = plan.metric;
+  if(!series.span){ fcHtml('fcDataQuality', '<div class="fc-empty-note">Belum ada data pada filter yang aktif.</div>'); return; }
+  var first = series.labels[0], last = series.labels[series.labels.length - 1];
+  function yr(k){ return parseDayKey(k).getFullYear(); }
+  var facts = [
+    ['Rentang data', fmtDayShort(first) + ' ' + yr(first) + ' – ' + fmtDayShort(last) + ' ' + yr(last)],
+    ['Hari tercakup', series.span + ' hari'],
+    ['Hari dipakai (valid)', series.validDays + ' hari'],
+    ['Data hilang', series.missingDays ? series.missingDays + ' hari dalam ' + series.missingRuns.length + ' rentang' : 'Tidak ada'],
+    ['Rata-rata harian historis', fmtForecastValue(model.avgDaily, metric, true)],
+    ['Level terbaru (dasar prediksi)', fmtForecastValue(model.level, metric, true)],
+    ['Pola hari dalam seminggu', model.useDow ? 'Dipakai' : 'Belum dipakai (butuh ≥ ' + FORECAST_CFG.DOW_MIN_DAYS + ' hari valid)']
+  ];
+  var html = facts.map(function(f){ return '<div class="fc-fact"><span>' + escapeHtml(f[0]) + '</span><b>' + escapeHtml(f[1]) + '</b></div>'; }).join('');
+  if(series.missingRuns.length){
+    html += '<div class="fc-gaps"><div class="fc-gaps-title">Rentang data hilang</div>' + series.missingRuns.slice(0, 5).map(function(r){
+      return '<div>' + escapeHtml(fmtDayShort(r.from) + ' – ' + fmtDayShort(r.to)) + ' <span class="fc-muted">(' + r.len + ' hari)</span></div>';
+    }).join('') + (series.missingRuns.length > 5 ? '<div class="fc-muted">dan ' + (series.missingRuns.length - 5) + ' rentang lainnya</div>' : '') + '</div>';
+  }
+  fcHtml('fcDataQuality', html);
+}
+
+function renderForecastDow(plan){
+  var model = plan.model;
+  if(!plan.hasEnoughData){ fcHtml('fcDowChart', '<div class="fc-empty-note">Pola hari muncul setelah data cukup.</div>'); return; }
+  if(!model.useDow){
+    fcHtml('fcDowChart', '<div class="fc-empty-note">Pola hari belum dipakai karena data valid kurang dari ' + FORECAST_CFG.DOW_MIN_DAYS + ' hari. Semua hari diperlakukan sama.</div>');
+    return;
+  }
+  var f = model.factors;
+  var maxF = Math.max.apply(null, f) || 1;
+  var best = FC_DOW_ORDER.reduce(function(a, d){ return f[d] > f[a] ? d : a; }, FC_DOW_ORDER[0]);
+  var worst = FC_DOW_ORDER.reduce(function(a, d){ return f[d] < f[a] ? d : a; }, FC_DOW_ORDER[0]);
+  var rows = FC_DOW_ORDER.map(function(d){
+    var w = Math.max(2, f[d] / maxF * 100);
+    var pct = (f[d] - 1) * 100;
+    var cls = d === best ? 'best' : (d === worst ? 'worst' : '');
+    return '<div class="fc-dow-row ' + cls + '"><div class="fc-dow-name">' + FC_DAY_LONG[d] + '</div>' +
+      '<div class="fc-dow-track"><div class="fc-dow-fill" style="width:' + w.toFixed(1) + '%"></div><span class="fc-dow-avg" style="left:' + (1 / maxF * 100).toFixed(1) + '%"></span></div>' +
+      '<div class="fc-dow-val tabular">' + fcSigned(pct, 0) + '</div></div>';
+  }).join('');
+  fcHtml('fcDowChart', '<div class="fc-dow">' + rows + '</div>' +
+    '<div class="fc-table-foot"><b>' + FC_DAY_LONG[best] + '</b> biasanya paling ramai dan <b>' + FC_DAY_LONG[worst] + '</b> paling sepi. Angka = selisih dibanding hari rata-rata; garis tipis menandai titik rata-rata. Dihitung dari seluruh data valid.</div>');
+}
+
+function exportForecastExcel(){
+  var plan = lastForecastView;
+  if(!plan || !plan.hasEnoughData || !plan.future.length) return;
+  if(typeof XLSX === 'undefined'){ alert('Pustaka Excel (SheetJS) belum termuat. Periksa koneksi internet lalu muat ulang halaman.'); return; }
+  var meta = FORECAST_METRICS[plan.metric];
+  var unit = plan.metric === 'revenue' ? 'Rp' : (plan.metric === 'orders' ? 'pesanan' : 'kg');
+  var conf = forecastConfidenceLevel(plan);
+  var bt = plan.backtest;
+  var total = plan.future.reduce(function(a, f){ return a + f.pred; }, 0);
+  var summary = [
+    ['Prakiraan ' + meta.title],
+    ['Dibuat', new Date().toLocaleString('id-ID')],
+    ['Horizon', plan.horizon + ' hari'],
+    ['Satuan', unit],
+    ['Total perkiraan', Math.round(total * 100) / 100],
+    ['Rata-rata per hari', Math.round(total / plan.horizon * 100) / 100],
+    ['Tingkat keyakinan', conf.name + ' (' + conf.reason + ')'],
+    ['Hari data valid', plan.model.validDays],
+    ['MAE', bt && bt.ok ? Math.round(bt.mae * 100) / 100 : '-'],
+    ['RMSE', bt && bt.ok ? Math.round(bt.rmse * 100) / 100 : '-'],
+    ['WAPE (%)', bt && bt.ok && bt.wape !== null ? Math.round(bt.wape * 10) / 10 : '-'],
+    [],
+    ['Catatan', 'Perkiraan statistik berdasarkan level terbaru x pola hari dalam seminggu. Bukan jaminan hasil.']
+  ];
+  var daily = [['Tanggal', 'Hari', 'Perkiraan (' + unit + ')', 'Batas bawah', 'Batas atas']].concat(plan.future.map(function(f){
+    return [f.label, fcDayLong(f.label), Math.round(f.pred * 100) / 100, f.lower === null ? '' : Math.round(f.lower * 100) / 100, f.upper === null ? '' : Math.round(f.upper * 100) / 100];
+  }));
+  var wb = XLSX.utils.book_new();
+  var ws1 = XLSX.utils.aoa_to_sheet(daily); ws1['!cols'] = [{wch:12},{wch:10},{wch:20},{wch:16},{wch:16}];
+  var ws2 = XLSX.utils.aoa_to_sheet(summary); ws2['!cols'] = [{wch:24},{wch:60}];
+  XLSX.utils.book_append_sheet(wb, ws1, 'Prakiraan harian');
+  XLSX.utils.book_append_sheet(wb, ws2, 'Ringkasan');
+  XLSX.writeFile(wb, 'prakiraan-' + plan.metric + '-' + plan.horizon + 'hari.xlsx');
+}
+var btnForecastExport = document.getElementById('btnForecastExport');
+if(btnForecastExport) btnForecastExport.addEventListener('click', exportForecastExcel);
+
 function renderForecast(){
   var metric = state.forecastMetric || 'revenue';
   var revPlan = getForecastPlan('revenue', state.horizon);          // Dashboard Utama: selalu pendapatan
@@ -421,6 +645,7 @@ function renderForecast(){
   renderRevenueChart('revenueChart', 'revenue', revPlan);
   renderRevenueChart('forecastViewChart', 'revenueForecastView', viewPlan);
   renderForecastEvaluation(viewPlan);
+  renderForecastExtras(viewPlan);
 }
 
 function renderTopProducts(){

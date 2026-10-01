@@ -552,63 +552,148 @@
       </section>
 
       <section class="view-plane" id="view-forecast" data-view-name="Forecasting">
-        <div class="panel forecast-panel">
-          <div class="panel-head">
-            <div>
-              <h3 id="forecastViewTitle">Prediksi pendapatan harian ke depan</h3>
-              <div class="desc">Prediksi = level terbaru (rata-rata 7 hari valid terakhir) × faktor hari dalam seminggu. Pilih satuan yang diprediksi: jumlah pesanan atau kg biasanya lebih stabil daripada Rupiah. Mengatur horizon di sini juga memperbarui ringkasan forecasting di Dashboard Utama (yang selalu memakai pendapatan).</div>
-            </div>
-            <div class="tab-stack">
-              <div class="horizon-tabs" id="metricTabs" title="Satuan yang diprediksi">
-                <button data-m="revenue" class="active">Rupiah</button>
-                <button data-m="orders">Pesanan</button>
-                <button data-m="kg">Kg</button>
-              </div>
-              <div class="horizon-tabs" id="horizonTabs">
-                <button data-h="7" class="active">7 hari</button>
-                <button data-h="14">14 hari</button>
-                <button data-h="30">30 hari</button>
-              </div>
-            </div>
-          </div>
-          <div class="forecast-warn" id="forecastWarnView"></div>
 
-          <div class="legend-row" style="margin-bottom:8px;">
-            <span><i style="background:var(--chart-line)"></i>Aktual</span>
-            <span id="legendProyeksiView"><i style="background:var(--chart-forecast); background-image:none;"></i>Proyeksi (<span id="legendProyeksiViewHorizon">7</span> hari ke depan)</span>
-            <span id="legendBandView" style="display:none;"><i class="band-swatch"></i>Pita 80% (persentil 10–90 galat backtest)</span>
-            <span id="legendGapView" style="display:none;"><i class="gap-swatch"></i>Data hilang (hari kosong beruntun)</span>
+        <!-- 1. Kontrol + ringkasan -->
+        <div class="panel forecast-panel">
+          <div class="fc-toolbar">
+            <div class="fc-title">
+              <h3 id="forecastViewTitle">Prediksi pendapatan harian ke depan</h3>
+              <div class="desc">Perkiraan penjualan beberapa hari ke depan, dihitung dari pola penjualan pada data yang sedang aktif.</div>
+            </div>
+            <div class="fc-controls">
+              <div class="fc-control">
+                <span class="fc-control-lbl">Yang diprediksi</span>
+                <div class="horizon-tabs" id="metricTabs" title="Satuan yang diprediksi">
+                  <button data-m="revenue" class="active">Rupiah</button>
+                  <button data-m="orders">Pesanan</button>
+                  <button data-m="kg">Kg</button>
+                </div>
+              </div>
+              <div class="fc-control">
+                <span class="fc-control-lbl">Prediksi untuk</span>
+                <div class="horizon-tabs" id="horizonTabs">
+                  <button data-h="7" class="active">7 hari</button>
+                  <button data-h="14">14 hari</button>
+                  <button data-h="30">30 hari</button>
+                </div>
+              </div>
+              <button class="btn btn-secondary fc-export" type="button" id="btnForecastExport" disabled>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 4v11M12 15l-4-4M12 15l4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 19h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+                Unduh Excel
+              </button>
+            </div>
           </div>
-          <div class="chart-scroll"><div class="chart-box" style="height:240px;"><canvas id="forecastViewChart"></canvas></div></div>
-          <div class="forecast-grid" id="forecastGridView">
-            <div class="forecast-item"><div class="lbl" id="fcTotalLblView">Perkiraan total pendapatan</div><div class="big tabular" id="fcTotalView">—</div></div>
-            <div class="forecast-item"><div class="lbl">Rata-rata per hari</div><div class="big tabular" id="fcAvgView">—</div></div>
-            <div class="forecast-item"><div class="lbl">Arah tren</div><div class="big tabular" id="fcTrendView">—</div></div>
+
+          <div class="forecast-warn" id="forecastWarnView"></div>
+          <div class="fc-narrative" id="fcNarrative"></div>
+
+          <div class="fc-kpis" id="forecastGridView">
+            <div class="fc-kpi">
+              <div class="lbl" id="fcTotalLblView">Perkiraan total pendapatan</div>
+              <div class="big tabular" id="fcTotalView">—</div>
+              <div class="sub" id="fcTotalSub">&nbsp;</div>
+            </div>
+            <div class="fc-kpi">
+              <div class="lbl">Rata-rata per hari</div>
+              <div class="big tabular" id="fcAvgView">—</div>
+              <div class="sub" id="fcAvgSub">&nbsp;</div>
+            </div>
+            <div class="fc-kpi">
+              <div class="lbl">Dibanding periode sebelumnya</div>
+              <div class="big tabular" id="fcChange">—</div>
+              <div class="sub" id="fcChangeSub">&nbsp;</div>
+            </div>
+            <div class="fc-kpi">
+              <div class="lbl">Hari puncak</div>
+              <div class="big tabular" id="fcPeak">—</div>
+              <div class="sub" id="fcPeakSub">&nbsp;</div>
+            </div>
+            <div class="fc-kpi">
+              <div class="lbl">Arah tren riwayat</div>
+              <div class="big tabular" id="fcTrendView">—</div>
+              <div class="sub">Hanya gambaran riwayat, tidak diperpanjang ke depan</div>
+            </div>
+            <div class="fc-kpi">
+              <div class="lbl">Tingkat keyakinan</div>
+              <div class="big" id="fcConfidence">—</div>
+              <div class="sub" id="fcConfSub">&nbsp;</div>
+            </div>
           </div>
           <div class="forecast-empty" id="forecastEmptyView">Data belum cukup untuk membuat prediksi.</div>
           <div class="forecast-note" id="forecastNoteView">Proyeksi ini adalah perkiraan statistik sederhana berdasarkan pola data yang diunggah, bukan jaminan hasil. Semakin panjang cakupan data historis, semakin andal perkiraannya.</div>
+        </div>
 
-          <div class="eval-block" id="forecastEval">
+        <!-- 2. Grafik -->
+        <div class="panel">
+          <div class="panel-head">
+            <div><h3>Grafik aktual dan proyeksi</h3><div class="desc">Garis hijau = penjualan sebenarnya. Garis putus-putus kuning = perkiraan. Area kuning muda = rentang yang masih wajar.</div></div>
+            <div class="legend-row">
+              <span><i style="background:var(--chart-line)"></i>Aktual</span>
+              <span id="legendProyeksiView"><i style="background:var(--chart-forecast); background-image:none;"></i>Proyeksi (<span id="legendProyeksiViewHorizon">7</span> hari ke depan)</span>
+              <span id="legendBandView" style="display:none;"><i class="band-swatch"></i>Rentang 80%</span>
+              <span id="legendGapView" style="display:none;"><i class="gap-swatch"></i>Data hilang</span>
+            </div>
+          </div>
+          <div class="chart-scroll"><div class="chart-box" style="height:300px;"><canvas id="forecastViewChart"></canvas></div></div>
+        </div>
+
+        <!-- 3. Rincian harian + pola hari -->
+        <div class="fc-two">
+          <div class="panel">
+            <div class="panel-head"><div><h3>Rincian prakiraan per hari</h3><div class="desc">Angka perkiraan tiap hari beserta rentang wajarnya</div></div></div>
+            <div id="fcDailyTable"></div>
+          </div>
+          <div class="panel">
+            <div class="panel-head"><div><h3>Pola hari dalam seminggu</h3><div class="desc">Hari mana yang biasanya ramai atau sepi</div></div></div>
+            <div id="fcDowChart"></div>
+          </div>
+        </div>
+
+        <!-- 4. Kualitas data + cara membaca -->
+        <div class="fc-two">
+          <div class="panel">
+            <div class="panel-head"><div><h3>Kualitas data yang dipakai</h3><div class="desc">Prediksi hanya sebaik data di belakangnya</div></div></div>
+            <div class="fc-facts" id="fcDataQuality"></div>
+          </div>
+          <div class="panel">
+            <div class="panel-head"><div><h3>Cara perkiraan dibuat</h3><div class="desc">Metode sederhana dan transparan, tanpa kotak hitam</div></div></div>
+            <ol class="fc-steps">
+              <li><b>Ambil level terbaru.</b> Rata-rata penjualan 7 hari valid terakhir, setelah disesuaikan dengan kebiasaan tiap hari.</li>
+              <li><b>Sesuaikan dengan hari.</b> Level dikalikan faktor hari (misalnya Sabtu biasanya lebih ramai dari Selasa).</li>
+              <li><b>Uji ke masa lalu.</b> Model dites pada data lampau yang disembunyikan, lalu dibandingkan dengan kenyataan (lihat bagian akurasi di bawah).</li>
+            </ol>
+            <div class="fc-tips">
+              <div><b>Rentang 80%</b> artinya: pada pengujian masa lalu, sekitar 8 dari 10 hari hasil aktual jatuh di dalam rentang ini.</div>
+              <div><b>Data hilang</b> adalah 3 hari kosong beruntun atau lebih. Itu dianggap data tidak tercatat, bukan penjualan nol.</div>
+              <div><b>Tren tidak diperpanjang.</b> Prediksi tidak mengasumsikan penjualan terus naik atau turun, sehingga lebih konservatif.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 5. Akurasi -->
+        <div class="panel">
+          <div class="eval-block fc-eval" id="forecastEval">
             <div class="eval-head">
-              <h4>Evaluasi akurasi model (backtest bergulir)</h4>
+              <h4>Seberapa akurat model ini?</h4>
               <div class="desc" id="evalDesc"></div>
             </div>
+            <div class="fc-score" id="evalScore"></div>
             <div class="eval-compare" id="evalCompare"></div>
             <div class="eval-grid" id="evalGrid">
               <div class="eval-item">
                 <div class="eval-lbl">MAE <span class="eval-info" title="Mean Absolute Error: rata-rata selisih absolut antara prediksi dan nilai aktual, dalam satuan yang sedang diprediksi (Rupiah, pesanan, atau kg).">?</span></div>
                 <div class="eval-val tabular" id="evalMae">—</div>
-                <div class="eval-desc">Rata-rata besar kesalahan prediksi, tanpa memandang arah (lebih tinggi/rendah).</div>
+                <div class="eval-desc">Rata-rata meleset berapa per hari, tanpa memandang arah (lebih tinggi/rendah).</div>
               </div>
               <div class="eval-item">
                 <div class="eval-lbl">RMSE <span class="eval-info" title="Root Mean Squared Error: akar dari rata-rata kuadrat selisih prediksi terhadap aktual. Lebih sensitif terhadap kesalahan besar dibanding MAE.">?</span></div>
                 <div class="eval-val tabular" id="evalRmse">—</div>
-                <div class="eval-desc">Mirip MAE, tapi memberi bobot lebih besar pada kesalahan prediksi yang besar.</div>
+                <div class="eval-desc">Mirip MAE, tapi lebih menghukum meleset yang besar. Jika jauh di atas MAE, ada hari-hari yang sangat meleset.</div>
               </div>
               <div class="eval-item">
                 <div class="eval-lbl">WAPE <span class="eval-info" title="Weighted Absolute Percentage Error: total galat absolut dibagi total nilai aktual. Tidak meledak pada hari bernilai kecil atau nol seperti MAPE.">?</span></div>
                 <div class="eval-val tabular" id="evalWape">—</div>
-                <div class="eval-desc">Total galat dibagi total aktual pada seluruh hari yang dinilai — makin kecil makin akurat.</div>
+                <div class="eval-desc">Persentase total meleset terhadap total penjualan sebenarnya. Makin kecil makin akurat.</div>
               </div>
             </div>
             <div class="eval-folds" id="evalFolds"></div>
