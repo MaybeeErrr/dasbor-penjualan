@@ -1329,5 +1329,48 @@
 <script src="/js/core/auth-ui.js"></script>
 <script src="/js/main.js"></script>
 <script src="/js/navigation.js"></script>
+
+<!-- Konfirmasi keluar -->
+<div class="modal-overlay" id="logoutConfirmOverlay" role="dialog" aria-modal="true" aria-labelledby="logoutConfirmTitle">
+  <div class="modal-box">
+    <h3 id="logoutConfirmTitle">Keluar dari akun?</h3>
+    <p>Anda akan keluar dari dasbor. Data yang sudah tersimpan tidak akan hilang, dan Anda bisa masuk lagi kapan saja.</p>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" id="logoutCancelBtn" type="button">Batal</button>
+      <button class="btn btn-primary" id="logoutOkBtn" type="button">Ya, keluar</button>
+    </div>
+  </div>
+</div>
+<script>
+(function () {
+  var overlay = document.getElementById('logoutConfirmOverlay');
+  var okBtn = document.getElementById('logoutOkBtn');
+  var cancelBtn = document.getElementById('logoutCancelBtn');
+  var pending = null, confirmed = false;
+
+  function open(btn) { pending = btn; overlay.classList.add('show'); setTimeout(function () { cancelBtn.focus(); }, 30); }
+  function close() { overlay.classList.remove('show'); pending = null; }
+
+  // Fase capture: berjalan sebelum handler logout asli, lalu menahannya sampai dikonfirmasi.
+  document.addEventListener('click', function (e) {
+    var btn = e.target.closest && e.target.closest('#btnLogout, #btnLogoutLanding');
+    if (!btn || confirmed) return;
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    open(btn);
+  }, true);
+
+  okBtn.addEventListener('click', function () {
+    var btn = pending; close();
+    if (!btn) return;
+    confirmed = true;
+    try { btn.click(); } finally { confirmed = false; }
+  });
+  cancelBtn.addEventListener('click', close);
+  overlay.addEventListener('click', function (e) { if (e.target === overlay) close(); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && overlay.classList.contains('show')) close(); });
+})();
+</script>
+
 </body>
 </html>

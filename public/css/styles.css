@@ -1396,3 +1396,39 @@ th:last-child, td:last-child { padding-right: 16px; }
 #orderTablePanel td:nth-child(3) { max-width: 360px; overflow: hidden; text-overflow: ellipsis; }
 #orderTablePanel td:last-child { text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
 #orderTablePanel .pager { border-top: 0; margin-top: 12px; padding-top: 0; }
+
+
+/* ===== Rapikan tata letak: kotak sejajar, isi mengisi ruang ===== */
+
+/* Forecasting: dua panel per baris sama tinggi, isi merata */
+.fc-two { align-items: stretch; margin-bottom: 18px; }
+.fc-two > .panel { margin-bottom: 0; display: flex; flex-direction: column; padding: 22px 24px 24px; }
+.fc-two > .panel > .panel-head { margin-bottom: 16px; }
+
+/* Pola hari dalam seminggu */
+#fcDowChart { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+#fcDowChart .fc-dow { flex: 1; justify-content: space-between; gap: 0; }
+#fcDowChart .fc-dow-row { flex: 1; min-height: 30px; }
+#fcDowChart .fc-table-foot, #fcDowChart > .fc-table-foot { margin-top: 14px; }
+
+/* Cara perkiraan dibuat */
+.fc-two > .panel > .fc-steps { flex: 1; justify-content: space-between; margin-bottom: 16px; gap: 12px; }
+.fc-two > .panel > .fc-tips { margin-top: auto; }
+.fc-two > .panel > .fc-facts { flex: 1; justify-content: space-between; }
+
+/* Rincian harian: tabel menyesuaikan tinggi panel */
+.fc-two > .panel #fcDailyTable { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+.fc-two > .panel #fcDailyTable .fc-table-wrap { flex: 1; }
+
+/* Customer Analytics: panel dalam grid mengisi tinggi yang sama */
+.grid-2 > .rfm-subpanel { display: flex; flex-direction: column; }
+.rfm-dist { flex: 1; justify-content: space-evenly; gap: 10px; }
+
+/* Analisis Penjualan (status, hari, wilayah): isi mengisi kotak, tanpa ruang kosong */
+.sl-eq { align-items: stretch; }
+.sl-eq > .rfm-subpanel > .chart-box,
+.sl-eq > .rfm-subpanel > #salesHourWrap { flex: 1; min-height: 0; }
+.sl-eq > .rfm-subpanel > .sl-donut { flex: 1; align-items: center; justify-content: center; gap: 24px; }
+.sl-eq > .rfm-subpanel > .sl-donut .sl-legend { flex: 1 1 160px; justify-content: center; }
+.sl-eq > .rfm-subpanel > .sl-rank { flex: 1; justify-content: space-between; }
+.sl-eq > .rfm-subpanel > .sl-rank .sl-rank-row { flex: 1; align-content: center; padding: 8px 0; }
