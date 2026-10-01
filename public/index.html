@@ -159,6 +159,14 @@
       </button>
     </div>
 
+    <div class="nav-section">
+      <div class="nav-section-title">Laporan Eksternal</div>
+      <button class="nav-btn" type="button" data-view="shopee">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M1.6 4.4L2.4 1.8h11.2l.8 2.6" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M1.6 4.4c0 1.4 1.05 2.4 2.35 2.4S6.3 5.8 6.3 4.4c0 1.4 1.05 2.4 2.35 2.4S11 5.8 11 4.4c0 1.4 1.05 2.4 2.35 2.4s2.35-1 2.35-2.4" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M2.6 6.7V14h10.8V6.7" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M6.3 14v-4.2h3.4V14" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>
+        Laporan Shopee
+      </button>
+    </div>
+
     <div class="sidebar-foot">
       <div class="dataset-item-meta" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
         <span>Masuk sebagai <b id="accountName">—</b></span>
@@ -748,6 +756,138 @@
         </div>
       </section>
 
+      <!-- ============ VIEW: Laporan Shopee ============ -->
+      <section class="view-plane" id="view-shopee" data-view-name="Laporan Shopee">
+        <div class="panel upload-card shopee-upload-card">
+          <div class="panel-head">
+            <div>
+              <h3>Unggah laporan Shopee Seller Centre</h3>
+              <div class="desc">Terpisah dari dataset pesanan di atas. Unggah satu atau beberapa berkas .xlsx apa adanya dari Shopee — Tinjauan Penjualan, Tinjauan Produk, Tinjauan Traffic, Performa Chat, dan/atau Statistik Toko. Jenisnya dikenali otomatis dari kolomnya, bukan dari nama berkas. Data ini hanya disimpan di peramban Anda (belum ke database), jadi tidak ikut pindah perangkat.</div>
+            </div>
+            <button class="ghost-btn" type="button" id="btnShopeeClearAll" style="font-size:12px;">Hapus semua</button>
+          </div>
+          <div class="dropzone" id="shopeeDropzone" tabindex="0" role="button" aria-label="Unggah laporan Shopee">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none"><path d="M12 3v12M12 3L7 8M12 3l5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+            <div class="main-txt" id="shopeeDropzoneMainTxt">Seret satu atau beberapa berkas ke sini, atau klik untuk memilih</div>
+            <div class="sub-txt">.xlsx dari Shopee Seller Centre — bisa beberapa sekaligus</div>
+            <input type="file" id="shopeeFileInput" accept=".xlsx,.xls" multiple>
+          </div>
+          <div class="upload-error" id="shopeeUploadError"></div>
+          <div class="shopee-file-list" id="shopeeFileList"></div>
+        </div>
+
+        <div class="horizon-tabs shopee-main-tabs" id="shopeeTabs">
+          <button data-tab="ringkasan" class="active">Ringkasan</button>
+          <button data-tab="penjualan">Penjualan</button>
+          <button data-tab="produk">Produk &amp; Funnel</button>
+          <button data-tab="traffic">Traffic</button>
+          <button data-tab="chat">Chat &amp; Layanan</button>
+          <button data-tab="bulanan">Performa Bulanan</button>
+        </div>
+
+        <div class="shopee-tab-panel active" data-tab-panel="ringkasan">
+          <div class="panel">
+            <div class="panel-head"><div><h3>Status laporan</h3><div class="desc">Jenis laporan yang sudah dikenali dan rentang tanggalnya</div></div></div>
+            <div class="shopee-status-chips" id="shopeeStatusChips"></div>
+          </div>
+          <div class="panel">
+            <div class="panel-head"><div><h3>Ringkasan gabungan</h3><div class="desc">KPI utama dari seluruh laporan yang sudah diunggah</div></div></div>
+            <div class="kpi-grid" id="shopeeRingkasanCards"></div>
+          </div>
+          <div class="panel">
+            <div class="panel-head"><div><h3>Narasi otomatis</h3><div class="desc">Disusun langsung dari angka pada laporan yang diunggah</div></div></div>
+            <div class="insight-narrative" id="shopeeRingkasanWrap"></div>
+          </div>
+        </div>
+
+        <div class="shopee-tab-panel" data-tab-panel="penjualan">
+          <div class="state-empty" id="shopeePenjualanEmpty">Unggah berkas <b>Tinjauan Penjualan (Sales Overview)</b> untuk mengisi tab ini.</div>
+          <div id="shopeePenjualanBody" style="display:none;">
+            <div class="panel">
+              <div class="kpi-grid" id="shopeeSalesCards"></div>
+            </div>
+            <div class="panel">
+              <div class="panel-head"><div><h3>Tren harian</h3><div class="desc">Pengunjung, pembeli, dan penjualan (Pesanan Dibuat) per hari</div></div></div>
+              <div class="chart-scroll"><div class="chart-box"><canvas id="shopeeSalesChart"></canvas></div></div>
+            </div>
+            <div class="panel">
+              <div class="panel-head"><div><h3>Corong pesanan</h3><div class="desc">Dibuat → Siap Dikirim, jumlah pembeli dan total penjualan tiap tahap</div></div></div>
+              <div id="shopeeSalesFunnel"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="shopee-tab-panel" data-tab-panel="produk">
+          <div class="state-empty" id="shopeeProdukEmpty">Unggah berkas <b>Tinjauan Produk (Product Overview)</b> untuk mengisi tab ini.</div>
+          <div id="shopeeProdukBody" style="display:none;">
+            <div class="panel">
+              <div class="kpi-grid" id="shopeeProductCards"></div>
+            </div>
+            <div class="panel">
+              <div class="panel-head"><div><h3>Corong produk</h3><div class="desc">Pengunjung produk → keranjang → pesanan, dijumlahkan sepanjang periode</div></div></div>
+              <div id="shopeeProductFunnel"></div>
+            </div>
+            <div class="panel">
+              <div class="panel-head"><div><h3>Tren harian</h3><div class="desc">Halaman dilihat, ditambahkan ke keranjang, dan pembeli per hari</div></div></div>
+              <div class="chart-scroll"><div class="chart-box"><canvas id="shopeeProductChart"></canvas></div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="shopee-tab-panel" data-tab-panel="traffic">
+          <div class="state-empty" id="shopeeTrafficEmpty">Unggah berkas <b>Tinjauan Traffic (Traffic Overview)</b> untuk mengisi tab ini.</div>
+          <div id="shopeeTrafficBody" style="display:none;">
+            <div class="panel">
+              <div class="kpi-grid" id="shopeeTrafficCards"></div>
+            </div>
+            <div class="panel">
+              <div class="panel-head"><div><h3>Pengunjung baru vs lama</h3><div class="desc">Sumber "Semua", per hari</div></div></div>
+              <div class="chart-scroll"><div class="chart-box"><canvas id="shopeeTrafficChart"></canvas></div></div>
+            </div>
+            <div class="panel">
+              <div class="panel-head"><div><h3>Perbandingan sumber traffic</h3><div class="desc">Situs Shopee vs Aplikasi, dijumlahkan sepanjang periode</div></div></div>
+              <div id="shopeeTrafficSources"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="shopee-tab-panel" data-tab-panel="chat">
+          <div class="state-empty" id="shopeeChatEmpty">Unggah berkas <b>Performa Chat (Chat Performance)</b> untuk mengisi tab ini.</div>
+          <div id="shopeeChatBody" style="display:none;">
+            <div class="panel">
+              <div class="kpi-grid" id="shopeeChatCards"></div>
+            </div>
+            <div class="panel">
+              <div class="panel-head"><div><h3>Tren harian</h3><div class="desc">Jumlah chat dan waktu respon rata-rata per hari</div></div></div>
+              <div class="chart-scroll"><div class="chart-box"><canvas id="shopeeChatChart"></canvas></div></div>
+            </div>
+            <div class="panel" id="shopeeChatUnreplied"></div>
+            <div class="panel" id="shopeeChatSenders"></div>
+          </div>
+        </div>
+
+        <div class="shopee-tab-panel" data-tab-panel="bulanan">
+          <div class="state-empty" id="shopeeBulananEmpty">Unggah berkas <b>Statistik Toko (Shop Stats)</b> untuk mengisi tab ini.</div>
+          <div id="shopeeBulananBody" style="display:none;">
+            <div class="panel">
+              <div class="kpi-grid" id="shopeeStatsCards"></div>
+            </div>
+            <div class="panel">
+              <div class="panel-head"><div><h3>Corong pesanan per bulan</h3><div class="desc">Dibuat → Siap Dikirim → Dibayar</div></div></div>
+              <div class="chart-scroll"><div class="chart-box"><canvas id="shopeeStatsChart"></canvas></div></div>
+            </div>
+            <div class="panel">
+              <div class="panel-head"><div><h3>Total tiap tahap</h3><div class="desc">Dijumlahkan sepanjang seluruh bulan yang tersedia</div></div></div>
+              <div id="shopeeStatsFunnel"></div>
+            </div>
+            <div class="panel">
+              <div class="panel-head"><div><h3>Rincian bulanan</h3><div class="desc">Pesanan Dibuat, penjualan, dan tingkat pembatalan tiap bulan</div></div></div>
+              <div id="shopeeStatsTable"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <footer class="app-footer">Dasbor ini menyimpan data pesanan di database Neon milik Anda dan menampilkannya langsung di peramban.</footer>
     </div>
   </div>
@@ -838,6 +978,7 @@
 <script src="/js/core/order-status.js"></script>
 <script src="/js/core/forecast.js"></script>
 <script src="/js/data/mapping.js"></script>
+<script src="/js/data/shopee-parse.js"></script>
 <script src="/js/data/api.js"></script>
 <script src="/js/data/upload.js"></script>
 <script src="/js/core/records.js"></script>
@@ -851,6 +992,7 @@
 <script src="/js/sections/basket.js"></script>
 <script src="/js/sections/evaluation.js"></script>
 <script src="/js/sections/compare.js"></script>
+<script src="/js/sections/shopee.js"></script>
 <script src="/js/data/datasets-ui.js"></script>
 <script src="/js/core/auth-ui.js"></script>
 <script src="/js/main.js"></script>

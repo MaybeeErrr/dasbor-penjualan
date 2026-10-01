@@ -74,6 +74,8 @@ var AuthUI = (function(){
     state.records = [];
     state.datasets = [];
     state.activeDatasetId = null;
+    if(state.shopee) state.shopee = { sales:null, product:null, traffic:null, chat:null, shopstats:null, files:[] };
+    if(typeof renderShopeeMenu === 'function') renderShopeeMenu();
     document.getElementById('dashboard').classList.remove('show');
     switchMode('login');
     if(formLogin) formLogin.reset();

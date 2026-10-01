@@ -20,8 +20,8 @@ dasbor-penjualan/
 │   ├── data/demo-orders.json    ← data contoh (pratinjau saja, tidak disimpan)
 │   └── js/
 │       ├── core/      theme, utils, bubble, state, order-status (definisi status pesanan), forecast (mesin forecasting murni: model, backtest, pita), records, auth-ui (gerbang login/daftar)
-│       ├── data/      mapping (pemetaan kolom), api (fetch ke backend), upload (parse & popup), datasets-ui (manajer dataset)
-│       ├── sections/  overview, products, netincome (+ netincome-export: Excel/PDF), customers, segmentation, insight, basket, evaluation, compare (perbandingan)
+│       ├── data/      mapping (pemetaan kolom), api (fetch ke backend), upload (parse & popup), datasets-ui (manajer dataset), shopee-parse (parser laporan Shopee Seller Centre)
+│       ├── sections/  overview, products, netincome (+ netincome-export: Excel/PDF), customers, segmentation, insight, basket, evaluation, compare (perbandingan), shopee (Laporan Shopee)
 │       ├── main.js    inisialisasi statistik data contoh di landing
 │       └── navigation.js
 ├── api/
@@ -50,6 +50,37 @@ Catatan: file JS memakai *global scope* bersama (tanpa bundler), jadi **urutan `
 | Keluar | Token dihapus dari `localStorage`; kembali ke layar masuk |
 
 ---
+
+## Menu Laporan Shopee
+
+Menu **Laporan Shopee** (sidebar → Laporan Eksternal) adalah ruang terpisah dari
+dataset pesanan di atas: di sini Anda mengunggah langsung berkas ekspor dari
+**Shopee Seller Centre** apa adanya (Pusat Laporan → Unduh), tanpa perlu
+dipetakan dulu.
+
+- **Berkas yang dikenali** (bisa unggah satu atau beberapa sekaligus, boleh
+  dicampur): **Tinjauan Penjualan** (Sales Overview), **Tinjauan Produk**
+  (Product Overview), **Tinjauan Traffic** (Traffic Overview), **Performa
+  Chat** (Chat Performance), dan **Statistik Toko** (Shop Stats, bulanan).
+  Jenisnya dikenali otomatis dari susunan kolomnya (`public/js/data/shopee-parse.js`),
+  **bukan dari nama berkas** — jadi nama berkas boleh apa saja.
+- **Enam tab**: Ringkasan (status + KPI gabungan + narasi otomatis),
+  Penjualan, Produk & Funnel, Traffic (perbandingan sumber Semua/Situs/Aplikasi),
+  Chat & Layanan (termasuk daftar chat yang belum dibalas), dan Performa
+  Bulanan (funnel Dibuat → Siap Dikirim → Dibayar dari Statistik Toko).
+  Tiap tab berdiri sendiri: mengunggah satu jenis laporan saja sudah cukup
+  mengisi tab yang sesuai, tab lain tetap menampilkan status "belum diunggah".
+- **Tidak disimpan ke database** — berbeda dari dataset pesanan yang
+  tersinkronisasi per akun lewat `/api/datasets` dan `/api/orders`, laporan
+  Shopee ini hanya disimpan di **`localStorage` peramban**, per akun yang
+  sedang masuk. Ini keputusan desain yang disengaja: bentuk datanya (ringkasan
+  + deret harian/bulanan per jenis laporan) sama sekali berbeda dari baris
+  pesanan, sehingga tidak dipaksakan ke tabel `orders` yang ada. Konsekuensinya:
+  data ini **tidak ikut berpindah perangkat** dan hilang bila cache peramban
+  dibersihkan — unggah ulang berkasnya bila itu terjadi. Rencana pengembangan
+  lanjutan: tabel/endpoint khusus bila dibutuhkan persistensi lintas perangkat.
+- Tombol **Hapus semua** di kartu unggah mengosongkan laporan Shopee yang
+  tersimpan (localStorage), tidak memengaruhi dataset pesanan.
 
 ## Menu Pendapatan Bersih
 

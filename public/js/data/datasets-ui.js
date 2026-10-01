@@ -355,7 +355,7 @@ var DatasetsUI = (function(){
       } else {
         setStatusPill(false, 'Belum ada data');
       }
-    });
+    }).catch(function(err){ console.error(err); setStatusPill(false, 'Gagal memuat daftar dataset (periksa koneksi)'); });
   });
 
   return { refresh: refreshDatasets, renderList: renderList, switchTo: switchToDataset };
