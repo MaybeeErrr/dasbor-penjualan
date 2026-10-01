@@ -1496,9 +1496,9 @@ th:last-child, td:last-child { padding-right: 16px; }
   --kk-accent: var(--brand);
   flex: none; position: relative;
   display: grid; grid-template-columns: minmax(0, 1fr) auto;
-  grid-template-areas: "label val" "who who" "bar bar";
-  align-items: baseline; align-content: start;
-  row-gap: 4px; column-gap: 12px;
+  grid-template-areas: "label label" "who val" "bar bar";
+  align-items: end; align-content: start;
+  row-gap: 6px; column-gap: 16px;
   padding: 14px 0 18px;
   background: none; border: 0; border-top: 1px solid var(--border); border-radius: 0; box-shadow: none;
   overflow: visible;
@@ -1509,23 +1509,23 @@ th:last-child, td:last-child { padding-right: 16px; }
 #insightGrid2 .bar-row.kk .name { display: contents; }
 
 #insightGrid2 .kk-label {
-  grid-area: label; font-size: 12px; font-weight: 500;
+  grid-area: label; align-self: start; font-size: 12px; font-weight: 500;
   letter-spacing: 0; text-transform: none; color: var(--ink-muted); line-height: 1.4;
 }
 #insightGrid2 .bar-row.kk .bar-val {
-  grid-area: val; justify-self: end;
+  grid-area: val; justify-self: end; align-self: end;
   font-size: 18px; font-weight: 700; line-height: 1.2; letter-spacing: -0.01em;
   font-variant-numeric: tabular-nums; color: var(--ink); white-space: nowrap;
 }
 #insightGrid2 .kk-who,
 #insightGrid2 .bar-row.kk.kk-long .kk-who {
-  grid-area: who; justify-self: stretch; text-align: left; min-width: 0;
+  grid-area: who; align-self: end; justify-self: stretch; text-align: left; min-width: 0;
   font-size: 12px; font-weight: 400; line-height: 1.45; color: var(--ink-muted);
   overflow-wrap: anywhere;
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
 }
 #insightGrid2 .bar-row.kk .bar-track {
-  grid-area: bar; align-self: end; margin-top: 10px; height: 3px; background: var(--surface-2); border-radius: 999px;
+  grid-area: bar; align-self: end; margin-top: 4px; height: 3px; background: var(--surface-2); border-radius: 999px;
 }
 #insightGrid2 .bar-row.kk .bar-fill { background: var(--kk-accent); border-radius: 999px; min-width: 3px; }
 
@@ -1562,3 +1562,9 @@ th:last-child, td:last-child { padding-right: 16px; }
 }
 #mbaItemsets .bar-row .bar-track { grid-area: bar; height: 4px; background: var(--surface-2); border-radius: 999px; }
 #mbaItemsets .bar-row .bar-fill { border-radius: 999px; min-width: 3px; }
+
+/* Nama produk panjang: tampil penuh selebar kartu, angka tetap di kanan tepat di atas bar */
+#insightGrid2 .bar-row.kk.kk-long {
+  grid-template-areas: "label label" "who who" "val val" "bar bar";
+}
+#insightGrid2 .bar-row.kk.kk-long .bar-val { justify-self: end; }
