@@ -96,28 +96,89 @@ function mergeShopeeResult(result){
   });
 }
 
+/* ---------- Popup hasil unggah ---------- */
+function shopeeResultPeriod(r){
+  var rows = null;
+  if(r.daily && r.daily.length) rows = r.daily;
+  else if(r.sources){ var k = Object.keys(r.sources).filter(function(x){ return r.sources[x].daily && r.sources[x].daily.length; })[0]; if(k) rows = r.sources[k].daily; }
+  else if(r.stages){ var s2 = Object.keys(r.stages).filter(function(x){ return r.stages[x].monthly && r.stages[x].monthly.length; })[0]; if(s2) rows = r.stages[s2].monthly; }
+  if(!rows || !rows.length || !rows[0].date) return '';
+  var a = rows[0].date, b = rows[rows.length-1].date;
+  function full(key){ var p = key.split('-'); return p.length === 3 ? fmtDayShort(key) + ' ' + p[0] : key; }
+  return a === b ? full(a) : full(a) + ' – ' + full(b);
+}
+
+function showShopeeUploadResult(okItems, errors){
+  var overlay = document.getElementById('uploadResultOverlay');
+  if(!overlay) return;
+  var list = document.getElementById('uploadResultList');
+  var title = document.getElementById('uploadResultTitle');
+  var sub = document.getElementById('uploadResultSub');
+  var icon = document.getElementById('uploadResultIcon');
+  var closeBtn = document.getElementById('uploadResultClose');
+
+  var allFailed = !okItems.length;
+  title.textContent = allFailed ? 'Berkas gagal diunggah' : (errors.length ? 'Sebagian berkas berhasil diunggah' : 'Dataset berhasil diunggah');
+  sub.textContent = allFailed
+    ? 'Tidak ada berkas yang dikenali sebagai laporan Shopee.'
+    : okItems.length + ' berkas berhasil dibaca' + (errors.length ? ', ' + errors.length + ' gagal.' : '. Berikut jenis laporan dari tiap berkas:');
+  icon.textContent = allFailed ? '!' : '✓';
+  icon.classList.toggle('warn', allFailed || errors.length > 0);
+
+  var html = okItems.map(function(it){
+    return '<div class="ur-item"><div class="ur-type">' + escapeHtml(it.label) + '</div>' +
+      '<div class="ur-file">' + escapeHtml(it.fileName) + '</div>' +
+      (it.period ? '<div class="ur-meta">Periode data: ' + escapeHtml(it.period) + '</div>' : '') + '</div>';
+  }).join('');
+  html += errors.map(function(er){
+    return '<div class="ur-item err"><div class="ur-type">Gagal</div>' +
+      '<div class="ur-file">' + escapeHtml(er.fileName || 'Berkas') + '</div>' +
+      '<div class="ur-meta">' + escapeHtml(er.message) + '</div></div>';
+  }).join('');
+  list.innerHTML = html;
+
+  function close(){
+    overlay.classList.remove('show');
+    closeBtn.removeEventListener('click', close);
+    overlay.removeEventListener('click', onOverlay);
+    document.removeEventListener('keydown', onKey);
+  }
+  function onOverlay(e){ if(e.target === overlay) close(); }
+  function onKey(e){ if(e.key === 'Escape' || e.key === 'Enter') close(); }
+  closeBtn.addEventListener('click', close);
+  overlay.addEventListener('click', onOverlay);
+  document.addEventListener('keydown', onKey);
+  overlay.classList.add('show');
+  closeBtn.focus();
+}
+
 function processShopeeFiles(fileList){
   var files = Array.prototype.slice.call(fileList || []).filter(function(f){ return /\.(xlsx|xls)$/i.test(f.name); });
   if(!files.length){ shopeeShowError('Tidak ada berkas .xlsx/.xls yang dipilih.'); return; }
   shopeeClearError();
   shopeeSetProcessing(true);
   var errors = [];
+  var okItems = [];
   var chain = Promise.resolve();
   files.forEach(function(file){
     chain = chain.then(function(){
       return readWorkbookSheets(file).then(function(sheets){
         var r = ShopeeParse.parseWorkbook(file.name, sheets);
-        if(!r.ok) errors.push(r.error);
-        else mergeShopeeResult(r);
-      }).catch(function(err){ errors.push(err.message); });
+        if(!r.ok) errors.push({ fileName: file.name, message: r.error });
+        else {
+          mergeShopeeResult(r);
+          okItems.push({ fileName: file.name, label: SHOPEE_TYPE_LABEL[r.type] || r.label, period: shopeeResultPeriod(r) });
+        }
+      }).catch(function(err){ errors.push({ fileName: file.name, message: err.message }); });
     });
   });
   chain.then(function(){
     shopeeSetProcessing(false);
     if(shopeeFileInput) shopeeFileInput.value = '';
-    if(errors.length) shopeeShowError(errors.join(' '));
+    if(errors.length) shopeeShowError(errors.map(function(er){ return er.message; }).join(' '));
     saveShopeeToStorage();
     renderShopeeMenu();
+    showShopeeUploadResult(okItems, errors);
   });
 }
 

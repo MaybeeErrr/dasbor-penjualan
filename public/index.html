@@ -760,8 +760,14 @@
       <section class="view-plane" id="view-shopee" data-view-name="Laporan Platform">
         <div class="rp-upload">
           <div class="rp-drop" id="shopeeDropzone" tabindex="0" role="button" aria-label="Unggah laporan">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 3v12M12 3L7 8M12 3l5 5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
-            <span class="rp-drop-txt" id="shopeeDropzoneMainTxt">Seret berkas .xlsx ke sini atau klik untuk memilih</span>
+            <span class="rp-drop-icon">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M12 3v12M12 3L7 8M12 3l5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+            </span>
+            <span class="rp-drop-body">
+              <span class="rp-drop-txt" id="shopeeDropzoneMainTxt">Seret berkas .xlsx ke sini atau klik untuk memilih</span>
+              <span class="rp-drop-sub" id="shopeeDropzoneSubTxt">Bisa pilih beberapa berkas sekaligus &middot; Tinjauan Penjualan, Produk, Traffic, Performa Chat, Statistik Toko</span>
+            </span>
+            <span class="rp-drop-cta" aria-hidden="true">Pilih berkas</span>
             <input type="file" id="shopeeFileInput" accept=".xlsx,.xls" multiple>
           </div>
           <div class="rp-actions">
@@ -920,6 +926,22 @@
     <div class="modal-actions">
       <button class="btn btn-secondary" id="confirmModalCancel" type="button">Batal</button>
       <button class="btn btn-primary" id="confirmModalConfirm" type="button">Lanjutkan</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="uploadResultOverlay" role="dialog" aria-modal="true" aria-labelledby="uploadResultTitle">
+  <div class="modal-box wide upload-result-box">
+    <div class="ur-head">
+      <span class="ur-icon" id="uploadResultIcon" aria-hidden="true"></span>
+      <div>
+        <h3 id="uploadResultTitle">Dataset berhasil diunggah</h3>
+        <p id="uploadResultSub">—</p>
+      </div>
+    </div>
+    <div class="ur-list" id="uploadResultList"></div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" id="uploadResultClose" type="button">Selesai</button>
     </div>
   </div>
 </div>
