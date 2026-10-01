@@ -1489,9 +1489,10 @@ th:last-child, td:last-child { padding-right: 16px; }
    Struktur tiap kartu seragam, rata kiri:
    judul metrik  →  angka utama  →  keterangan (produk / tanggal / pelanggan)  →  bar proporsi
    Produk & Periode memakai grid 2×2, Pelanggan Kunci menumpuk 2 kartu, sehingga tinggi kedua panel seimbang. */
-#insightGrid2 { grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 18px; }
-#insightGrid2 #insightProductPeriod { flex: 0 0 auto; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
-#insightGrid2 #insightCustomer { flex: 1; display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; grid-auto-rows: 1fr; }
+#insightGrid2 { grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 14px; margin-bottom: 18px; }
+#insightGrid2 > .panel { padding: 18px 20px 20px; }
+#insightGrid2 #insightProductPeriod { flex: 0 0 auto; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+#insightGrid2 #insightCustomer { flex: 1; display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; grid-auto-rows: 1fr; }
 
 #insightGrid2 .bar-row.kk {
   --kk-accent: var(--brand);
@@ -1500,43 +1501,43 @@ th:last-child, td:last-child { padding-right: 16px; }
   grid-template-areas: "label" "val" "who" "bar";
   grid-template-rows: auto auto 1fr auto;
   align-items: start; align-content: stretch;
-  row-gap: 6px; column-gap: 0;
-  padding: 16px 20px 18px 24px;
+  row-gap: 3px; column-gap: 0;
+  padding: 12px 14px 12px 18px;
   background: var(--surface-2); border: 1px solid var(--border);
-  border-radius: var(--radius-md); box-shadow: none;
+  border-radius: var(--radius-sm); box-shadow: none;
   transition: border-color .2s ease;
 }
 #insightCustomer .bar-row.kk { --kk-accent: var(--blue); }
 
 #insightGrid2 .bar-row.kk::before {
-  content: ""; position: absolute; left: 0; top: 16px; bottom: 16px; width: 3px;
+  content: ""; position: absolute; left: 0; top: 12px; bottom: 12px; width: 2px;
   border-radius: 0 3px 3px 0; background: var(--kk-accent);
 }
 #insightGrid2 .bar-row.kk:hover { border-color: var(--kk-accent); }
 #insightGrid2 .bar-row.kk .name { display: contents; }
 
 #insightGrid2 .kk-label {
-  grid-area: label; font-size: 12.5px; font-weight: 500;
+  grid-area: label; font-size: 11.5px; font-weight: 500;
   letter-spacing: 0; text-transform: none; color: var(--ink-muted); line-height: 1.4;
 }
 #insightGrid2 .bar-row.kk .bar-val {
   grid-area: val; align-self: start; justify-self: start;
-  font-size: 26px; font-weight: 700; line-height: 1.15; letter-spacing: -0.02em;
+  font-size: 20px; font-weight: 700; line-height: 1.2; letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums; color: var(--ink); white-space: nowrap;
 }
 /* Keterangan: selalu di bawah angka, rata kiri, maksimal 2 baris */
 #insightGrid2 .kk-who,
 #insightGrid2 .bar-row.kk.kk-long .kk-who {
   grid-area: who; align-self: start; justify-self: stretch; text-align: left; min-width: 0;
-  font-size: 13px; font-weight: 500; line-height: 1.45; color: var(--ink);
+  font-size: 12px; font-weight: 400; line-height: 1.4; color: var(--ink-muted);
   overflow-wrap: anywhere;
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
 }
 #insightGrid2 .bar-row.kk.kk-long { grid-template-columns: minmax(0, 1fr); grid-template-areas: "label" "val" "who" "bar"; }
 
 #insightGrid2 .bar-row.kk .bar-track {
-  grid-area: bar; align-self: end; margin-top: 8px;
-  height: 6px; background: var(--surface); border-radius: 999px;
+  grid-area: bar; align-self: end; margin-top: 6px;
+  height: 4px; background: var(--surface); border-radius: 999px;
 }
 #insightGrid2 .bar-row.kk .bar-fill { background: var(--kk-accent); border-radius: 999px; min-width: 6px; }
 
@@ -1545,5 +1546,5 @@ th:last-child, td:last-child { padding-right: 16px; }
 }
 @media (max-width: 560px) {
   #insightGrid2 #insightProductPeriod { grid-template-columns: minmax(0, 1fr); }
-  #insightGrid2 .bar-row.kk .bar-val { font-size: 24px; }
+  #insightGrid2 .bar-row.kk .bar-val { font-size: 19px; }
 }
