@@ -17,6 +17,7 @@ function render(){
   renderIntelligentInsight();
   renderBusinessRecommendation();
   renderExecutiveSummary();
+  if(typeof syncReportButtons === 'function') syncReportButtons();
 }
 
 function renderPreprocessingOverview(){
@@ -57,41 +58,8 @@ function renderPreprocessingOverview(){
   }).join('');
 }
 
-function renderKPIs(){
-  var recs = state.filtered;
-  var orders = uniqueOrders(recs);
-  var completedOrders = orders.filter(function(o){ return OrderStatus.isCompleted(o.status); });
-  var cancelledOrders = orders.filter(function(o){ return OrderStatus.isCancelled(o.status); });
-  var revenueBase = OrderStatus.counted(orders);
-  var totalRevenue = revenueBase.reduce(function(s,o){ return s + o.total_payment; }, 0);
-  var totalOrders = orders.length;
-  var avgOrder = revenueBase.length ? totalRevenue / revenueBase.length : 0;
-  var qtyTerjual = recs.filter(function(r){ return revenueBase.indexOf(orders.find(function(o){return o.order_id===r.order_id;})) !== -1 || OrderStatus.isCompleted(r.status); })
-    .reduce(function(s,r){ return s + r.qty; }, 0);
-
-  // week over week
-  var byDay = groupByDay(revenueBase);
-  var days = Object.keys(byDay).sort();
-  var last7 = days.slice(-7).reduce(function(s,k){ return s + byDay[k]; }, 0);
-  var prev7 = days.slice(-14,-7).reduce(function(s,k){ return s + byDay[k]; }, 0);
-  var delta = prev7 > 0 ? ((last7 - prev7) / prev7 * 100) : null;
-
-  var cancelRate = totalOrders ? ( cancelledOrders.length / totalOrders * 100 ) : 0;
-
-  var kpis = [
-    {label:'Total pendapatan', value: idr(totalRevenue), delta: delta === null ? '7 hari terakhir tidak cukup data' : ( (delta>=0?'▲ ':'▼ ') + Math.abs(delta).toFixed(1) + '% vs 7 hari sebelumnya'), cls: delta===null?'':(delta>=0?'up':'down')},
-    {label:'Total pesanan', value: totalOrders.toLocaleString('id-ID'), delta: completedOrders.length + ' selesai', cls:''},
-    {label:'Rata-rata nilai pesanan', value: idr(avgOrder), delta:'per pesanan selesai', cls:''},
-    {label:'Tingkat pembatalan', value: cancelRate.toFixed(1) + '%', delta: cancelledOrders.length+' pesanan dibatalkan', cls: cancelRate>15?'down':''}
-  ];
-  var grid = document.getElementById('kpiGrid');
-  grid.innerHTML = kpis.map(function(k, i){
-    var cardCls = i===3 ? (cancelRate>15?'warn':'amber') : '';
-    return '<div class="kpi-card '+cardCls+'"><div class="kpi-label">'+k.label+'</div><div class="kpi-value tabular">'+k.value+'</div><div class="kpi-delta '+k.cls+'">'+k.delta+'</div></div>';
-  }).join('');
-
-  document.getElementById('dashSub').textContent = totalOrders.toLocaleString('id-ID') + ' pesanan · ' + days.length + ' hari transaksi · diperbarui dari ' + (document.getElementById('dataStatusTxt').textContent);
-}
+// Tampilan KPI + ringkasan kini ada di sections/dashboard.js (renderDashboardHome).
+function renderKPIs(){ renderDashboardHome(); }
 
 function groupByDay(orders){
   var byDay = {};

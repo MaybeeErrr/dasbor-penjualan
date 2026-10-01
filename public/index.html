@@ -208,7 +208,21 @@
 
       <!-- ============ VIEW: Dashboard Utama ============ -->
       <section class="view-plane active" id="view-dashboard" data-view-name="Dashboard Utama">
-        <div class="kpi-grid" id="kpiGrid"></div>
+        <div class="db-hero">
+          <div class="db-hero-text">
+            <div class="db-eyebrow">Ringkasan bisnis</div>
+            <h2>Bagaimana kabar penjualan Anda?</h2>
+            <div class="db-period" id="dbPeriod">—</div>
+          </div>
+          <button class="btn btn-primary db-pdf" id="btnDashPdf" type="button" disabled>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 4v11M12 15l-4-4M12 15l4-4" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 19h14" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>
+            Unduh Laporan PDF
+          </button>
+        </div>
+        <div class="km-headline db-story" id="dbStory"></div>
+        <div class="kpi-grid db-kpis" id="kpiGrid"></div>
+        <div class="rfm-subhead db-sec"><h4>Apa artinya bagi bisnis Anda?</h4><div class="desc">Kesimpulan otomatis dari data dalam bahasa sederhana.</div></div>
+        <div class="sl-findings db-insights" id="dbInsights"></div>
 
         <div class="panel">
           <div class="panel-head">
@@ -224,6 +238,29 @@
             </div>
           </div>
           <div class="chart-scroll"><div class="chart-box"><canvas id="revenueChart"></canvas></div></div>
+        </div>
+
+        <div class="grid-2 db-row">
+          <div class="panel">
+            <div class="panel-head"><div><h3>Produk terlaris</h3><div class="desc">5 produk dengan nilai penjualan tertinggi.</div></div>
+              <button class="summary-link db-link" type="button" data-goto="product">Selengkapnya →</button></div>
+            <div class="sl-rank" id="dbTopProducts"></div>
+          </div>
+          <div class="panel">
+            <div class="panel-head"><div><h3>Status pesanan</h3><div class="desc">Hijau selesai, merah dibatalkan, warna lain masih berjalan.</div></div></div>
+            <div class="sl-donut"><div class="sl-donut-chart"><canvas id="dbStatusChart"></canvas></div><div class="sl-legend" id="dbStatusLegend"></div></div>
+          </div>
+        </div>
+        <div class="grid-2 db-row">
+          <div class="panel">
+            <div class="panel-head"><div><h3>Hari paling ramai</h3><div class="desc">Pendapatan menurut hari dalam seminggu. Batang tua = hari terbaik.</div></div>
+              <button class="summary-link db-link" type="button" data-goto="sales">Selengkapnya →</button></div>
+            <div class="chart-box" style="height:230px;"><canvas id="dbDowChart"></canvas></div>
+          </div>
+          <div class="panel">
+            <div class="panel-head"><div><h3>Asal pembeli</h3><div class="desc">5 provinsi dengan pesanan terbanyak.</div></div></div>
+            <div class="sl-rank" id="dbProvinces"></div>
+          </div>
         </div>
 
         <div class="grid-3">
@@ -267,6 +304,14 @@
             <button class="summary-link" type="button" data-goto="customer">Lihat Customer Analytics →</button>
           </div>
         </div>
+
+        <div class="km-guide db-guide">
+          <div class="km-guide-grid">
+            <div><b>Cara membaca dasbor</b><span>Mulai dari kalimat ringkasan di atas, lalu lihat kartu angka. Panah ▲ hijau berarti naik, ▼ merah berarti turun.</span></div>
+            <div><b>Pesanan yang dihitung</b><span>Hanya pesanan selesai. Pesanan batal atau dikembalikan tidak dihitung sebagai pendapatan.</span></div>
+            <div><b>Filter</b><span>Ubah status/provinsi di bagian atas; semua angka dan laporan PDF ikut berubah.</span></div>
+          </div>
+        </div>
       </section>
 
       <!-- ============ VIEW: Analisis Penjualan ============ -->
@@ -277,6 +322,7 @@
               <h3>Analisis Penjualan</h3>
               <div class="desc">Ringkasan performa penjualan: tren, waktu ramai, produk terlaris, pembayaran, status pesanan, dan wilayah pembeli. Mengikuti filter status/provinsi yang aktif di atas.</div>
             </div>
+            <button class="btn btn-secondary rpt-btn" id="btnSalesPdf" type="button"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 4v11M12 15l-4-4M12 15l4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 19h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>Unduh PDF</button>
           </div>
           <div class="forecast-empty" id="salesEmpty">Belum ada data pesanan pada filter yang aktif.</div>
           <div id="salesContent">
@@ -366,6 +412,7 @@
               <h3>Customer Analytics (RFM)</h3>
               <div class="desc">Menilai pelanggan dari seberapa baru, seberapa sering, dan seberapa besar mereka berbelanja. Dihitung dari transaksi selesai pada data yang diunggah dan mengikuti filter status/provinsi yang aktif.</div>
             </div>
+            <button class="btn btn-secondary rpt-btn" id="btnCustomerPdf" type="button"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 4v11M12 15l-4-4M12 15l4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 19h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>Unduh PDF</button>
           </div>
           <div class="forecast-empty" id="rfmEmpty">Analisis RFM membutuhkan kolom identitas pelanggan.</div>
           <div id="rfmContent">
@@ -551,6 +598,7 @@
               <h3>Product Analytics</h3>
               <div class="desc">Performa tiap produk berdasarkan Jumlah dan Subtotal Pesanan pada data transaksi berstatus selesai, mengikuti filter status/provinsi yang aktif di atas. Total Pembayaran per pesanan (termasuk kemungkinan diskon/ongkir) tetap tercermin pada KPI ringkasan di Dashboard Utama.</div>
             </div>
+            <button class="btn btn-secondary rpt-btn" id="btnProductPdf" type="button"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 4v11M12 15l-4-4M12 15l4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 19h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>Unduh PDF</button>
           </div>
           <div class="forecast-empty" id="paEmpty">Belum ada data produk yang dapat dianalisis pada filter yang aktif.</div>
           <div id="paContent">
@@ -685,6 +733,7 @@
                   <button data-h="30">30 hari</button>
                 </div>
               </div>
+              <button class="btn btn-secondary rpt-btn fc-export" id="btnForecastPdf" type="button"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 4v11M12 15l-4-4M12 15l4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 19h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>Unduh PDF</button>
               <button class="btn btn-secondary fc-export" type="button" id="btnForecastExport" disabled>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 4v11M12 15l-4-4M12 15l4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 19h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
                 Unduh Excel
@@ -1215,6 +1264,7 @@
 <script src="/js/core/state.js"></script>
 <script src="/js/core/order-status.js"></script>
 <script src="/js/core/forecast.js"></script>
+<script src="/js/core/pdf-report.js"></script>
 <script src="/js/data/mapping.js"></script>
 <script src="/js/data/shopee-parse.js"></script>
 <script src="/js/data/api.js"></script>
@@ -1230,6 +1280,8 @@
 <script src="/js/sections/insight.js"></script>
 <script src="/js/sections/basket.js"></script>
 <script src="/js/sections/evaluation.js"></script>
+<script src="/js/sections/dashboard.js"></script>
+<script src="/js/sections/report-exports.js"></script>
 <script src="/js/sections/compare.js"></script>
 <script src="/js/sections/shopee.js"></script>
 <script src="/js/sections/shopee-export.js"></script>

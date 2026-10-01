@@ -51,6 +51,15 @@ Catatan: file JS memakai *global scope* bersama (tanpa bundler), jadi **urutan `
 
 ---
 
+## Unduh laporan PDF
+
+Lima menu punya tombol **Unduh PDF** (A4, tema hijau, grafik vektor yang tetap jelas di mode gelap): **Dashboard Utama**, **Analisis Penjualan**, **Customer Analytics**, **Product Analytics**, dan **Forecasting**. Isi PDF mengikuti filter status/provinsi dan dataset yang aktif; tombol nonaktif bila menu belum punya data (mis. Customer Analytics tanpa kolom identitas pelanggan).
+
+- `public/js/core/pdf-report.js` — pembangun PDF bersama (sampul, kartu KPI, kotak kesimpulan, grafik batang/garis, tabel, nomor halaman).
+- `public/js/sections/dashboard.js` — tampilan Dashboard Utama baru (kalimat ringkasan, 6 KPI, kartu "Apa artinya bagi bisnis Anda?", produk terlaris, status pesanan, hari ramai, asal pembeli) + PDF-nya.
+- `public/js/sections/report-exports.js` — PDF untuk Analisis Penjualan, Customer, Product, dan Forecasting.
+- jsPDF + AutoTable dimuat dari cdnjs hanya saat tombol PDF pertama kali ditekan.
+
 ## Menu Laporan Platform
 
 Menu **Laporan Platform** (sidebar → Laporan Eksternal; namanya sengaja umum karena dasbor ini bisa dipakai untuk banyak aplikasi/marketplace) adalah ruang terpisah dari
