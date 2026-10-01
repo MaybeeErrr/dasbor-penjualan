@@ -223,58 +223,62 @@
             Unduh Laporan PDF
           </button>
         </div>
-        <div class="km-headline db-story" id="dbStory"></div>
-        <div class="kpi-grid db-kpis" id="kpiGrid"></div>
-        <div class="db-sec"><h4>Apa artinya bagi bisnis Anda?</h4><div class="desc">Kesimpulan otomatis dari data dalam bahasa sederhana.</div></div>
-        <div class="panel db-ins-panel"><div class="db-ins-list" id="dbInsights"></div></div>
+        <div class="km-headline db-story" id="dbStory" style="display:none;"></div>
 
-        <div class="panel">
-          <div class="panel-head">
-            <div>
-              <h3>Tren pendapatan harian</h3>
-              <div class="desc">Garis padat: pendapatan aktual. Garis putus-putus: proyeksi (level terbaru × pola hari dalam seminggu). Celah pada garis = hari data hilang.</div>
+        <!-- 1. Angka kunci -->
+        <div class="db-strip" id="kpiGrid"></div>
+
+        <!-- 2. Tren + kesimpulan -->
+        <div class="db-main">
+          <div class="panel db-trend">
+            <div class="panel-head">
+              <div>
+                <h3>Tren pendapatan harian</h3>
+                <div class="desc">Garis putus-putus adalah proyeksi ke depan.</div>
+              </div>
+              <div class="legend-row">
+                <span><i style="background:var(--chart-line)"></i>Aktual</span>
+                <span id="legendProyeksi"><i style="background:var(--chart-forecast); background-image:none;"></i>Proyeksi</span>
+                <span id="legendBand" style="display:none;"><i class="band-swatch"></i>Pita 80%</span>
+                <span id="legendGap" style="display:none;"><i class="gap-swatch"></i>Data hilang</span>
+              </div>
             </div>
-            <div class="legend-row">
-              <span><i style="background:var(--chart-line)"></i>Aktual</span>
-              <span id="legendProyeksi"><i style="background:var(--chart-forecast); background-image:none;"></i>Proyeksi</span>
-              <span id="legendBand" style="display:none;"><i class="band-swatch"></i>Pita 80% (dari galat backtest)</span>
-              <span id="legendGap" style="display:none;"><i class="gap-swatch"></i>Data hilang</span>
-            </div>
+            <div class="chart-scroll"><div class="chart-box"><canvas id="revenueChart"></canvas></div></div>
           </div>
-          <div class="chart-scroll"><div class="chart-box"><canvas id="revenueChart"></canvas></div></div>
+          <div class="panel db-ins-panel">
+            <div class="panel-head"><div><h3>Apa artinya bagi bisnis Anda?</h3><div class="desc">Kesimpulan otomatis dari data.</div></div></div>
+            <div class="db-ins-list" id="dbInsights"></div>
+          </div>
         </div>
 
-        <div class="grid-2 db-row">
+        <!-- 3. Rincian -->
+        <div class="db-main db-detail">
           <div class="panel">
             <div class="panel-head"><div><h3>Produk terlaris</h3><div class="desc">5 produk dengan nilai penjualan tertinggi.</div></div>
               <button class="summary-link db-link" type="button" data-goto="product">Selengkapnya →</button></div>
             <div class="sl-rank" id="dbTopProducts"></div>
           </div>
           <div class="panel">
-            <div class="panel-head"><div><h3>Status pesanan</h3><div class="desc">Hijau selesai, merah dibatalkan, warna lain masih berjalan.</div></div></div>
-            <div class="sl-donut"><div class="sl-donut-chart"><canvas id="dbStatusChart"></canvas></div><div class="sl-legend" id="dbStatusLegend"></div></div>
-          </div>
-        </div>
-        <div class="grid-2 db-row">
-          <div class="panel">
-            <div class="panel-head"><div><h3>Hari paling ramai</h3><div class="desc">Pendapatan menurut hari dalam seminggu. Batang tua = hari terbaik.</div></div>
-              <button class="summary-link db-link" type="button" data-goto="sales">Selengkapnya →</button></div>
-            <div class="chart-box" style="height:230px;"><canvas id="dbDowChart"></canvas></div>
-          </div>
-          <div class="panel">
-            <div class="panel-head"><div><h3>Asal pembeli</h3><div class="desc">5 provinsi dengan pesanan terbanyak.</div></div></div>
-            <div class="sl-rank" id="dbProvinces"></div>
+            <div class="panel-head">
+              <div><h3 id="dbTabTitle">Status pesanan</h3><div class="desc" id="dbTabDesc">Hijau selesai, merah dibatalkan.</div></div>
+              <div class="db-tabs" id="dbTabs" role="tablist">
+                <button type="button" class="active" data-t="status" role="tab">Status</button>
+                <button type="button" data-t="dow" role="tab">Hari</button>
+                <button type="button" data-t="prov" role="tab">Wilayah</button>
+              </div>
+            </div>
+            <div class="db-pane active" data-pane="status">
+              <div class="sl-donut"><div class="sl-donut-chart"><canvas id="dbStatusChart"></canvas></div><div class="sl-legend" id="dbStatusLegend"></div></div>
+            </div>
+            <div class="db-pane" data-pane="dow"><div class="chart-box" style="height:230px; min-width:0;"><canvas id="dbDowChart"></canvas></div></div>
+            <div class="db-pane" data-pane="prov"><div class="sl-rank" id="dbProvinces"></div></div>
           </div>
         </div>
 
-        <div class="grid-3 db-summaries">
-          <div class="summary-card">
-            <div class="summary-card-head">
-              <div class="summary-card-icon amber">
-                <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M1.5 12.5L5.5 7.5L8.5 10.5L14.5 3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              </div>
-              <div><h4>Ringkasan forecasting</h4><div class="desc">Proyeksi penjualan ke depan</div></div>
-            </div>
+        <!-- 4. Pintasan analisis -->
+        <div class="panel db-shortcuts">
+          <div class="db-sc">
+            <div class="db-sc-head"><h4>Prakiraan penjualan</h4><span>Forecasting</span></div>
             <div class="forecast-grid" id="forecastGrid">
               <div class="forecast-item"><div class="lbl" id="fcTotalLbl">Perkiraan total pendapatan</div><div class="big tabular" id="fcTotal">—</div></div>
               <div class="forecast-item"><div class="lbl">Rata-rata per hari</div><div class="big tabular" id="fcAvg">—</div></div>
@@ -283,39 +287,28 @@
             <div class="forecast-warn" id="forecastWarn"></div>
             <div class="forecast-empty" id="forecastEmpty">Data belum cukup untuk membuat prediksi.</div>
             <div class="forecast-note" id="forecastNote">Perkiraan statistik sederhana dari pola data, bukan jaminan hasil.</div>
-            <button class="summary-link db-more" type="button" data-goto="forecast">Atur horizon &amp; lihat akurasi model →</button>
+            <button class="summary-link db-more" type="button" data-goto="forecast">Lihat detail prakiraan →</button>
           </div>
-
-          <div class="summary-card">
-            <div class="summary-card-head">
-              <div class="summary-card-icon brand">
-                <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M1.8 4.6L8 1.5l6.2 3.1v6.8L8 14.5l-6.2-3.1V4.6z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>
-              </div>
-              <div><h4>Performa produk</h4><div class="desc">Ringkasan Product Analytics</div></div>
-            </div>
+          <div class="db-sc">
+            <div class="db-sc-head"><h4>Performa produk</h4><span>Product Analytics</span></div>
             <div class="db-stats" id="paSummary"></div>
             <button class="summary-link db-more" type="button" data-goto="product">Lihat Product Analytics →</button>
           </div>
-
-          <div class="summary-card">
-            <div class="summary-card-head">
-              <div class="summary-card-icon blue">
-                <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><circle cx="6" cy="5" r="2.5" stroke="currentColor" stroke-width="1.4"/><path d="M1.5 14c0-2.6 2-4.2 4.5-4.2S10.5 11.4 10.5 14" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
-              </div>
-              <div><h4>Customer Analytics</h4><div class="desc">Ringkasan RFM pelanggan</div></div>
-            </div>
+          <div class="db-sc">
+            <div class="db-sc-head"><h4>Pelanggan</h4><span>Customer Analytics</span></div>
             <div class="db-stats" id="rfmSummary"></div>
             <button class="summary-link db-more" type="button" data-goto="customer">Lihat Customer Analytics →</button>
           </div>
         </div>
 
-        <div class="km-guide db-guide">
+        <details class="db-help">
+          <summary>Cara membaca dasbor</summary>
           <div class="km-guide-grid">
-            <div><b>Cara membaca dasbor</b><span>Mulai dari kalimat ringkasan di atas, lalu lihat kartu angka. Panah ▲ hijau berarti naik, ▼ merah berarti turun.</span></div>
+            <div><b>Angka kunci</b><span>Panah ▲ hijau berarti naik, ▼ merah berarti turun dibanding 7 hari sebelumnya.</span></div>
             <div><b>Pesanan yang dihitung</b><span>Hanya pesanan selesai. Pesanan batal atau dikembalikan tidak dihitung sebagai pendapatan.</span></div>
             <div><b>Filter</b><span>Ubah status/provinsi di bagian atas; semua angka dan laporan PDF ikut berubah.</span></div>
           </div>
-        </div>
+        </details>
       </section>
 
       <!-- ============ VIEW: Analisis Penjualan ============ -->

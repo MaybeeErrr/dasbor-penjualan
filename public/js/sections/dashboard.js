@@ -97,7 +97,7 @@ function renderDashboardHome(){
 
   if(d.empty){
     grid.innerHTML = '';
-    if(storyEl) storyEl.innerHTML = 'Belum ada pesanan pada filter yang aktif. Ubah filter status/provinsi atau unggah data penjualan.';
+    if(storyEl){ storyEl.innerHTML = 'Belum ada pesanan pada filter yang aktif. Ubah filter status/provinsi atau unggah data penjualan.'; storyEl.style.display = ''; }
     if(insEl) insEl.innerHTML = '';
     if(periodEl) periodEl.textContent = '—';
     ['dbDow', 'dbStatus'].forEach(salesDestroy);
@@ -107,22 +107,20 @@ function renderDashboardHome(){
   }
   var m = d.m;
   if(periodEl) periodEl.textContent = 'Periode data: ' + d.period + ' · ' + m.activeDays + ' hari transaksi';
-  if(storyEl) storyEl.innerHTML = d.story;
+  if(storyEl){ storyEl.innerHTML = ''; storyEl.style.display = 'none'; }
 
   var kpis = [
-    { icon: 'money', label: 'Total pendapatan', value: idr(m.revenue), delta: d.wow === null ? '7 hari terakhir belum cukup data' : ((d.wow >= 0 ? '▲ ' : '▼ ') + Math.abs(d.wow).toFixed(1) + '% vs 7 hari sebelumnya'), cls: d.wow === null ? '' : (d.wow >= 0 ? 'up' : 'down'), help: 'Jumlah uang dari semua pesanan yang dihitung' },
-    { icon: 'orders', label: 'Total pesanan', value: m.allOrders.length.toLocaleString('id-ID'), delta: d.completed.toLocaleString('id-ID') + ' pesanan selesai', cls: '', help: 'Semua pesanan termasuk yang batal' },
+    { icon: 'money', label: 'Total pendapatan', value: idr(m.revenue), delta: d.wow === null ? 'Perbandingan 7 hari belum tersedia' : ((d.wow >= 0 ? '▲ ' : '▼ ') + Math.abs(d.wow).toFixed(1) + '% vs 7 hari sebelumnya'), cls: d.wow === null ? '' : (d.wow >= 0 ? 'up' : 'down'), help: 'Jumlah uang dari semua pesanan yang dihitung' },
+    { icon: 'orders', label: 'Total pesanan', value: m.allOrders.length.toLocaleString('id-ID'), delta: d.completed.toLocaleString('id-ID') + ' selesai · ' + d.cancelRate.toFixed(1) + '% batal', cls: d.cancelRate > 15 ? 'down' : '', help: 'Semua pesanan termasuk yang batal. Di atas 15% pembatalan perlu dicek' },
     { icon: 'avg', label: 'Rata-rata nilai pesanan', value: idr(m.avgOrder), delta: 'belanja per pesanan', cls: '', help: 'Pendapatan ÷ jumlah pesanan' },
-    { icon: 'box', label: 'Produk terjual', value: m.qty.toLocaleString('id-ID') + ' unit', delta: m.productCount.toLocaleString('id-ID') + ' jenis produk', cls: '', help: 'Total unit dari pesanan yang dihitung' },
-    { icon: 'users', label: 'Pelanggan unik', value: d.customers ? d.customers.toLocaleString('id-ID') : '—', delta: d.customers ? 'pembeli berbeda' : 'kolom pembeli tidak ada di data', cls: '', help: 'Jumlah pembeli yang berbeda' },
-    { icon: 'cancel', label: 'Tingkat pembatalan', value: d.cancelRate.toFixed(1) + '%', delta: m.cancelled.length.toLocaleString('id-ID') + ' pesanan dibatalkan', cls: d.cancelRate > 15 ? 'down' : '', warn: d.cancelRate > 15, help: 'Di atas 15% perlu dicek' }
+    { icon: 'users', label: 'Pelanggan unik', value: d.customers ? d.customers.toLocaleString('id-ID') : '—', delta: d.customers ? (m.qty.toLocaleString('id-ID') + ' unit terjual · ' + m.productCount.toLocaleString('id-ID') + ' produk') : 'kolom pembeli tidak ada di data', cls: '', help: 'Jumlah pembeli yang berbeda' }
   ];
   grid.innerHTML = kpis.map(function(k){
-    return '<div class="kpi-card db-kpi' + (k.warn ? ' warn' : '') + '" title="' + escapeHtml(k.help) + '"><div class="db-kpi-top"><div class="kpi-label">' + k.label + '</div><span class="db-kpi-ic">' + DB_ICONS[k.icon] + '</span></div>' +
-      '<div class="kpi-value tabular">' + k.value + '</div><div class="kpi-delta ' + k.cls + '">' + k.delta + '</div></div>';
+    return '<div class="db-cell" title="' + escapeHtml(k.help) + '"><div class="db-cell-top"><span class="db-cell-lbl">' + k.label + '</span><span class="db-kpi-ic">' + DB_ICONS[k.icon] + '</span></div>' +
+      '<div class="db-cell-val tabular">' + k.value + '</div><div class="db-cell-sub ' + k.cls + '">' + k.delta + '</div></div>';
   }).join('');
 
-  if(insEl) insEl.innerHTML = d.insights.map(function(f){
+  if(insEl) insEl.innerHTML = d.insights.slice(0, 4).map(function(f){
     return '<div class="db-ins tone-' + f.tone + '"><i class="db-ins-dot"></i><div><div class="db-ins-title">' + escapeHtml(f.title) + '</div><div class="db-ins-text">' + escapeHtml(f.text) + '</div></div></div>';
   }).join('');
 
@@ -203,3 +201,25 @@ function exportDashboardPdf(){
 }
 
 PdfReport.bind('btnDashPdf', exportDashboardPdf);
+
+/* Tab "Status / Hari / Wilayah" pada panel rincian */
+(function(){
+  var tabs = document.getElementById('dbTabs');
+  if(!tabs) return;
+  var META = {
+    status: ['Status pesanan', 'Hijau selesai, merah dibatalkan, warna lain masih berjalan.'],
+    dow:    ['Hari paling ramai', 'Pendapatan menurut hari. Batang tua = hari terbaik.'],
+    prov:   ['Asal pembeli', '5 provinsi dengan pesanan terbanyak.']
+  };
+  tabs.addEventListener('click', function(e){
+    var btn = e.target.closest('button[data-t]');
+    if(!btn) return;
+    var t = btn.getAttribute('data-t');
+    Array.prototype.forEach.call(tabs.querySelectorAll('button'), function(b){ b.classList.toggle('active', b === btn); });
+    Array.prototype.forEach.call(document.querySelectorAll('.db-pane'), function(p){ p.classList.toggle('active', p.getAttribute('data-pane') === t); });
+    document.getElementById('dbTabTitle').textContent = META[t][0];
+    document.getElementById('dbTabDesc').textContent = META[t][1];
+    var ch = t === 'status' ? charts.dbStatus : (t === 'dow' ? charts.dbDow : null);
+    if(ch && ch.resize) ch.resize();
+  });
+})();
