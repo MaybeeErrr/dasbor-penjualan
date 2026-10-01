@@ -344,43 +344,58 @@
           <div class="panel-head">
             <div>
               <h3>Customer Segmentation (K-Means Clustering)</h3>
-              <div class="desc">Mengelompokkan pelanggan berdasarkan nilai Recency, Frequency, dan Monetary dari hasil analisis RFM di atas, dihitung langsung dari data yang diunggah dengan algoritma K-Means.</div>
+              <div class="desc">Pelanggan dikelompokkan otomatis menjadi beberapa segmen berdasarkan kemiripan pola belanja (Recency, Frequency, Monetary) dari analisis RFM di atas.</div>
             </div>
-            <div class="horizon-tabs" id="kmeansKTabs">
-              <button data-k="2">K=2</button>
-              <button data-k="3" class="active">K=3</button>
-              <button data-k="4">K=4</button>
-              <button data-k="5">K=5</button>
+            <div class="km-k-picker">
+              <span class="km-k-label">Jumlah cluster (K)</span>
+              <div class="horizon-tabs" id="kmeansKTabs">
+                <button data-k="2" type="button">K=2</button>
+                <button data-k="3" type="button" class="active">K=3</button>
+                <button data-k="4" type="button">K=4</button>
+                <button data-k="5" type="button">K=5</button>
+              </div>
             </div>
           </div>
           <div class="forecast-empty" id="kmeansEmpty">Segmentasi K-Means membutuhkan hasil analisis RFM yang tersedia.</div>
           <div id="kmeansContent">
-            <div class="rfm-subpanel" style="margin-bottom:18px;">
-              <div class="rfm-subhead">
-                <h4>Elbow Method</h4>
-                <div class="desc">Total within-cluster sum of squares (WCSS) untuk beberapa nilai K, dihitung dari data pelanggan saat ini — membantu memperkirakan jumlah cluster yang wajar. Titik dengan penanda lebih besar menunjukkan K yang sedang dipilih.</div>
+
+            <div class="km-guide">
+              <div class="km-guide-grid">
+                <div><b>Recency</b><span>Berapa hari sejak belanja terakhir. Makin kecil, makin baik.</span></div>
+                <div><b>Frequency</b><span>Berapa kali pelanggan bertransaksi. Makin besar, makin baik.</span></div>
+                <div><b>Monetary</b><span>Total nilai belanja pelanggan (Rp). Makin besar, makin baik.</span></div>
               </div>
-              <div class="chart-box" style="height:220px; min-width:0;"><canvas id="elbowChart"></canvas></div>
+              <p class="km-guide-note">K-Means menaruh pelanggan dengan pola R, F, M yang mirip ke dalam cluster yang sama. Nama segmen (misalnya High Value Customer) adalah interpretasi otomatis dari rata-rata R, F, M tiap cluster, bukan hasil langsung algoritma.</p>
             </div>
-            <div class="grid-2">
+
+            <div class="km-headline" id="kmeansHeadline"></div>
+            <div class="kpi-grid compact km-stats" id="kmeansExtraStats"></div>
+
+            <div class="km-section">
+              <div class="rfm-subhead">
+                <h4>Segmen pelanggan yang terbentuk</h4>
+                <div class="desc">Setiap kartu adalah satu cluster. Tingkat Recency, Frequency, dan Monetary dinilai relatif antar-cluster pada K yang dipilih.</div>
+              </div>
+              <div class="km-seg-grid" id="kmeansClusterSummary"></div>
+            </div>
+
+            <div class="grid-2 km-section">
               <div class="rfm-subpanel">
                 <div class="rfm-subhead">
-                  <h4>Visualisasi segmentasi pelanggan</h4>
-                  <div class="desc">Setiap bubble mewakili sekelompok pelanggan pada cluster yang sama (warna) dengan Frequency dan rentang Monetary yang serupa — ukuran bubble menunjukkan jumlah pelanggan. Bubble pada Frequency yang sama digeser sedikit per cluster agar tidak saling menutupi. Arahkan kursor untuk detail.</div>
+                  <h4>Sebaran pelanggan per cluster</h4>
+                  <div class="desc">Warna menunjukkan cluster. Ukuran bubble menunjukkan jumlah pelanggan dengan Frequency dan rentang Monetary yang serupa. Arahkan kursor untuk detail.</div>
                 </div>
-                <div class="chart-box" style="height:280px; min-width:0;"><canvas id="kmeansScatterChart"></canvas></div>
+                <div class="chart-box" style="height:300px; min-width:0;"><canvas id="kmeansScatterChart"></canvas></div>
               </div>
               <div class="rfm-subpanel">
                 <div class="rfm-subhead">
-                  <h4>Evaluasi kualitas clustering</h4>
-                  <div class="desc">Silhouette Score mengukur seberapa baik pelanggan terbagi ke dalam cluster-nya masing-masing dibandingkan cluster lain.</div>
+                  <h4>Kualitas pemisahan cluster</h4>
+                  <div class="desc">Silhouette Score menilai seberapa jelas pelanggan terpisah ke dalam cluster-nya.</div>
                 </div>
-                <div class="eval-grid" style="grid-template-columns:1fr;">
-                  <div class="eval-item">
-                    <div class="eval-lbl">Silhouette Score</div>
-                    <div class="eval-val tabular" id="kmeansSilhouette">—</div>
-                    <div class="eval-desc" id="kmeansSilhouetteNote"></div>
-                  </div>
+                <div class="eval-item">
+                  <div class="eval-lbl">Silhouette Score</div>
+                  <div class="eval-val tabular" id="kmeansSilhouette">—</div>
+                  <div class="eval-desc" id="kmeansSilhouetteNote"></div>
                 </div>
                 <div class="sil-gauge-wrap" id="silGaugeWrap">
                   <div class="sil-gauge-head">
@@ -402,21 +417,23 @@
                     <span><i class="great"></i>Sangat baik (&gt;0.7)</span>
                   </div>
                 </div>
-                <div class="kpi-grid compact" id="kmeansExtraStats" style="margin-top:16px;"></div>
               </div>
             </div>
-            <div class="rfm-table-wrap">
-              <div class="rfm-subhead">
-                <h4>Ringkasan per cluster</h4>
-                <div class="desc">Karakteristik tiap cluster apa adanya berdasarkan data — bukan penilaian atau label otomatis. Interpretasikan sesuai konteks bisnis Anda.</div>
+
+            <details class="km-details km-section" open>
+              <summary>Bantuan memilih jumlah cluster (Elbow Method)</summary>
+              <div class="km-details-body">
+                <div class="desc">Grafik menunjukkan total jarak pelanggan ke pusat clusternya (WCSS) untuk tiap nilai K. Cari titik "siku" tempat penurunan mulai melandai — itu perkiraan K yang wajar. Titik oranye adalah K yang sedang dipilih.</div>
+                <div class="chart-box" style="height:220px; min-width:0;"><canvas id="elbowChart"></canvas></div>
               </div>
-              <div class="kpi-grid" id="kmeansClusterSummary"></div>
-            </div>
+            </details>
+
             <div class="rfm-table-wrap">
               <div class="rfm-subhead">
                 <h4>Tabel hasil segmentasi pelanggan</h4>
                 <div class="desc" id="kmeansTableDesc">—</div>
               </div>
+              <div class="km-chips" id="kmeansFilterChips" role="group" aria-label="Filter tabel berdasarkan cluster"></div>
               <div class="table-scroll">
                 <table>
                   <thead><tr><th>Pelanggan</th><th>Recency (hari)</th><th>Frequency (transaksi)</th><th>Monetary</th><th>Cluster</th></tr></thead>

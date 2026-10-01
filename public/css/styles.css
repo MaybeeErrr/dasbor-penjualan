@@ -1121,3 +1121,70 @@ footer.app-footer { padding: 26px 0 40px; font-size: 12px; color: var(--ink-mute
 .mba-fb-num { flex-shrink: 0; width: 24px; height: 24px; border-radius: 50%; background: color-mix(in srgb, var(--brand) 16%, transparent); color: var(--brand); font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
 .mba-fb-title { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
 .mba-fb-desc { font-size: 12px; color: var(--ink-muted); line-height: 1.6; }
+
+/* ================= Customer Segmentation (K-Means) ================= */
+#kmeansContent.hidden { display: none; }
+
+.km-k-picker { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; }
+.km-k-label { font-size: 11.5px; font-weight: 600; color: var(--ink-muted); }
+
+.km-guide { background: var(--surface-2); border-radius: var(--radius-md); padding: 14px 18px 16px; margin-bottom: 16px; }
+.km-guide-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px 22px; }
+.km-guide-grid > div { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.km-guide-grid b { font-size: 13px; font-weight: 600; }
+.km-guide-grid span { font-size: 12px; color: var(--ink-muted); line-height: 1.5; }
+.km-guide-note { margin: 12px 0 0; padding-top: 12px; border-top: 1px solid var(--border); font-size: 12px; line-height: 1.6; color: var(--ink-muted); }
+
+.km-headline { font-size: 14px; line-height: 1.65; padding: 14px 18px; margin-bottom: 14px; background: color-mix(in srgb, var(--brand) 9%, var(--surface)); border: 1px solid color-mix(in srgb, var(--brand) 22%, var(--border)); border-left: 3px solid var(--brand); border-radius: var(--radius-md); }
+.km-stats { margin-bottom: 4px; }
+.km-section { margin-top: 24px; }
+
+.km-seg-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 14px; }
+.km-seg-card { background: var(--surface); border: 1px solid var(--border); border-top: 3px solid var(--seg-color); border-radius: var(--radius-md); padding: 16px 18px 16px; min-width: 0; display: flex; flex-direction: column; }
+.km-seg-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 12px; color: var(--ink-muted); font-weight: 600; }
+.km-seg-id { display: inline-flex; align-items: center; gap: 7px; }
+.km-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--seg-color); flex-shrink: 0; }
+.km-seg-name { margin: 8px 0 12px; font-size: 16px; font-weight: 600; letter-spacing: -0.01em; line-height: 1.3; }
+.km-share { display: flex; align-items: center; gap: 10px; font-size: 12px; font-weight: 600; margin-bottom: 14px; }
+.km-share-track { flex: 1; height: 7px; background: var(--surface-2); border-radius: 4px; overflow: hidden; }
+.km-share-fill { height: 100%; background: var(--seg-color); border-radius: 4px; }
+.km-metrics { margin: 0; display: flex; flex-direction: column; }
+.km-metric { display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: 10px; padding: 8px 0; border-top: 1px solid var(--border); font-size: 12.5px; }
+.km-metric dt { color: var(--ink); font-weight: 500; display: flex; flex-direction: column; line-height: 1.3; }
+.km-metric dt small { color: var(--ink-muted); font-size: 10.5px; font-weight: 400; }
+.km-metric dd { margin: 0; font-weight: 600; text-align: right; font-family: 'Space Grotesk', 'Inter', sans-serif; }
+.km-lvl { min-width: 66px; text-align: center; font-size: 10.5px; font-weight: 700; padding: 3px 8px; border-radius: 999px; }
+.km-lvl.high { color: var(--brand); background: color-mix(in srgb, var(--brand) 15%, transparent); }
+.km-lvl.mid { color: var(--amber); background: var(--amber-soft); }
+.km-lvl.low { color: var(--brick); background: var(--brick-soft); }
+.km-seg-explain { margin: 10px 0 0; padding-top: 10px; border-top: 1px dashed var(--border); font-size: 12px; line-height: 1.6; color: var(--ink-muted); }
+
+.km-details { background: var(--surface-2); border-radius: var(--radius-md); padding: 0 18px; }
+.km-details summary { cursor: pointer; padding: 14px 0; font-size: 13.5px; font-weight: 600; list-style: none; display: flex; align-items: center; gap: 8px; }
+.km-details summary::-webkit-details-marker { display: none; }
+.km-details summary::before { content: ''; width: 7px; height: 7px; border-right: 2px solid var(--ink-muted); border-bottom: 2px solid var(--ink-muted); transform: rotate(-45deg); transition: transform .15s ease; }
+.km-details[open] summary::before { transform: rotate(45deg); }
+.km-details summary:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; border-radius: 6px; }
+.km-details-body { padding-bottom: 16px; }
+.km-details-body .desc { font-size: 12px; color: var(--ink-muted); line-height: 1.55; margin-bottom: 12px; }
+
+.km-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+.km-chip { --seg-color: var(--ink-muted); display: inline-flex; align-items: center; gap: 7px; border: 1px solid var(--border); background: var(--surface); color: var(--ink); padding: 6px 12px; border-radius: 999px; font-family: inherit; font-size: 12px; font-weight: 600; cursor: pointer; transition: border-color .15s ease, background .15s ease; }
+.km-chip .tabular { color: var(--ink-muted); font-weight: 500; }
+.km-chip:hover { border-color: var(--seg-color); }
+.km-chip.active { border-color: var(--seg-color); background: color-mix(in srgb, var(--seg-color) 14%, var(--surface)); }
+.km-chip:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.km-chip .km-dot { background: var(--seg-color); }
+.km-chip:first-child .km-dot { display: none; }
+
+.km-badge { display: inline-flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 600; }
+.km-badge-sub { color: var(--ink-muted); font-weight: 400; margin-left: 2px; }
+.km-badge-sub::before { content: '—'; margin-right: 6px; }
+
+@media (max-width: 980px) {
+  .km-k-picker { align-items: flex-start; }
+}
+@media (max-width: 700px) {
+  .km-guide-grid { grid-template-columns: 1fr; }
+  .km-seg-grid { grid-template-columns: 1fr; }
+}

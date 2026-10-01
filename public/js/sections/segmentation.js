@@ -179,6 +179,31 @@ function computeElbow(list, maxK){
   return out;
 }
 
+// Filter cluster pada tabel hasil segmentasi: null = semua cluster.
+var kmeansClusterFilter = null;
+
+// Tingkat relatif (antar-cluster) dari skor 0..1 hasil interpretClusters().
+// Skor Recency sudah dibalik di sana, sehingga skor tinggi selalu berarti "baik".
+function kmLevel(score, kind){
+  var names = kind === 'r' ? ['Lama', 'Menengah', 'Baru'] : ['Rendah', 'Sedang', 'Tinggi'];
+  var i = score >= 0.66 ? 2 : (score >= 0.34 ? 1 : 0);
+  return { text: names[i], cls: ['low', 'mid', 'high'][i] };
+}
+
+function kmSilhouetteZone(value){
+  var zone = value <= 0.25 ? 'weak' : (value <= 0.5 ? 'fair' : (value <= 0.7 ? 'good' : 'great'));
+  return {
+    zone: zone,
+    label: { weak:'Lemah', fair:'Cukup', good:'Baik', great:'Sangat baik' }[zone],
+    note: {
+      weak: 'Pemisahan masih lemah: banyak pelanggan berada dekat batas cluster lain. Coba nilai K yang berbeda.',
+      fair: 'Pemisahan cukup: segmen sudah dapat dibedakan, meski sebagian pelanggan berada di dekat batas cluster lain.',
+      good: 'Pemisahan baik: sebagian besar pelanggan cocok dengan cluster-nya.',
+      great: 'Pemisahan sangat jelas: tiap cluster terpisah tegas dari cluster lain.'
+    }[zone]
+  };
+}
+
 function renderCustomerSegmentation(){
   var emptyEl = document.getElementById('kmeansEmpty');
   var contentEl = document.getElementById('kmeansContent');
@@ -215,6 +240,96 @@ function renderCustomerSegmentation(){
   contentEl.classList.remove('hidden');
 
   var css = getComputedStyle(document.documentElement);
+  var mutedColor = css.getPropertyValue('--ink-muted').trim();
+  var gridColor = css.getPropertyValue('--chart-grid').trim();
+  function fmt1(v){ return v.toLocaleString('id-ID', { maximumFractionDigits: 1 }); }
+  function clusterColor(i){ return CLUSTER_COLORS[i % CLUSTER_COLORS.length]; }
+
+  if(kmeansClusterFilter !== null && kmeansClusterFilter >= k) kmeansClusterFilter = null;
+
+  // ---- Ringkasan per cluster (dihitung lebih dulu: dipakai kartu segmen,
+  // legenda grafik, headline, dan tabel) ----
+  var summaries = [];
+  for(var c4=0;c4<k;c4++){
+    var members = clusterableList.filter(function(cust, i){ return result.assignments[i] === c4; });
+    var cnt = members.length;
+    var avgR = cnt ? members.reduce(function(a,b){ return a+b.recency; },0)/cnt : 0;
+    var avgF = cnt ? members.reduce(function(a,b){ return a+b.frequency; },0)/cnt : 0;
+    var avgM = cnt ? members.reduce(function(a,b){ return a+b.monetary; },0)/cnt : 0;
+    summaries.push({ idx:c4, cnt:cnt, avgR:avgR, avgF:avgF, avgM:avgM });
+  }
+  interpretClusters(summaries);
+  lastClusterSummaries = summaries;
+  lastKmeansK = k;
+
+  var totalMembers = summaries.reduce(function(s,x){ return s+x.cnt; }, 0);
+  var biggest = summaries.reduce(function(a,b){ return b.cnt>a.cnt ? b : a; }, summaries[0]);
+  var smallest = summaries.reduce(function(a,b){ return b.cnt<a.cnt ? b : a; }, summaries[0]);
+  function pctOf(n){ return totalMembers ? (n/totalMembers*100) : 0; }
+
+  // ---- Silhouette: nilai, gauge, dan penjelasan singkat ----
+  var silEl = document.getElementById('kmeansSilhouette');
+  var silNote = document.getElementById('kmeansSilhouetteNote');
+  var silGaugeWrap = document.getElementById('silGaugeWrap');
+  var silGaugeTag = document.getElementById('silGaugeTag');
+  var silGaugeMarker = document.getElementById('silGaugeMarker');
+  var silInfo = null;
+
+  if(result.silhouetteSkipped){
+    silEl.textContent = '—';
+    silNote.textContent = 'Jumlah pelanggan (' + clusterableList.length.toLocaleString('id-ID') + ') terlalu besar untuk dihitung secara real-time di peramban, sehingga Silhouette Score dilewati agar dasbor tetap responsif.';
+    silGaugeWrap.style.display = 'none';
+  } else if(result.silhouette === null){
+    silEl.textContent = '—';
+    silNote.textContent = 'Silhouette Score belum dapat dihitung untuk konfigurasi cluster saat ini.';
+    silGaugeWrap.style.display = 'none';
+  } else {
+    silInfo = kmSilhouetteZone(result.silhouette);
+    silEl.textContent = result.silhouette.toFixed(3);
+    silNote.textContent = silInfo.note + ' Rentang nilai -1 sampai 1; makin mendekati 1, makin jelas pemisahannya.';
+    silGaugeWrap.style.display = '';
+    silGaugeMarker.style.left = Math.max(0, Math.min(100, (result.silhouette+1)/2*100)) + '%';
+    silGaugeTag.textContent = silInfo.label;
+    silGaugeTag.className = 'tag sil-tag-' + silInfo.zone;
+  }
+
+  // ---- Headline: kesimpulan satu kalimat ----
+  var headline = 'Pelanggan terbagi ke dalam <b>' + k + ' segmen</b>. Segmen terbesar adalah <b>' + escapeHtml(biggest.label) + '</b> (Cluster ' + (biggest.idx+1) + ', ' + biggest.cnt.toLocaleString('id-ID') + ' pelanggan, ' + pctOf(biggest.cnt).toFixed(0) + '%).';
+  if(silInfo){
+    headline += ' Kualitas pemisahan antar-segmen tergolong <b>' + silInfo.label.toLowerCase() + '</b> (Silhouette ' + result.silhouette.toFixed(2) + ').';
+  }
+  document.getElementById('kmeansHeadline').innerHTML = headline;
+
+  // ---- Statistik ringkas ----
+  var extraCards = [
+    { label:'Pelanggan dianalisis', value: totalMembers.toLocaleString('id-ID'), delta: 'dengan data RFM lengkap' },
+    { label:'Jumlah cluster', value: 'K=' + k, delta: 'dapat diubah di kanan atas' },
+    { label:'Cluster terbesar', value: 'Cluster ' + (biggest.idx+1), delta: biggest.cnt.toLocaleString('id-ID') + ' pelanggan (' + pctOf(biggest.cnt).toFixed(0) + '%)' },
+    { label:'Cluster terkecil', value: 'Cluster ' + (smallest.idx+1), delta: smallest.cnt.toLocaleString('id-ID') + ' pelanggan (' + pctOf(smallest.cnt).toFixed(0) + '%)' }
+  ];
+  document.getElementById('kmeansExtraStats').innerHTML = extraCards.map(function(s){
+    return '<div class="kpi-card"><div class="kpi-label">'+s.label+'</div><div class="kpi-value tabular">'+s.value+'</div><div class="kpi-delta">'+s.delta+'</div></div>';
+  }).join('');
+
+  // ---- Kartu segmen ----
+  document.getElementById('kmeansClusterSummary').innerHTML = summaries.map(function(s){
+    var pct = pctOf(s.cnt);
+    var lr = kmLevel(s.scores.r, 'r'), lf = kmLevel(s.scores.f, 'f'), lm = kmLevel(s.scores.m, 'm');
+    function row(name, tech, value, lvl){
+      return '<div class="km-metric"><dt>'+name+'<small>'+tech+'</small></dt><dd class="tabular">'+value+'</dd><span class="km-lvl '+lvl.cls+'">'+lvl.text+'</span></div>';
+    }
+    return '<article class="km-seg-card" style="--seg-color:'+clusterColor(s.idx)+'">'+
+      '<div class="km-seg-top"><span class="km-seg-id"><i class="km-dot"></i>Cluster '+(s.idx+1)+'</span><span class="km-seg-count tabular">'+s.cnt.toLocaleString('id-ID')+' pelanggan</span></div>'+
+      '<h5 class="km-seg-name">'+escapeHtml(s.label)+'</h5>'+
+      '<div class="km-share"><div class="km-share-track"><div class="km-share-fill" style="width:'+pct.toFixed(1)+'%"></div></div><span class="tabular">'+pct.toFixed(0)+'%</span></div>'+
+      '<dl class="km-metrics">'+
+        row('Terakhir belanja', 'Recency', fmt1(s.avgR)+' hari lalu', lr)+
+        row('Jumlah transaksi', 'Frequency', fmt1(s.avgF)+'x', lf)+
+        row('Total belanja', 'Monetary', idr(s.avgM), lm)+
+      '</dl>'+
+      '<p class="km-seg-explain">'+escapeHtml(s.summaryText || s.explanation)+'</p>'+
+    '</article>';
+  }).join('');
 
   // ---- Elbow chart ----
   var elbowData = computeElbow(clusterableList, 8);
@@ -239,18 +354,17 @@ function renderCustomerSegmentation(){
       responsive:true, maintainAspectRatio:false,
       plugins: { legend:{ display:false } },
       scales: {
-        x: { grid:{color: css.getPropertyValue('--chart-grid').trim()}, ticks:{color: css.getPropertyValue('--ink-muted').trim()} },
-        y: { grid:{color: css.getPropertyValue('--chart-grid').trim()}, ticks:{color: css.getPropertyValue('--ink-muted').trim()}, title:{display:true, text:'WCSS', color: css.getPropertyValue('--ink-muted').trim(), font:{size:11}} }
+        x: { grid:{color: gridColor}, ticks:{color: mutedColor} },
+        y: { grid:{color: gridColor}, ticks:{color: mutedColor}, title:{display:true, text:'WCSS (makin kecil, cluster makin rapat)', color: mutedColor, font:{size:11}} }
       }
     }
   });
 
   // ---- Bubble berwarna per cluster ----
-  // Sama seperti scatter Frequency/Monetary di atas: pelanggan yang bertumpuk
-  // pada Frequency & rentang Monetary yang sama digabung jadi satu bubble
-  // (ukuran = jumlah pelanggan). Ketika lebih dari satu cluster berbagi
-  // Frequency yang sama, bubble tiap cluster digeser sedikit secara mendatar
-  // (jitterWidth) supaya tidak saling menimpa dan tetap mudah dibedakan warnanya.
+  // Pelanggan yang bertumpuk pada Frequency & rentang Monetary yang sama
+  // digabung jadi satu bubble (ukuran = jumlah pelanggan). Bila beberapa
+  // cluster berbagi Frequency yang sama, bubble tiap cluster digeser sedikit
+  // secara mendatar (jitterWidth) supaya tidak saling menimpa.
   var kmeansStep = monetaryBucketStep(clusterableList, 8);
   var jitterWidth = 0.16;
   var kmeansBubbles = clusterableList.map(function(cust, i){ return { frequency: cust.frequency, monetary: cust.monetary, customer_id: cust.customer_id, cluster: result.assignments[i] }; });
@@ -268,10 +382,10 @@ function renderCustomerSegmentation(){
     data: {
       datasets: byCluster.map(function(cells, idx){
         return {
-          label: 'Cluster ' + (idx+1),
+          label: 'Cluster ' + (idx+1) + ' · ' + summaries[idx].label,
           data: cells,
-          backgroundColor: CLUSTER_COLORS[idx % CLUSTER_COLORS.length] + 'B3',
-          borderColor: CLUSTER_COLORS[idx % CLUSTER_COLORS.length],
+          backgroundColor: clusterColor(idx) + 'B3',
+          borderColor: clusterColor(idx),
           borderWidth: 1
         };
       })
@@ -279,117 +393,47 @@ function renderCustomerSegmentation(){
     options: {
       responsive:true, maintainAspectRatio:false,
       plugins: {
-        legend: { display:true, position:'bottom', labels:{ color: css.getPropertyValue('--ink-muted').trim(), boxWidth:10, font:{size:11} } },
+        legend: { display:true, position:'bottom', labels:{ color: mutedColor, boxWidth:10, font:{size:11} } },
         tooltip: { callbacks: { label: function(item){
           return bubbleTooltipLine(item.raw, kmeansStep, item.dataset.label);
         } } }
       },
       scales: {
-        x: { title:{display:true, text:'Frequency (jumlah transaksi)', color: css.getPropertyValue('--ink-muted').trim(), font:{size:11}}, grid:{color: css.getPropertyValue('--chart-grid').trim()}, ticks:{precision:0, color: css.getPropertyValue('--ink-muted').trim()}, min:0.5 },
-        y: { title:{display:true, text:'Monetary (Rp)', color: css.getPropertyValue('--ink-muted').trim(), font:{size:11}}, grid:{color: css.getPropertyValue('--chart-grid').trim()}, ticks:{callback:function(v){ return idrShort(v); }, color: css.getPropertyValue('--ink-muted').trim()}, min:0 }
+        x: { title:{display:true, text:'Frequency (jumlah transaksi)', color: mutedColor, font:{size:11}}, grid:{color: gridColor}, ticks:{precision:0, color: mutedColor}, min:0.5 },
+        y: { title:{display:true, text:'Monetary (Rp)', color: mutedColor, font:{size:11}}, grid:{color: gridColor}, ticks:{callback:function(v){ return idrShort(v); }, color: mutedColor}, min:0 }
       }
     }
   });
 
-  // ---- Ringkasan per cluster (dihitung lebih dulu supaya bisa dipakai juga
-  // oleh panel Evaluasi kualitas clustering di sebelahnya) ----
-  var summaries = [];
-  for(var c4=0;c4<k;c4++){
-    var members = clusterableList.filter(function(cust, i){ return result.assignments[i] === c4; });
-    var cnt = members.length;
-    var avgR = cnt ? members.reduce(function(a,b){ return a+b.recency; },0)/cnt : 0;
-    var avgF = cnt ? members.reduce(function(a,b){ return a+b.frequency; },0)/cnt : 0;
-    var avgM = cnt ? members.reduce(function(a,b){ return a+b.monetary; },0)/cnt : 0;
-    summaries.push({ idx:c4, cnt:cnt, avgR:avgR, avgF:avgF, avgM:avgM });
-  }
-  interpretClusters(summaries);
-  lastClusterSummaries = summaries;
-  lastKmeansK = k;
-
-  // ---- Silhouette Score + gauge visual ----
-  var silEl = document.getElementById('kmeansSilhouette');
-  var silNote = document.getElementById('kmeansSilhouetteNote');
-  var silGaugeWrap = document.getElementById('silGaugeWrap');
-  var silGaugeTag = document.getElementById('silGaugeTag');
-  var silGaugeMarker = document.getElementById('silGaugeMarker');
-  var extraStatsEl = document.getElementById('kmeansExtraStats');
-
-  function setGauge(value){
-    if(silGaugeWrap) silGaugeWrap.style.display = value === null ? 'none' : '';
-    if(value === null) return;
-    var pct = Math.max(0, Math.min(100, (value+1)/2*100));
-    if(silGaugeMarker) silGaugeMarker.style.left = pct + '%';
-    var zone = value <= 0.25 ? 'weak' : (value <= 0.5 ? 'fair' : (value <= 0.7 ? 'good' : 'great'));
-    var zoneLabel = { weak:'Lemah', fair:'Cukup', good:'Baik', great:'Sangat baik' }[zone];
-    if(silGaugeTag){
-      silGaugeTag.textContent = zoneLabel;
-      silGaugeTag.className = 'tag sil-tag-' + zone;
-    }
-  }
-
-  if(result.silhouetteSkipped){
-    silEl.textContent = '—';
-    silNote.textContent = 'Jumlah pelanggan (' + clusterableList.length + ') terlalu besar untuk dihitung secara real-time di peramban, sehingga Silhouette Score dilewati agar dasbor tetap responsif.';
-    setGauge(null);
-  } else if(result.silhouette === null){
-    silEl.textContent = '—';
-    silNote.textContent = 'Silhouette Score belum dapat dihitung untuk konfigurasi cluster saat ini.';
-    setGauge(null);
-  } else {
-    silEl.textContent = result.silhouette.toFixed(3);
-    silNote.textContent = 'Mengukur seberapa baik setiap pelanggan cocok dengan cluster-nya sendiri dibanding cluster lain. Rentang -1 sampai 1 — semakin mendekati 1, pemisahan antar-cluster semakin jelas.';
-    setGauge(result.silhouette);
-  }
-
-  // Statistik tambahan (mengisi ruang di panel evaluasi dengan konteks yang
-  // relevan: seberapa besar & seimbang cluster yang terbentuk).
-  if(extraStatsEl){
-    var totalMembers = summaries.reduce(function(s,x){ return s+x.cnt; }, 0);
-    var biggest = summaries.reduce(function(a,b){ return b.cnt>a.cnt ? b : a; }, summaries[0] || {cnt:0,idx:0});
-    var smallest = summaries.reduce(function(a,b){ return b.cnt<a.cnt ? b : a; }, summaries[0] || {cnt:0,idx:0});
-    var extraCards = [
-      { label:'Pelanggan dianalisis', value: totalMembers.toLocaleString('id-ID'), delta: 'terbagi ke ' + k + ' cluster (K=' + k + ')' },
-      { label:'Cluster terbesar', value: 'Cluster ' + (biggest.idx+1), delta: biggest.cnt.toLocaleString('id-ID') + ' pelanggan (' + (totalMembers ? (biggest.cnt/totalMembers*100).toFixed(0) : 0) + '%)' },
-      { label:'Cluster terkecil', value: 'Cluster ' + (smallest.idx+1), delta: smallest.cnt.toLocaleString('id-ID') + ' pelanggan (' + (totalMembers ? (smallest.cnt/totalMembers*100).toFixed(0) : 0) + '%)' }
-    ];
-    extraStatsEl.innerHTML = extraCards.map(function(s){
-      return '<div class="kpi-card"><div class="kpi-label">'+s.label+'</div><div class="kpi-value tabular">'+s.value+'</div><div class="kpi-delta">'+s.delta+'</div></div>';
-    }).join('');
-  }
-
-  document.getElementById('kmeansClusterSummary').innerHTML = summaries.map(function(s){
-    var color = CLUSTER_COLORS[s.idx % CLUSTER_COLORS.length];
-    return '<div class="kpi-card" style="border-left-color:'+color+'">'+
-      '<div class="kpi-label"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:'+color+';margin-right:6px;"></span>Cluster '+(s.idx+1)+'<span class="cluster-label-tag">'+escapeHtml(s.label)+'</span></div>'+
-      '<div class="kpi-value tabular">'+s.cnt.toLocaleString('id-ID')+' pelanggan</div>'+
-      '<div class="kpi-delta">Recency rata-rata: '+s.avgR.toFixed(1)+' hari</div>'+
-      '<div class="kpi-delta">Frequency rata-rata: '+s.avgF.toFixed(1)+'x</div>'+
-      '<div class="kpi-delta">Monetary rata-rata: '+idr(s.avgM)+'</div>'+
-      '<div class="cluster-explain">'+escapeHtml(s.explanation)+'</div>'+
-    '</div>';
-  }).join('');
-
-  // ---- Tabel hasil segmentasi (dengan pagination) ----
+  // ---- Filter cluster + tabel hasil segmentasi (dengan pagination) ----
   var tableList = clusterableList.map(function(cust, i){
     return { customer_id:cust.customer_id, recency:cust.recency, frequency:cust.frequency, monetary:cust.monetary, cluster:result.assignments[i] };
   });
-  var n2 = tableList.length;
+  var chipsHtml = '<button type="button" class="km-chip'+(kmeansClusterFilter===null?' active':'')+'" data-cluster="all">Semua <span class="tabular">'+tableList.length.toLocaleString('id-ID')+'</span></button>';
+  chipsHtml += summaries.map(function(s){
+    return '<button type="button" class="km-chip'+(kmeansClusterFilter===s.idx?' active':'')+'" data-cluster="'+s.idx+'" style="--seg-color:'+clusterColor(s.idx)+'"><i class="km-dot"></i>Cluster '+(s.idx+1)+' <span class="tabular">'+s.cnt.toLocaleString('id-ID')+'</span></button>';
+  }).join('');
+  document.getElementById('kmeansFilterChips').innerHTML = chipsHtml;
+
+  var shownList = kmeansClusterFilter === null ? tableList : tableList.filter(function(c){ return c.cluster === kmeansClusterFilter; });
+  var n2 = shownList.length;
   var totalPages = Math.max(1, Math.ceil(n2 / state.kmeansPageSize));
   state.kmeansPage = Math.min(state.kmeansPage, totalPages-1);
   var start2 = state.kmeansPage * state.kmeansPageSize;
-  var pageList2 = tableList.slice(start2, start2+state.kmeansPageSize);
+  var pageList2 = shownList.slice(start2, start2+state.kmeansPageSize);
   var tbody2 = document.getElementById('kmeansTableBody');
   if(!pageList2.length){
     tbody2.innerHTML = '<tr><td colspan="5" style="color:var(--ink-muted)">Tidak ada pelanggan yang cocok.</td></tr>';
   } else {
     tbody2.innerHTML = pageList2.map(function(c){
-      var color = CLUSTER_COLORS[c.cluster % CLUSTER_COLORS.length];
       var lbl = summaries[c.cluster] ? summaries[c.cluster].label : '';
       return '<tr><td class="rfm-cust-cell">'+escapeHtml(c.customer_id)+'</td><td class="tabular">'+(c.recency===null?'—':c.recency)+'</td><td class="tabular">'+c.frequency+'</td><td class="tabular">'+idr(c.monetary)+'</td>'+
-        '<td><span style="display:inline-flex;align-items:center;gap:6px;"><span style="width:8px;height:8px;border-radius:50%;background:'+color+';display:inline-block;flex-shrink:0;"></span>Cluster '+(c.cluster+1)+(lbl?' — '+escapeHtml(lbl):'')+'</span></td></tr>';
+        '<td><span class="km-badge" style="--seg-color:'+clusterColor(c.cluster)+'"><i class="km-dot"></i>Cluster '+(c.cluster+1)+(lbl?'<span class="km-badge-sub">'+escapeHtml(lbl)+'</span>':'')+'</span></td></tr>';
     }).join('');
   }
-  document.getElementById('kmeansTableDesc').textContent = n2.toLocaleString('id-ID') + ' pelanggan dikelompokkan ke dalam ' + k + ' cluster (K=' + k + ')';
+  document.getElementById('kmeansTableDesc').textContent = kmeansClusterFilter === null
+    ? n2.toLocaleString('id-ID') + ' pelanggan dikelompokkan ke dalam ' + k + ' cluster (K=' + k + '). Pilih cluster di bawah untuk menyaring tabel.'
+    : 'Menampilkan ' + n2.toLocaleString('id-ID') + ' pelanggan pada Cluster ' + (kmeansClusterFilter+1) + ' (' + summaries[kmeansClusterFilter].label + ') dari total ' + tableList.length.toLocaleString('id-ID') + ' pelanggan.';
   document.getElementById('kmeansPagerInfo').textContent = 'Halaman ' + (state.kmeansPage+1) + ' dari ' + totalPages;
   document.getElementById('kmeansPagerPrev').disabled = state.kmeansPage <= 0;
   document.getElementById('kmeansPagerNext').disabled = state.kmeansPage >= totalPages-1;
@@ -401,7 +445,16 @@ kmeansKTabs.addEventListener('click', function(e){
   if(!btn) return;
   state.kmeansK = parseInt(btn.getAttribute('data-k'), 10);
   state.kmeansPage = 0;
+  kmeansClusterFilter = null;
   Array.from(kmeansKTabs.children).forEach(function(b){ b.classList.toggle('active', b===btn); });
+  renderCustomerSegmentation();
+});
+document.getElementById('kmeansFilterChips').addEventListener('click', function(e){
+  var btn = e.target.closest('button[data-cluster]');
+  if(!btn) return;
+  var v = btn.getAttribute('data-cluster');
+  kmeansClusterFilter = v === 'all' ? null : parseInt(v, 10);
+  state.kmeansPage = 0;
   renderCustomerSegmentation();
 });
 document.getElementById('kmeansPagerPrev').addEventListener('click', function(){ state.kmeansPage--; renderCustomerSegmentation(); });
@@ -449,6 +502,7 @@ function interpretClusters(summaries){
       explanation='Karakteristik RFM berada pada level menengah di seluruh dimensi — berpotensi naik kelas menjadi pelanggan loyal dengan pendekatan yang tepat.';
     }
     s.label = label;
+    s.summaryText = explanation; // versi ringkas tanpa angka, dipakai kartu segmen
     s.explanation = explanation + ' (Recency rata-rata ' + s.avgR.toFixed(1) + ' hari, Frequency rata-rata ' + s.avgF.toFixed(1) + 'x, Monetary rata-rata ' + idr(s.avgM) + '.)';
   });
   return summaries;
