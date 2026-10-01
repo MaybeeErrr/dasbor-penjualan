@@ -92,7 +92,7 @@ function renderExecutiveSummary(){
     {l:'Transaksi', v: ins.totalTransactions.toLocaleString('id-ID')},
     {l:'Pelanggan', v: ins.totalCustomers===null?'—':ins.totalCustomers.toLocaleString('id-ID')},
     {l:'Rata-rata transaksi', v: idr(ins.avgTransaction)}
-  ].map(function(c){ return '<span class="chip">'+c.l+': <b>'+c.v+'</b></span>'; }).join('');
+  ].map(function(c){ return '<div class="chip"><span>'+c.l+'</span><b>'+c.v+'</b></div>'; }).join('');
 
   var paras = [];
   paras.push('Pada periode dan filter data yang sedang aktif, bisnis ini mencatat total pendapatan <b>'+idr(ins.totalRevenue)+'</b> dari <b>'+ins.totalTransactions.toLocaleString('id-ID')+'</b> transaksi'+(ins.totalCustomers!==null?' yang melibatkan <b>'+ins.totalCustomers.toLocaleString('id-ID')+'</b> pelanggan unik':'')+', dengan rata-rata nilai transaksi <b>'+idr(ins.avgTransaction)+'</b>.');
