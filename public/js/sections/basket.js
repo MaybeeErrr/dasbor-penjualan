@@ -196,6 +196,110 @@ function computeMarketBasket(){
   };
 }
 
+/* ---------------- Profil pembelian (cadangan saat Apriori belum bisa berjalan) ----------------
+   Hanya menghitung fakta dari data: berapa jenis produk & unit per pesanan, produk yang dibeli
+   sendirian, dan (bila ada) kombinasi dari sedikit pesanan multi-produk. Tidak membuat aturan asosiasi. */
+function computeBasketProfile(){
+  var recs = state.filtered.filter(function(r){ return OrderStatus.isCompleted(r.status); });
+  var orders = {};
+  recs.forEach(function(r){
+    if(!r.order_id) return;
+    var name = (r.product || '').trim();
+    if(!name) return;
+    var o = orders[r.order_id] || (orders[r.order_id] = { products: {}, units: 0 });
+    o.products[name] = true;
+    o.units += (typeof r.qty === 'number' && !isNaN(r.qty) && r.qty > 0) ? r.qty : 1;
+  });
+  var ids = Object.keys(orders);
+  var total = ids.length;
+  if(!total) return null;
+  var single = 0, multi = 0, sumItems = 0, sumUnits = 0, multiUnits = 0;
+  var soloCount = {}, qtyBuckets = { '1': 0, '2': 0, '3-4': 0, '5+': 0 };
+  var multiCombos = [];
+  ids.forEach(function(id){
+    var o = orders[id], names = Object.keys(o.products), n = names.length;
+    sumItems += n; sumUnits += o.units;
+    if(n === 1){ single++; soloCount[names[0]] = (soloCount[names[0]] || 0) + 1; }
+    else { multi++; multiCombos.push(names.sort()); }
+    if(o.units >= 2) multiUnits++;
+    var q = o.units >= 5 ? '5+' : (o.units >= 3 ? '3-4' : String(Math.round(o.units)));
+    if(qtyBuckets[q] === undefined) q = o.units >= 2 ? '2' : '1';
+    qtyBuckets[q]++;
+  });
+  var top = Object.keys(soloCount).map(function(k){ return { name: k, count: soloCount[k] }; })
+    .sort(function(a, b){ return b.count - a.count; }).slice(0, 8);
+  return { total: total, single: single, multi: multi, avgItems: sumItems / total, avgUnits: sumUnits / total,
+           multiUnits: multiUnits, top: top, qtyBuckets: qtyBuckets, multiCombos: multiCombos };
+}
+
+function shortProductName(s, max){ s = String(s); return s.length > max ? s.slice(0, max - 1).trim() + '…' : s; }
+function mbaPct(a, b, d){ return b ? (a / b * 100).toLocaleString('id-ID', { minimumFractionDigits: d == null ? 1 : d, maximumFractionDigits: d == null ? 1 : d }) + '%' : '0%'; }
+
+function renderBasketFallback(){
+  var wrap = document.getElementById('mbaFallback');
+  if(!wrap) return;
+  var pr = computeBasketProfile();
+  if(!pr){ wrap.style.display = 'none'; return; }
+  wrap.style.display = '';
+
+  var singlePct = pr.single / pr.total * 100;
+  document.getElementById('mbaFbBanner').innerHTML = singlePct >= 90
+    ? 'Hampir semua pembeli hanya mengambil <b>satu jenis produk</b> per pesanan: <b>' + mbaPct(pr.single, pr.total) + '</b> (' + pr.single.toLocaleString('id-ID') + ' dari ' + pr.total.toLocaleString('id-ID') + ' pesanan). Karena itu belum ada pasangan produk yang cukup untuk dianalisis Apriori.'
+    : 'Sebanyak <b>' + mbaPct(pr.single, pr.total) + '</b> pesanan hanya berisi satu jenis produk, sedangkan pesanan multi-produk baru ' + pr.multi + '. Jumlahnya belum cukup untuk dianalisis Apriori.';
+
+  var kpis = [
+    { l: 'Pesanan satu produk', v: pr.single.toLocaleString('id-ID'), d: mbaPct(pr.single, pr.total) + ' dari total pesanan' },
+    { l: 'Pesanan multi-produk', v: pr.multi.toLocaleString('id-ID'), d: mbaPct(pr.multi, pr.total) + ' dari total pesanan' },
+    { l: 'Rata-rata jenis produk / pesanan', v: pr.avgItems.toLocaleString('id-ID', { maximumFractionDigits: 2 }), d: 'jenis produk berbeda' },
+    { l: 'Rata-rata unit / pesanan', v: pr.avgUnits.toLocaleString('id-ID', { maximumFractionDigits: 2 }), d: 'total jumlah barang' },
+    { l: 'Pesanan ≥ 2 unit', v: pr.multiUnits.toLocaleString('id-ID'), d: mbaPct(pr.multiUnits, pr.total) + ' dari total pesanan' }
+  ];
+  document.getElementById('mbaFbKpis').innerHTML = kpis.map(function(c){
+    return '<div class="kpi-card"><div class="kpi-label">' + c.l + '</div><div class="kpi-value tabular">' + c.v + '</div><div class="kpi-delta">' + c.d + '</div></div>';
+  }).join('');
+
+  var need = MBA_MIN_MULTI_ITEM, have = Math.min(pr.multi, need);
+  document.getElementById('mbaFbProgress').innerHTML =
+    '<div class="mba-fb-progress-top"><span>Syarat mengaktifkan Apriori</span><b class="tabular">' + pr.multi + ' / ' + need + ' pesanan multi-produk</b></div>' +
+    '<div class="bar-track"><div class="bar-fill" style="width:' + (have / need * 100).toFixed(0) + '%"></div></div>' +
+    '<div class="mba-fb-progress-note">Kurang ' + Math.max(0, need - pr.multi) + ' pesanan multi-produk lagi. Unggah data periode lain atau gabungkan beberapa bulan agar analisis bisa berjalan.</div>';
+
+  var maxTop = pr.top.length ? pr.top[0].count : 1;
+  document.getElementById('mbaFbTop').innerHTML = pr.top.length ? pr.top.map(function(t){
+    return '<div class="mba-solo"><div class="mba-solo-top"><span class="mba-solo-name" title="' + escapeHtml(t.name) + '">' + escapeHtml(shortProductName(t.name, 70)) + '</span>' +
+      '<span class="mba-solo-val tabular">' + t.count.toLocaleString('id-ID') + ' pesanan · ' + mbaPct(t.count, pr.total) + '</span></div>' +
+      '<div class="bar-track"><div class="bar-fill" style="width:' + Math.max(3, t.count / maxTop * 100).toFixed(1) + '%"></div></div></div>';
+  }).join('') : '<div class="fc-empty-note">Belum ada pesanan satu produk.</div>';
+
+  var qLabels = [['1', '1 unit'], ['2', '2 unit'], ['3-4', '3–4 unit'], ['5+', '5 unit atau lebih']];
+  var maxQ = Math.max.apply(null, qLabels.map(function(q){ return pr.qtyBuckets[q[0]]; })) || 1;
+  document.getElementById('mbaFbQty').innerHTML = qLabels.map(function(q){
+    var n = pr.qtyBuckets[q[0]];
+    return '<div class="mba-solo"><div class="mba-solo-top"><span class="mba-solo-name">' + q[1] + '</span><span class="mba-solo-val tabular">' + n.toLocaleString('id-ID') + ' pesanan · ' + mbaPct(n, pr.total) + '</span></div>' +
+      '<div class="bar-track"><div class="bar-fill" style="width:' + Math.max(n ? 3 : 0, n / maxQ * 100).toFixed(1) + '%"></div></div></div>';
+  }).join('');
+
+  // Saran tindakan (hanya yang didukung data)
+  var acts = [];
+  var multiUnitShare = pr.multiUnits / pr.total * 100;
+  if(multiUnitShare >= 15){
+    acts.push({ t: 'Tawarkan paket multi-kemasan', d: mbaPct(pr.multiUnits, pr.total) + ' pesanan sudah membeli 2 unit atau lebih. Buat paket hemat (mis. isi lebih banyak atau harga grosir kecil) agar pembeli jenis ini naik ke nilai pesanan lebih besar.' });
+  } else {
+    acts.push({ t: 'Dorong pembelian lebih dari 1 unit', d: 'Hanya ' + mbaPct(pr.multiUnits, pr.total) + ' pesanan membeli 2 unit atau lebih. Coba promo "beli 2 lebih hemat" atau gratis ongkir dengan minimum belanja sedikit di atas harga rata-rata.' });
+  }
+  if(pr.top.length >= 2){
+    acts.push({ t: 'Uji coba paket dua produk terlaris', d: 'Produk "' + shortProductName(pr.top[0].name, 45) + '" dan "' + shortProductName(pr.top[1].name, 45) + '" paling sering dibeli. Buat satu paket gabungan sebagai percobaan, lalu unggah data periode berikutnya untuk melihat apakah pesanan multi-produk bertambah.' });
+  }
+  if(pr.multi > 0 && pr.multiCombos.length){
+    var c = pr.multiCombos[0];
+    acts.push({ t: 'Pantau kombinasi yang sudah muncul', d: 'Ada ' + pr.multi + ' pesanan multi-produk, misalnya "' + shortProductName(c[0], 40) + '" bersama "' + shortProductName(c[1], 40) + '". Jumlahnya masih terlalu sedikit untuk disimpulkan sebagai pola.' });
+  }
+  acts.push({ t: 'Kumpulkan data lebih panjang', d: 'Apriori butuh minimal ' + MBA_MIN_MULTI_ITEM + ' pesanan multi-produk. Menggabungkan beberapa bulan data atau menambah penawaran bundling akan membantu fitur ini aktif.' });
+  document.getElementById('mbaFbActions').innerHTML = acts.map(function(a, i){
+    return '<div class="mba-fb-action"><span class="mba-fb-num">' + (i + 1) + '</span><div><div class="mba-fb-title">' + escapeHtml(a.t) + '</div><div class="mba-fb-desc">' + escapeHtml(a.d) + '</div></div></div>';
+  }).join('');
+}
+
 function renderMarketBasketAnalysis(){
   var sumEl = document.getElementById('mbaSummary');
   var emptyEl = document.getElementById('mbaEmpty');
@@ -205,6 +309,8 @@ function renderMarketBasketAnalysis(){
   var rulesEl = document.getElementById('mbaRules');
   if(!sumEl) return;
 
+  var fbEl = document.getElementById('mbaFallback');
+  if(fbEl) fbEl.style.display = 'none';
   if(!state.records.length){
     sumEl.innerHTML=''; itemsetsPanel.style.display='none'; rulesPanel.style.display='none';
     emptyEl.style.display=''; emptyEl.textContent='Unggah data pesanan terlebih dahulu.';
@@ -220,7 +326,8 @@ function renderMarketBasketAnalysis(){
     if(mba.reason==='no_data' || mba.reason==='no_orders'){
       emptyEl.textContent = 'Belum ada transaksi selesai dengan No. Pesanan dan Nama Produk pada filter aktif, sehingga Market Basket Analysis belum dapat dihitung.';
     } else {
-      emptyEl.textContent = 'Market Basket Analysis membutuhkan struktur transaksi di mana satu No. Pesanan berisi lebih dari satu produk berbeda. Pada filter aktif hanya ditemukan '+mba.multiItemCount+' pesanan multi-produk dari '+mba.totalTransactions+' total pesanan (minimal '+MBA_MIN_MULTI_ITEM+' pesanan multi-produk diperlukan). Fitur ini tidak menampilkan data buatan — unggah data dengan struktur transaksi multi-produk untuk mengaktifkannya.';
+      emptyEl.textContent = 'Apriori belum dapat dijalankan: pada filter aktif hanya ada '+mba.multiItemCount+' pesanan multi-produk dari '+mba.totalTransactions+' total pesanan, sedangkan minimal '+MBA_MIN_MULTI_ITEM+' pesanan diperlukan. Fitur ini tidak menampilkan data buatan. Profil pembelian di bawah dihitung langsung dari data Anda.';
+      renderBasketFallback();
     }
     return;
   }

@@ -820,6 +820,30 @@
           <div class="kpi-grid compact" id="mbaSummary"></div>
           <div class="state-empty" id="mbaEmpty" style="display:none;margin-top:14px;"></div>
         </div>
+
+        <!-- Profil pembelian satu-produk: tampil bila pesanan multi-produk belum cukup untuk Apriori -->
+        <div id="mbaFallback" style="display:none;">
+          <div class="panel mba-fb-head">
+            <div class="panel-head"><div><h3>Profil keranjang belanja</h3><div class="desc">Apriori belum bisa berjalan, tapi pola pembelian di toko ini tetap bisa dibaca dari data yang ada</div></div></div>
+            <div class="mba-fb-banner" id="mbaFbBanner"></div>
+            <div class="kpi-grid compact" id="mbaFbKpis"></div>
+            <div class="mba-fb-progress" id="mbaFbProgress"></div>
+          </div>
+          <div class="fc-two">
+            <div class="panel">
+              <div class="panel-head"><div><h3>Produk yang paling sering dibeli sendirian</h3><div class="desc">Dihitung dari jumlah pesanan yang hanya berisi satu jenis produk</div></div></div>
+              <div id="mbaFbTop"></div>
+            </div>
+            <div class="panel">
+              <div class="panel-head"><div><h3>Jumlah unit per pesanan</h3><div class="desc">Seberapa banyak pembeli mengambil sekaligus</div></div></div>
+              <div id="mbaFbQty"></div>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-head"><div><h3>Saran tindakan</h3><div class="desc">Disusun otomatis dari pola pembelian di atas</div></div></div>
+            <div class="mba-fb-actions" id="mbaFbActions"></div>
+          </div>
+        </div>
         <div class="panel" id="mbaItemsetsPanel" style="display:none;">
           <div class="panel-head"><div><h3>Frequent Itemsets</h3><div class="desc">Itemset (1, 2, atau 3 produk) dengan dukungan (support) tertinggi di atas ambang minimum</div></div></div>
           <div class="bar-list" id="mbaItemsets"></div>
