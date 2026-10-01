@@ -1452,3 +1452,35 @@ th:last-child, td:last-child { padding-right: 16px; }
 #paContent .bar-row { grid-template-columns: minmax(130px, 38%) 1fr 64px; gap: 14px; }
 #paContent .bar-track { height: 10px; }
 @media (max-width: 980px) { #paContent .grid-2 { grid-template-columns: 1fr; } }
+
+/* ===== Revisi 2: Cara perkiraan dibuat (teks mengalir normal, tidak terpecah kolom) ===== */
+.fc-two > .panel > .fc-steps { flex: 0 0 auto; gap: 10px; margin-bottom: 16px; }
+.fc-two > .panel > .fc-steps li {
+  flex: 0 0 auto; display: block; position: relative;
+  background: var(--surface-2); border-radius: var(--radius-md);
+  padding: 14px 16px 14px 54px; font-size: 13px; line-height: 1.65;
+}
+.fc-two > .panel > .fc-steps li::before { left: 16px; top: 14px; transform: none; width: 24px; height: 24px; }
+.fc-two > .panel > .fc-tips { margin-top: auto; padding-top: 14px; }
+
+/* ===== Revisi 2: Produk & Periode + Pelanggan Kunci (kartu metrik, ukuran sama) ===== */
+#insightGrid2 { align-items: stretch !important; grid-template-columns: 1fr 1fr; gap: 18px; }
+#insightGrid2 > .panel { display: flex; flex-direction: column; margin-bottom: 0; min-width: 0; }
+#insightGrid2 .bar-list { flex: 1; display: flex; flex-direction: column; gap: 10px; }
+#insightGrid2 .bar-row {
+  flex: 1; display: grid; grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas: "name val" "bar bar"; align-content: center; align-items: baseline;
+  row-gap: 10px; column-gap: 16px;
+  background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: var(--radius-md); padding: 14px 16px;
+}
+#insightGrid2 .bar-row .name {
+  grid-area: name; white-space: normal; overflow: visible; text-overflow: clip;
+  font-size: 12.5px; font-weight: 500; color: var(--ink-muted); line-height: 1.4;
+}
+#insightGrid2 .bar-row .bar-val {
+  grid-area: val; font-size: 17px; font-weight: 700; color: var(--ink);
+  letter-spacing: -0.01em; white-space: nowrap;
+}
+#insightGrid2 .bar-row .bar-track { grid-area: bar; height: 6px; background: var(--surface); }
+@media (max-width: 980px) { #insightGrid2 { grid-template-columns: 1fr; } }
