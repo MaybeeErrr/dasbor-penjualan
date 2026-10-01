@@ -1548,3 +1548,19 @@ th:last-child, td:last-child { padding-right: 16px; }
   #insightGrid2 #insightProductPeriod { grid-template-columns: minmax(0, 1fr); }
   #insightGrid2 .bar-row.kk .bar-val { font-size: 19px; }
 }
+
+/* Nama pelanggan: dibuat jelas sebagai identitas (ikon + teks tebal dalam pill) */
+#insightGrid2 #insightCustomer .bar-row.kk .kk-who {
+  display: inline-flex; align-items: center; gap: 6px;
+  justify-self: start; max-width: 100%;
+  margin-top: 2px; padding: 3px 10px 3px 8px;
+  font-size: 13px; font-weight: 600; line-height: 1.3; color: var(--ink);
+  background: var(--surface); border: 1px solid var(--border); border-radius: 999px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  -webkit-line-clamp: unset;
+}
+#insightGrid2 #insightCustomer .bar-row.kk .kk-who::before {
+  content: ""; flex: 0 0 14px; width: 14px; height: 14px; background: var(--kk-accent);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round'%3E%3Ccircle cx='8' cy='5.5' r='2.8'/%3E%3Cpath d='M2.5 14c0-3 2.4-4.8 5.5-4.8s5.5 1.8 5.5 4.8'/%3E%3C/svg%3E") center / contain no-repeat;
+          mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round'%3E%3Ccircle cx='8' cy='5.5' r='2.8'/%3E%3Cpath d='M2.5 14c0-3 2.4-4.8 5.5-4.8s5.5 1.8 5.5 4.8'/%3E%3C/svg%3E") center / contain no-repeat;
+}
