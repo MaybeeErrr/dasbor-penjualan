@@ -221,8 +221,8 @@
         </div>
         <div class="km-headline db-story" id="dbStory"></div>
         <div class="kpi-grid db-kpis" id="kpiGrid"></div>
-        <div class="rfm-subhead db-sec"><h4>Apa artinya bagi bisnis Anda?</h4><div class="desc">Kesimpulan otomatis dari data dalam bahasa sederhana.</div></div>
-        <div class="sl-findings db-insights" id="dbInsights"></div>
+        <div class="db-sec"><h4>Apa artinya bagi bisnis Anda?</h4><div class="desc">Kesimpulan otomatis dari data dalam bahasa sederhana.</div></div>
+        <div class="panel db-ins-panel"><div class="db-ins-list" id="dbInsights"></div></div>
 
         <div class="panel">
           <div class="panel-head">
@@ -263,7 +263,7 @@
           </div>
         </div>
 
-        <div class="grid-3">
+        <div class="grid-3 db-summaries">
           <div class="summary-card">
             <div class="summary-card-head">
               <div class="summary-card-icon amber">
@@ -279,7 +279,7 @@
             <div class="forecast-warn" id="forecastWarn"></div>
             <div class="forecast-empty" id="forecastEmpty">Data belum cukup untuk membuat prediksi.</div>
             <div class="forecast-note" id="forecastNote">Proyeksi ini adalah perkiraan statistik sederhana berdasarkan pola data yang diunggah, bukan jaminan hasil. Semakin panjang cakupan data historis, semakin andal perkiraannya.</div>
-            <button class="summary-link" type="button" data-goto="forecast">Atur horizon &amp; lihat akurasi model →</button>
+            <button class="summary-link db-more" type="button" data-goto="forecast">Atur horizon &amp; lihat akurasi model →</button>
           </div>
 
           <div class="summary-card">
@@ -289,8 +289,8 @@
               </div>
               <div><h4>Performa produk</h4><div class="desc">Ringkasan Product Analytics</div></div>
             </div>
-            <div class="kpi-grid compact" id="paSummary"></div>
-            <button class="summary-link" type="button" data-goto="product">Lihat Product Analytics →</button>
+            <div class="db-stats" id="paSummary"></div>
+            <button class="summary-link db-more" type="button" data-goto="product">Lihat Product Analytics →</button>
           </div>
 
           <div class="summary-card">
@@ -300,8 +300,8 @@
               </div>
               <div><h4>Customer Analytics</h4><div class="desc">Ringkasan RFM pelanggan</div></div>
             </div>
-            <div class="kpi-grid compact" id="rfmSummary"></div>
-            <button class="summary-link" type="button" data-goto="customer">Lihat Customer Analytics →</button>
+            <div class="db-stats" id="rfmSummary"></div>
+            <button class="summary-link db-more" type="button" data-goto="customer">Lihat Customer Analytics →</button>
           </div>
         </div>
 

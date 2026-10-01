@@ -145,7 +145,7 @@ function renderCustomerAnalytics(){
   var overviewEl = document.getElementById('rfmSummary');
   if(overviewEl){
     overviewEl.innerHTML = summary.slice(0,4).map(function(s){
-      return '<div class="kpi-card"><div class="kpi-label">'+s.label+'</div><div class="kpi-value tabular">'+s.value+'</div><div class="kpi-delta">'+s.delta+'</div></div>';
+      return '<div class="db-stat"><span class="db-stat-lbl">'+s.label+'</span><span class="db-stat-val tabular">'+s.value+'</span></div>';
     }).join('');
   }
 

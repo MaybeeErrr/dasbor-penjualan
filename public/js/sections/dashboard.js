@@ -117,14 +117,13 @@ function renderDashboardHome(){
     { icon: 'users', label: 'Pelanggan unik', value: d.customers ? d.customers.toLocaleString('id-ID') : '—', delta: d.customers ? 'pembeli berbeda' : 'kolom pembeli tidak ada di data', cls: '', help: 'Jumlah pembeli yang berbeda' },
     { icon: 'cancel', label: 'Tingkat pembatalan', value: d.cancelRate.toFixed(1) + '%', delta: m.cancelled.length.toLocaleString('id-ID') + ' pesanan dibatalkan', cls: d.cancelRate > 15 ? 'down' : '', warn: d.cancelRate > 15, help: 'Di atas 15% perlu dicek' }
   ];
-  grid.innerHTML = kpis.map(function(k, i){
-    var tone = k.warn ? 'warn' : (i === 3 ? 'amber' : (i === 4 ? 'blue' : ''));
-    return '<div class="kpi-card db-kpi ' + tone + '" title="' + escapeHtml(k.help) + '"><span class="db-kpi-ic">' + DB_ICONS[k.icon] + '</span>' +
-      '<div class="kpi-label">' + k.label + '</div><div class="kpi-value tabular">' + k.value + '</div><div class="kpi-delta ' + k.cls + '">' + k.delta + '</div></div>';
+  grid.innerHTML = kpis.map(function(k){
+    return '<div class="kpi-card db-kpi' + (k.warn ? ' warn' : '') + '" title="' + escapeHtml(k.help) + '"><div class="db-kpi-top"><div class="kpi-label">' + k.label + '</div><span class="db-kpi-ic">' + DB_ICONS[k.icon] + '</span></div>' +
+      '<div class="kpi-value tabular">' + k.value + '</div><div class="kpi-delta ' + k.cls + '">' + k.delta + '</div></div>';
   }).join('');
 
   if(insEl) insEl.innerHTML = d.insights.map(function(f){
-    return '<div class="sl-finding tone-' + f.tone + '"><div class="sl-finding-title">' + escapeHtml(f.title) + '</div><div class="sl-finding-text">' + escapeHtml(f.text) + '</div></div>';
+    return '<div class="db-ins tone-' + f.tone + '"><i class="db-ins-dot"></i><div><div class="db-ins-title">' + escapeHtml(f.title) + '</div><div class="db-ins-text">' + escapeHtml(f.text) + '</div></div></div>';
   }).join('');
 
   var c = salesCss();

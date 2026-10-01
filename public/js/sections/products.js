@@ -69,7 +69,7 @@ function renderProductAnalytics(){
     { label:'Rata-rata pendapatan/produk', value: idr(avgRevenuePerProduct), delta:'total pendapatan produk dibagi jumlah produk unik' }
   ];
   document.getElementById('paSummary').innerHTML = summary.map(function(s){
-    return '<div class="kpi-card"><div class="kpi-label">'+s.label+'</div><div class="kpi-value tabular">'+s.value+'</div><div class="kpi-delta">'+s.delta+'</div></div>';
+    return '<div class="db-stat"><span class="db-stat-lbl">'+s.label+'</span><span class="db-stat-val tabular">'+s.value+'</span></div>';
   }).join('');
 
   // ---- Top 10 by revenue (horizontal bar) ----
