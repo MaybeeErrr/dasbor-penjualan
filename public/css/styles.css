@@ -1488,7 +1488,7 @@ th:last-child, td:last-child { padding-right: 16px; }
 /* ===== Revisi 6: Produk & Periode + Pelanggan Kunci (minimalis, daftar datar) =====
    Tiap metrik: label (kiri) · angka (kanan) / keterangan / bar tipis. Dipisah garis halus, tanpa kotak. */
 #insightGrid2 { grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 14px; margin-bottom: 18px; }
-#insightGrid2 > .panel { padding: 18px 22px 8px; }
+#insightGrid2 > .panel { padding: 18px 22px 20px; }
 #insightGrid2 #insightProductPeriod { flex: 0 0 auto; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 28px; row-gap: 0; }
 #insightGrid2 #insightCustomer { flex: 0 0 auto; display: grid; grid-template-columns: minmax(0, 1fr); row-gap: 0; }
 
@@ -1496,10 +1496,10 @@ th:last-child, td:last-child { padding-right: 16px; }
   --kk-accent: var(--brand);
   flex: none; position: relative;
   display: grid; grid-template-columns: minmax(0, 1fr) auto;
-  grid-template-areas: "label val" "who who" "bar bar";
-  align-items: baseline; align-content: start;
-  row-gap: 4px; column-gap: 12px;
-  padding: 14px 0 16px;
+  grid-template-areas: "label" "val" "who" "bar";
+  align-items: start; align-content: start;
+  row-gap: 2px; column-gap: 0;
+  padding: 14px 0 18px;
   background: none; border: 0; border-top: 1px solid var(--border); border-radius: 0; box-shadow: none;
   overflow: visible;
 }
@@ -1513,25 +1513,25 @@ th:last-child, td:last-child { padding-right: 16px; }
   letter-spacing: 0; text-transform: none; color: var(--ink-muted); line-height: 1.4;
 }
 #insightGrid2 .bar-row.kk .bar-val {
-  grid-area: val; justify-self: end;
-  font-size: 17px; font-weight: 700; line-height: 1.2; letter-spacing: -0.01em;
+  grid-area: val; justify-self: start;
+  font-size: 19px; font-weight: 700; line-height: 1.2; letter-spacing: -0.01em;
   font-variant-numeric: tabular-nums; color: var(--ink); white-space: nowrap;
 }
 #insightGrid2 .kk-who,
 #insightGrid2 .bar-row.kk.kk-long .kk-who {
   grid-area: who; justify-self: stretch; text-align: left; min-width: 0;
-  font-size: 13px; font-weight: 500; line-height: 1.4; color: var(--ink);
+  font-size: 12px; font-weight: 400; line-height: 1.45; color: var(--ink-muted);
   overflow-wrap: anywhere;
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
 }
 #insightGrid2 .bar-row.kk .bar-track {
-  grid-area: bar; margin-top: 6px; height: 3px; background: var(--surface-2); border-radius: 999px;
+  grid-area: bar; align-self: end; margin-top: 10px; height: 3px; background: var(--surface-2); border-radius: 999px;
 }
 #insightGrid2 .bar-row.kk .bar-fill { background: var(--kk-accent); border-radius: 999px; min-width: 3px; }
 
 /* Nama pelanggan: ikon kecil + teks tebal, tanpa kotak */
 #insightGrid2 #insightCustomer .bar-row.kk .kk-who {
-  display: flex; align-items: center; gap: 6px; font-weight: 600;
+  display: flex; align-items: center; gap: 6px; font-weight: 600; font-size: 13px; color: var(--ink);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis; -webkit-line-clamp: unset;
 }
 #insightGrid2 #insightCustomer .bar-row.kk .kk-who::before {
