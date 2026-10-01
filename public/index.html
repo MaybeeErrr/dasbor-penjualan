@@ -163,7 +163,7 @@
       <div class="nav-section-title">Laporan Eksternal</div>
       <button class="nav-btn" type="button" data-view="shopee">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M1.6 4.4L2.4 1.8h11.2l.8 2.6" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M1.6 4.4c0 1.4 1.05 2.4 2.35 2.4S6.3 5.8 6.3 4.4c0 1.4 1.05 2.4 2.35 2.4S11 5.8 11 4.4c0 1.4 1.05 2.4 2.35 2.4s2.35-1 2.35-2.4" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M2.6 6.7V14h10.8V6.7" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M6.3 14v-4.2h3.4V14" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>
-        Laporan Shopee
+        Laporan Platform
       </button>
     </div>
 
@@ -756,25 +756,24 @@
         </div>
       </section>
 
-      <!-- ============ VIEW: Laporan Shopee ============ -->
-      <section class="view-plane" id="view-shopee" data-view-name="Laporan Shopee">
-        <div class="panel upload-card shopee-upload-card">
-          <div class="panel-head">
-            <div>
-              <h3>Unggah laporan Shopee Seller Centre</h3>
-              <div class="desc">Terpisah dari dataset pesanan di atas. Unggah satu atau beberapa berkas .xlsx apa adanya dari Shopee — Tinjauan Penjualan, Tinjauan Produk, Tinjauan Traffic, Performa Chat, dan/atau Statistik Toko. Jenisnya dikenali otomatis dari kolomnya, bukan dari nama berkas. Data ini hanya disimpan di peramban Anda (belum ke database), jadi tidak ikut pindah perangkat.</div>
-            </div>
-            <button class="ghost-btn" type="button" id="btnShopeeClearAll" style="font-size:12px;">Hapus semua</button>
-          </div>
-          <div class="dropzone" id="shopeeDropzone" tabindex="0" role="button" aria-label="Unggah laporan Shopee">
-            <svg width="30" height="30" viewBox="0 0 24 24" fill="none"><path d="M12 3v12M12 3L7 8M12 3l5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
-            <div class="main-txt" id="shopeeDropzoneMainTxt">Seret satu atau beberapa berkas ke sini, atau klik untuk memilih</div>
-            <div class="sub-txt">.xlsx dari Shopee Seller Centre — bisa beberapa sekaligus</div>
+      <!-- ============ VIEW: Laporan Platform (marketplace / aplikasi eksternal) ============ -->
+      <section class="view-plane" id="view-shopee" data-view-name="Laporan Platform">
+        <div class="rp-upload">
+          <div class="rp-drop" id="shopeeDropzone" tabindex="0" role="button" aria-label="Unggah laporan">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 3v12M12 3L7 8M12 3l5 5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+            <span class="rp-drop-txt" id="shopeeDropzoneMainTxt">Seret berkas .xlsx ke sini atau klik untuk memilih</span>
             <input type="file" id="shopeeFileInput" accept=".xlsx,.xls" multiple>
           </div>
-          <div class="upload-error" id="shopeeUploadError"></div>
-          <div class="shopee-file-list" id="shopeeFileList"></div>
+          <div class="rp-actions">
+            <button class="btn btn-primary rp-download" type="button" id="btnReportDownload" disabled>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M12 4v11M12 15l-4-4M12 15l4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 19h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+              Unduh laporan
+            </button>
+            <button class="ghost-btn rp-clear" type="button" id="btnShopeeClearAll">Hapus semua</button>
+          </div>
         </div>
+        <div class="upload-error" id="shopeeUploadError"></div>
+        <div class="shopee-file-list" id="shopeeFileList"></div>
 
         <div class="horizon-tabs shopee-main-tabs" id="shopeeTabs">
           <button data-tab="ringkasan" class="active">Ringkasan</button>
@@ -845,7 +844,7 @@
               <div class="chart-scroll"><div class="chart-box"><canvas id="shopeeTrafficChart"></canvas></div></div>
             </div>
             <div class="panel">
-              <div class="panel-head"><div><h3>Perbandingan sumber traffic</h3><div class="desc">Situs Shopee vs Aplikasi, dijumlahkan sepanjang periode</div></div></div>
+              <div class="panel-head"><div><h3>Perbandingan sumber traffic</h3><div class="desc">Situs vs Aplikasi, dijumlahkan sepanjang periode</div></div></div>
               <div id="shopeeTrafficSources"></div>
             </div>
           </div>
@@ -993,6 +992,7 @@
 <script src="/js/sections/evaluation.js"></script>
 <script src="/js/sections/compare.js"></script>
 <script src="/js/sections/shopee.js"></script>
+<script src="/js/sections/shopee-export.js"></script>
 <script src="/js/data/datasets-ui.js"></script>
 <script src="/js/core/auth-ui.js"></script>
 <script src="/js/main.js"></script>

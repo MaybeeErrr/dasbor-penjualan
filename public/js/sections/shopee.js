@@ -124,7 +124,7 @@ function processShopeeFiles(fileList){
 function shopeeSetProcessing(active){
   if(shopeeDropzone) shopeeDropzone.classList.toggle('busy', !!active);
   var txt = document.getElementById('shopeeDropzoneMainTxt');
-  if(txt) txt.textContent = active ? 'Membaca berkas…' : 'Seret satu atau beberapa berkas ke sini, atau klik untuk memilih';
+  if(txt) txt.textContent = active ? 'Membaca berkas…' : 'Seret berkas .xlsx ke sini atau klik untuk memilih';
 }
 
 if(shopeeDropzone && shopeeFileInput){
@@ -149,7 +149,7 @@ function removeShopeeFile(fileName){
 
 function clearAllShopeeData(){
   showConfirmModal({
-    title: 'Hapus semua data Laporan Shopee?', danger: true, confirmText: 'Hapus semua',
+    title: 'Hapus semua data laporan?', danger: true, confirmText: 'Hapus semua',
     desc: 'Seluruh berkas yang sudah diunggah pada menu ini akan dihapus dari peramban Anda. Berkas asli di komputer Anda tidak terpengaruh.'
   }).then(function(ok){
     if(!ok) return;
@@ -248,7 +248,7 @@ function renderShopeeRingkasan(){
   if(statusEl) statusEl.innerHTML = statusHtml;
 
   if(!have.length){
-    wrap.innerHTML = '<div class="state-empty">Unggah salah satu berkas laporan Shopee di atas untuk mulai melihat ringkasan.</div>';
+    wrap.innerHTML = '<div class="state-empty">Unggah salah satu berkas laporan di atas untuk mulai melihat ringkasan.</div>';
     var cardsElEmpty = document.getElementById('shopeeRingkasanCards');
     if(cardsElEmpty) cardsElEmpty.innerHTML = '';
     return;
@@ -283,7 +283,7 @@ function renderShopeeRingkasan(){
   if(sh.traffic && sh.traffic.sources.semua){
     var allV = sumField(sh.traffic.sources.semua.daily,'visitors'), appV = sh.traffic.sources.aplikasi ? sumField(sh.traffic.sources.aplikasi.daily,'visitors') : 0;
     var appShare = allV>0 ? appV/allV*100 : null;
-    if(appShare!==null) paras.push('Sumber traffic didominasi <b>Aplikasi Shopee</b> (' + fmtPctVal(appShare,1) + ' dari total pengunjung), sehingga strategi promosi sebaiknya diprioritaskan untuk pengalaman di aplikasi.');
+    if(appShare!==null) paras.push('Sumber traffic didominasi <b>Aplikasi</b> (' + fmtPctVal(appShare,1) + ' dari total pengunjung), sehingga strategi promosi sebaiknya diprioritaskan untuk pengalaman di aplikasi.');
   }
   if(sh.chat && sh.chat.summary){
     paras.push('Layanan chat merespons <b>' + fmtPctVal((sh.chat.summary.chatCount>0? sh.chat.summary.chatReplied/sh.chat.summary.chatCount*100:null),1) + '</b> dari seluruh chat masuk, dengan waktu respon rata-rata <b>' + fmtDuration(sh.chat.summary.avgResponseTime) + '</b>' + (sh.chat.unreplied && sh.chat.unreplied.rows.length ? ('; masih ada <b>' + sh.chat.unreplied.rows.length + '</b> chat yang perlu direspon (lihat tab Chat &amp; Layanan).') : '.'));
@@ -519,6 +519,8 @@ function renderShopeeFileList(){
 function renderShopeeMenu(){
   if(!document.getElementById('view-shopee')) return;
   renderShopeeFileList();
+  var dlBtn = document.getElementById('btnReportDownload');
+  if(dlBtn) dlBtn.disabled = !(state.shopee.sales || state.shopee.product || state.shopee.traffic || state.shopee.chat || state.shopee.shopstats);
   if(shopeeTabsEl) Array.from(shopeeTabsEl.children).forEach(function(b){ b.classList.toggle('active', b.getAttribute('data-tab') === state.shopeeTab); });
   Array.prototype.slice.call(document.querySelectorAll('.shopee-tab-panel')).forEach(function(p){
     p.classList.toggle('active', p.getAttribute('data-tab-panel') === state.shopeeTab);

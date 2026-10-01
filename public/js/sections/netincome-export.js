@@ -199,5 +199,5 @@ var NetIncomeExport = (function(){
     });
   }
 
-  return { toExcel: toExcel, toPdf: toPdf, _fileBase: fileBase };
+  return { toExcel: toExcel, toPdf: toPdf, _fileBase: fileBase, ensurePdfLibs: ensurePdfLibs, pdfText: pdfText };
 })();

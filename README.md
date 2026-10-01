@@ -51,9 +51,9 @@ Catatan: file JS memakai *global scope* bersama (tanpa bundler), jadi **urutan `
 
 ---
 
-## Menu Laporan Shopee
+## Menu Laporan Platform
 
-Menu **Laporan Shopee** (sidebar → Laporan Eksternal) adalah ruang terpisah dari
+Menu **Laporan Platform** (sidebar → Laporan Eksternal; namanya sengaja umum karena dasbor ini bisa dipakai untuk banyak aplikasi/marketplace) adalah ruang terpisah dari
 dataset pesanan di atas: di sini Anda mengunggah langsung berkas ekspor dari
 **Shopee Seller Centre** apa adanya (Pusat Laporan → Unduh), tanpa perlu
 dipetakan dulu.
@@ -79,8 +79,17 @@ dipetakan dulu.
   data ini **tidak ikut berpindah perangkat** dan hilang bila cache peramban
   dibersihkan — unggah ulang berkasnya bila itu terjadi. Rencana pengembangan
   lanjutan: tabel/endpoint khusus bila dibutuhkan persistensi lintas perangkat.
-- Tombol **Hapus semua** di kartu unggah mengosongkan laporan Shopee yang
-  tersimpan (localStorage), tidak memengaruhi dataset pesanan.
+- Area unggah dibuat satu baris ringkas: seret berkas ke kotak putus-putus atau
+  klik untuk memilih. Tombol **Hapus semua** mengosongkan laporan yang tersimpan
+  (localStorage), tidak memengaruhi dataset pesanan.
+- **Unduh laporan (PDF)** (`public/js/sections/shopee-export.js`): satu berkas PDF A4
+  bertema hijau — sampul (periode + 4 KPI utama + daftar isi laporan), Ringkasan
+  Eksekutif (KPI + narasi otomatis), lalu satu bagian per jenis laporan yang
+  diunggah (KPI, grafik, corong, tabel). Angka, corong, narasi, dan tabel diambil
+  dari tampilan yang sudah dirender sehingga selalu sama dengan layar; grafik
+  digambar ulang dengan palet terang sehingga tetap jelas walau dasbor mode gelap.
+  jsPDF + AutoTable dimuat dari cdnjs hanya saat tombol ditekan pertama kali.
+  Nama berkas: `laporan-performa_<tanggal-awal>_<tanggal-akhir>.pdf`.
 
 ## Menu Pendapatan Bersih
 

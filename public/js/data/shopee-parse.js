@@ -164,7 +164,7 @@ var ShopeeParse = (function(){
   var TRAFFIC_CONV = convertersFor(TRAFFIC_NUM, TRAFFIC_PCT, 'date');
   TRAFFIC_CONV.avgTimeSpent = durationToSeconds;
 
-  var TRAFFIC_SOURCE_LABEL = { semua: 'Semua Sumber', situs: 'Situs Shopee', aplikasi: 'Aplikasi' };
+  var TRAFFIC_SOURCE_LABEL = { semua: 'Semua Sumber', situs: 'Situs', aplikasi: 'Aplikasi' };
   function trafficSourceKey(sheetName){
     var n = sheetName.toLowerCase();
     if(n.indexOf('situs') !== -1) return 'situs';
