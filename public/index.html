@@ -1372,5 +1372,30 @@
 })();
 </script>
 
+
+<script>
+// Pecah label "Judul: Nilai" pada kartu insight menjadi label + nama (hanya tampilan)
+(function () {
+  var ids = ['insightProductPeriod', 'insightCustomer'];
+  function esc(t) { return t.replace(/[&<>"]/g, function (c) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+  function fix(root) {
+    root.querySelectorAll('.bar-row:not(.kk)').forEach(function (row) {
+      var n = row.querySelector('.name');
+      if (!n || n.children.length) return;
+      var t = n.textContent, i = t.indexOf(':');
+      if (i < 1 || i >= t.length - 1) return;
+      row.classList.add('kk');
+      n.title = t;
+      n.innerHTML = '<span class="kk-label">' + esc(t.slice(0, i).trim()) + '</span><span class="kk-who">' + esc(t.slice(i + 1).trim()) + '</span>';
+    });
+  }
+  ids.forEach(function (id) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    fix(el);
+    new MutationObserver(function () { fix(el); }).observe(el, { childList: true, subtree: true });
+  });
+})();
+</script>
 </body>
 </html>
