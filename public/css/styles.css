@@ -1496,9 +1496,9 @@ th:last-child, td:last-child { padding-right: 16px; }
   --kk-accent: var(--brand);
   flex: none; position: relative;
   display: grid; grid-template-columns: minmax(0, 1fr) auto;
-  grid-template-areas: "label" "val" "who" "bar";
-  align-items: start; align-content: start;
-  row-gap: 2px; column-gap: 0;
+  grid-template-areas: "label val" "who who" "bar bar";
+  align-items: baseline; align-content: start;
+  row-gap: 4px; column-gap: 12px;
   padding: 14px 0 18px;
   background: none; border: 0; border-top: 1px solid var(--border); border-radius: 0; box-shadow: none;
   overflow: visible;
@@ -1513,8 +1513,8 @@ th:last-child, td:last-child { padding-right: 16px; }
   letter-spacing: 0; text-transform: none; color: var(--ink-muted); line-height: 1.4;
 }
 #insightGrid2 .bar-row.kk .bar-val {
-  grid-area: val; justify-self: start;
-  font-size: 19px; font-weight: 700; line-height: 1.2; letter-spacing: -0.01em;
+  grid-area: val; justify-self: end;
+  font-size: 18px; font-weight: 700; line-height: 1.2; letter-spacing: -0.01em;
   font-variant-numeric: tabular-nums; color: var(--ink); white-space: nowrap;
 }
 #insightGrid2 .kk-who,
