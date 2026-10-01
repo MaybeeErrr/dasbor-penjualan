@@ -1385,6 +1385,7 @@
       var t = n.textContent, i = t.indexOf(':');
       if (i < 1 || i >= t.length - 1) return;
       row.classList.add('kk');
+      if (t.slice(i + 1).trim().length > 28) row.classList.add('kk-long');
       n.title = t;
       n.innerHTML = '<span class="kk-label">' + esc(t.slice(0, i).trim()) + '</span><span class="kk-who">' + esc(t.slice(i + 1).trim()) + '</span>';
     });
