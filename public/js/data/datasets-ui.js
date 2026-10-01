@@ -64,6 +64,7 @@ var DatasetsUI = (function(){
     renderSwitcher();
     renderPicker();
     if(typeof renderComparePicker === 'function') renderComparePicker();
+    if(typeof renderMergePicker === 'function') renderMergePicker();
   }
 
   /* ----- Kartu "Dataset aktif" di sidebar ----- */

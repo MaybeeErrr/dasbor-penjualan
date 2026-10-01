@@ -135,7 +135,7 @@ function renderSalesAnalysis(){
     { label:'Tingkat pembatalan', value: cancelRate.toFixed(1) + '%', delta: m.cancelled.length.toLocaleString('id-ID') + ' dari ' + m.allOrders.length.toLocaleString('id-ID') + ' pesanan', warn: cancelRate > 15 }
   ];
   document.getElementById('salesKpis').innerHTML = kpis.map(function(k){
-    return '<div class="kpi-card'+(k.warn?' warn':'')+'"><div class="kpi-label">'+k.label+'</div><div class="kpi-value tabular">'+k.value+'</div><div class="kpi-delta">'+k.delta+'</div></div>';
+    return '<div class="sl-kpi'+(k.warn?' warn':'')+'"><div class="sl-kpi-lbl">'+k.label+'</div><div class="sl-kpi-val tabular">'+k.value+'</div><div class="sl-kpi-sub">'+k.delta+'</div></div>';
   }).join('');
 
   // ---------- Temuan utama ----------
@@ -158,7 +158,7 @@ function renderSalesAnalysis(){
     ? 'Tingkat pembatalan ' + cancelRate.toFixed(1) + '% tergolong tinggi (di atas 15%); periksa penyebab pembatalan.'
     : 'Tingkat pembatalan ' + cancelRate.toFixed(1) + '%, masih di bawah batas 15%.' });
   document.getElementById('salesFindings').innerHTML = findings.map(function(f){
-    return '<div class="sl-finding tone-'+f.tone+'"><div class="sl-finding-title">'+f.title+'</div><div class="sl-finding-text">'+escapeHtml(f.text)+'</div></div>';
+    return '<div class="sl-frow tone-'+f.tone+'"><i class="sl-frow-dot"></i><span class="sl-frow-title">'+f.title+'</span><span class="sl-frow-text">'+escapeHtml(f.text)+'</span></div>';
   }).join('');
 
   // ---------- Tren harian + rata-rata bergerak 7 hari ----------

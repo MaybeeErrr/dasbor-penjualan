@@ -133,6 +133,10 @@
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4.5 1.5V14.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><path d="M11.5 1.5V14.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><path d="M1.5 6L4.5 4L7.5 6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/><path d="M8.5 10L11.5 12L14.5 10" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
         Perbandingan Dataset
       </button>
+      <button class="nav-btn" type="button" data-view="merge">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 3.5h3.2c1.4 0 2.3.9 2.3 2.3v4.4c0 1.4.9 2.3 2.3 2.3H14" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 12.5h3.2c.8 0 1.4-.3 1.8-.8M14 3.5h-3.2c-.8 0-1.4.3-1.8.8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><path d="M12 11l2 1.5-2 1.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Gabung Dataset
+      </button>
     </div>
 
     <div class="nav-section">
@@ -278,7 +282,7 @@
             </div>
             <div class="forecast-warn" id="forecastWarn"></div>
             <div class="forecast-empty" id="forecastEmpty">Data belum cukup untuk membuat prediksi.</div>
-            <div class="forecast-note" id="forecastNote">Proyeksi ini adalah perkiraan statistik sederhana berdasarkan pola data yang diunggah, bukan jaminan hasil. Semakin panjang cakupan data historis, semakin andal perkiraannya.</div>
+            <div class="forecast-note" id="forecastNote">Perkiraan statistik sederhana dari pola data, bukan jaminan hasil.</div>
             <button class="summary-link db-more" type="button" data-goto="forecast">Atur horizon &amp; lihat akurasi model →</button>
           </div>
 
@@ -327,11 +331,11 @@
           <div class="forecast-empty" id="salesEmpty">Belum ada data pesanan pada filter yang aktif.</div>
           <div id="salesContent">
             <div class="km-headline" id="salesHeadline"></div>
-            <div class="kpi-grid compact km-stats" id="salesKpis"></div>
+            <div class="sl-kpis" id="salesKpis"></div>
 
             <div class="sl-section">
               <div class="rfm-subhead"><h4>Temuan utama</h4><div class="desc">Dihitung otomatis dari data, bukan opini. Gunakan sebagai titik awal untuk menggali lebih dalam.</div></div>
-              <div class="sl-findings" id="salesFindings"></div>
+              <div class="sl-flist" id="salesFindings"></div>
             </div>
 
             <div class="rfm-subpanel sl-section">
@@ -921,6 +925,46 @@
         </div>
       </section>
 
+      <!-- ============ VIEW: Gabung Dataset ============ -->
+      <section class="view-plane" id="view-merge" data-view-name="Gabung Dataset">
+        <div class="panel">
+          <div class="panel-head">
+            <div>
+              <h3>Gabungkan beberapa dataset</h3>
+              <div class="desc">Unduhan data dibatasi sekitar 1 bulan per berkas. Pilih dataset bulanan di sini untuk digabung menjadi satu dataset baru, lalu seluruh menu (Dasbor, Forecasting, RFM, dll.) bisa menganalisis periode yang lebih panjang. Dataset asal tidak berubah.</div>
+            </div>
+          </div>
+
+          <div class="mg-step"><span class="mg-no">1</span>Pilih dataset yang ingin digabung <span class="mg-hint" id="mgCount">0 dipilih</span></div>
+          <div class="compare-picker" id="mergePickerList"></div>
+
+          <div class="mg-step"><span class="mg-no">2</span>Nama dataset gabungan &amp; pengaturan</div>
+          <div class="mg-form">
+            <input type="text" id="mergeName" class="mg-input" maxlength="120" placeholder="Mis. Penjualan Agu–Okt 2026" aria-label="Nama dataset gabungan">
+            <label class="mg-check"><input type="checkbox" id="mergeDedupe" checked><span><b>Buang baris ganda</b><small>Baris yang sama persis (No. pesanan + produk + variasi + SKU) di dua dataset hanya dihitung sekali, misalnya pesanan di pergantian bulan. Bila ganda, data dari dataset yang periodenya lebih baru dipakai (status terbaru).</small></span></label>
+          </div>
+
+          <div class="mg-actions">
+            <button class="btn btn-secondary" id="btnMergePreview" type="button" disabled>Lihat pratinjau</button>
+            <button class="btn btn-primary" id="btnMergeRun" type="button" disabled>Gabungkan &amp; simpan</button>
+          </div>
+          <div class="state-empty" id="mergeEmpty" style="margin-top:14px;">Pilih minimal 2 dataset untuk digabung.</div>
+          <div class="mg-error" id="mergeError" role="alert"></div>
+        </div>
+
+        <div class="panel" id="mergePreview" style="display:none;">
+          <div class="panel-head"><div><h3>Pratinjau hasil gabungan</h3><div class="desc" id="mergePreviewDesc"></div></div></div>
+          <div class="sl-kpis mg-kpis" id="mergeKpis"></div>
+          <div class="table-scroll" style="margin-top:14px;">
+            <table>
+              <thead><tr><th>Dataset</th><th>Periode</th><th>Baris</th><th>Baris ganda dibuang</th><th>Dipakai</th></tr></thead>
+              <tbody id="mergeTableBody"></tbody>
+            </table>
+          </div>
+          <div class="forecast-warn" id="mergeWarn"></div>
+        </div>
+      </section>
+
       <!-- ============ VIEW: Model Evaluation ============ -->
       <section class="view-plane" id="view-evaluation" data-view-name="Model Evaluation">
         <div class="panel">
@@ -1283,6 +1327,7 @@
 <script src="/js/sections/dashboard.js"></script>
 <script src="/js/sections/report-exports.js"></script>
 <script src="/js/sections/compare.js"></script>
+<script src="/js/sections/merge.js"></script>
 <script src="/js/sections/shopee.js"></script>
 <script src="/js/sections/shopee-export.js"></script>
 <script src="/js/data/datasets-ui.js"></script>
