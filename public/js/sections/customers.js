@@ -67,6 +67,27 @@ function buildRecencyBuckets(list){
   return bucketDefs.map(function(b,i){ return { label:b.label, count:counts[i] }; });
 }
 
+// Urutan tabel RFM (hanya mengubah urutan tampilan, bukan perhitungan RFM).
+var rfmSortKey = 'monetary';
+function sortRfmList(list){
+  var arr = list.slice();
+  function rec(c, fallback){ return c.recency === null ? fallback : c.recency; }
+  if(rfmSortKey === 'frequency'){
+    arr.sort(function(a,b){ return (b.frequency - a.frequency) || (b.monetary - a.monetary); });
+  } else if(rfmSortKey === 'recency_asc'){
+    arr.sort(function(a,b){ return (rec(a, Infinity) - rec(b, Infinity)) || (b.monetary - a.monetary); });
+  } else if(rfmSortKey === 'recency_desc'){
+    arr.sort(function(a,b){ return (rec(b, -1) - rec(a, -1)) || (b.monetary - a.monetary); });
+  } else {
+    arr.sort(function(a,b){ return b.monetary - a.monetary; });
+  }
+  return arr;
+}
+var RFM_SORT_LABEL = {
+  monetary: 'Monetary tertinggi', frequency: 'Frequency tertinggi',
+  recency_asc: 'Recency terbaru (paling baru bertransaksi)', recency_desc: 'Recency terlama (paling lama tidak bertransaksi)'
+};
+
 function renderCustomerAnalytics(){
   var emptyEl = document.getElementById('rfmEmpty');
   var contentEl = document.getElementById('rfmContent');
@@ -89,40 +110,62 @@ function renderCustomerAnalytics(){
 
   var list = result.list;
   var n = list.length;
-  var totalFrequency = 0, totalMonetary = 0, totalRecency = 0, recencyCount = 0;
+  var totalFrequency = 0, totalMonetary = 0, totalRecency = 0, recencyCount = 0, repeatCount = 0, active30 = 0;
   list.forEach(function(c){
     totalFrequency += c.frequency;
     totalMonetary += c.monetary;
-    if(c.recency !== null){ totalRecency += c.recency; recencyCount++; }
+    if(c.frequency >= 2) repeatCount++;
+    if(c.recency !== null){ totalRecency += c.recency; recencyCount++; if(c.recency <= 30) active30++; }
   });
   var avgFrequency = n ? totalFrequency / n : 0;
   var avgMonetary = n ? totalMonetary / n : 0;
   var avgRecency = recencyCount ? totalRecency / recencyCount : null;
+  var refDateTxt = result.referenceDate ? result.referenceDate.toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}) : '—';
+  function pct(v, total){ return total ? Math.round(v / total * 100) : 0; }
 
+  // ---- Kesimpulan singkat ----
+  var headline = '<b>' + n.toLocaleString('id-ID') + ' pelanggan</b> bertransaksi dengan total <b>' + idr(totalMonetary) + '</b>. ' +
+    '<b>' + pct(repeatCount, n) + '%</b> pelanggan sudah berbelanja lebih dari sekali' +
+    (recencyCount ? ', dan <b>' + pct(active30, recencyCount) + '%</b> berbelanja dalam 30 hari terakhir.' : '.');
+  document.getElementById('rfmHeadline').innerHTML = headline;
+
+  // ---- Statistik ringkas ----
   var summary = [
-    { label:'Pelanggan dianalisis', value: n.toLocaleString('id-ID'), delta: 'berdasarkan transaksi selesai pada filter aktif' },
-    { label:'Recency rata-rata', value: avgRecency === null ? '—' : avgRecency.toFixed(1) + ' hari', delta: 'sejak transaksi terakhir per ' + (result.referenceDate ? result.referenceDate.toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}) : '—') },
+    { label:'Pelanggan dianalisis', value: n.toLocaleString('id-ID'), delta: 'dari transaksi selesai pada filter aktif' },
+    { label:'Recency rata-rata', value: avgRecency === null ? '—' : avgRecency.toFixed(1) + ' hari', delta: 'sejak transaksi terakhir, per ' + refDateTxt },
     { label:'Frequency rata-rata', value: avgFrequency.toFixed(1) + 'x', delta: 'transaksi per pelanggan' },
-    { label:'Monetary rata-rata', value: idr(avgMonetary), delta: 'total ' + idr(totalMonetary) + ' dari seluruh pelanggan' }
+    { label:'Monetary rata-rata', value: idr(avgMonetary), delta: 'nilai belanja per pelanggan' },
+    { label:'Pelanggan berulang', value: repeatCount.toLocaleString('id-ID'), delta: pct(repeatCount, n) + '% bertransaksi 2x atau lebih' }
   ];
-  document.getElementById('rfmSummary').innerHTML = summary.map(function(s){
+  document.getElementById('rfmStats').innerHTML = summary.map(function(s){
     return '<div class="kpi-card"><div class="kpi-label">'+s.label+'</div><div class="kpi-value tabular">'+s.value+'</div><div class="kpi-delta">'+s.delta+'</div></div>';
   }).join('');
 
-  // Distribusi Recency (bar list sederhana)
+  // Kartu ringkasan RFM di halaman Overview (elemen terpisah) tetap diisi.
+  var overviewEl = document.getElementById('rfmSummary');
+  if(overviewEl){
+    overviewEl.innerHTML = summary.slice(0,4).map(function(s){
+      return '<div class="kpi-card"><div class="kpi-label">'+s.label+'</div><div class="kpi-value tabular">'+s.value+'</div><div class="kpi-delta">'+s.delta+'</div></div>';
+    }).join('');
+  }
+
+  // ---- Distribusi Recency: jumlah + persen, warna dari baru (hijau) ke lama (merah) ----
   var buckets = buildRecencyBuckets(list);
   var maxBucket = Math.max.apply(null, buckets.map(function(b){ return b.count; }).concat([1]));
-  document.getElementById('rfmRecencyDist').innerHTML = buckets.map(function(b){
-    var pct = Math.max(4, (b.count/maxBucket*100));
-    return '<div class="bar-row"><div class="name">'+b.label+'</div><div class="bar-track"><div class="bar-fill" style="width:'+pct+'%; background:var(--amber);"></div></div><div class="bar-val">'+b.count+'</div></div>';
+  var bucketColors = ['var(--brand)', 'color-mix(in srgb, var(--brand) 60%, var(--amber))', 'var(--amber)', 'color-mix(in srgb, var(--amber) 55%, var(--brick))', 'var(--brick)'];
+  document.getElementById('rfmRecencyDist').innerHTML = buckets.map(function(b, i){
+    var w = b.count ? Math.max(3, b.count / maxBucket * 100) : 0;
+    return '<div class="rfm-dist-row"><div class="name">'+b.label+'</div>'+
+      '<div class="bar-track"><div class="bar-fill" style="width:'+w+'%; background:'+bucketColors[i % bucketColors.length]+';"></div></div>'+
+      '<div class="val tabular"><b>'+b.count.toLocaleString('id-ID')+'</b><span>'+pct(b.count, recencyCount)+'%</span></div></div>';
   }).join('');
 
-  // Frequency (x) vs Monetary (y): banyak pelanggan berbagi Frequency & rentang
-  // Monetary yang sama, sehingga dikelompokkan menjadi bubble — ukuran bubble
-  // menunjukkan jumlah pelanggan pada sel tersebut (lihat buildBubbleCells).
+  // ---- Scatter Frequency (x) vs Monetary (y), digabung jadi bubble ----
   var ctx = document.getElementById('rfmScatterChart').getContext('2d');
   if(charts.rfmScatter) charts.rfmScatter.destroy();
   var css = getComputedStyle(document.documentElement);
+  var mutedColor = css.getPropertyValue('--ink-muted').trim();
+  var gridColor = css.getPropertyValue('--chart-grid').trim();
   var rfmStep = monetaryBucketStep(list, 9);
   var rfmBubbles = buildBubbleCells(list, rfmStep, null, null);
   var rfmMaxCount = Math.max.apply(null, rfmBubbles.map(function(b){ return b.count; }).concat([1]));
@@ -144,34 +187,21 @@ function renderCustomerAnalytics(){
       responsive: true, maintainAspectRatio: false,
       plugins: {
         legend: { display:false },
-        tooltip: {
-          callbacks: {
-            label: function(item){ return bubbleTooltipLine(item.raw, rfmStep); }
-          }
-        }
+        tooltip: { callbacks: { label: function(item){ return bubbleTooltipLine(item.raw, rfmStep); } } }
       },
       scales: {
-        x: {
-          title: { display:true, text:'Frequency (jumlah transaksi)', color: css.getPropertyValue('--ink-muted').trim(), font:{size:11} },
-          grid: { color: css.getPropertyValue('--chart-grid').trim() },
-          ticks: { precision:0, color: css.getPropertyValue('--ink-muted').trim() },
-          min: 0.5
-        },
-        y: {
-          title: { display:true, text:'Monetary (Rp)', color: css.getPropertyValue('--ink-muted').trim(), font:{size:11} },
-          grid: { color: css.getPropertyValue('--chart-grid').trim() },
-          ticks: { callback:function(v){ return idrShort(v); }, color: css.getPropertyValue('--ink-muted').trim() },
-          min: 0
-        }
+        x: { title: { display:true, text:'Frequency (jumlah transaksi)', color: mutedColor, font:{size:11} }, grid: { color: gridColor }, ticks: { precision:0, color: mutedColor }, min: 0.5 },
+        y: { title: { display:true, text:'Monetary (Rp)', color: mutedColor, font:{size:11} }, grid: { color: gridColor }, ticks: { callback:function(v){ return idrShort(v); }, color: mutedColor }, min: 0 }
       }
     }
   });
 
-  // Tabel RFM per pelanggan (dengan pagination)
+  // ---- Tabel RFM per pelanggan (urutan bisa dipilih, dengan pagination) ----
+  var sorted = sortRfmList(list);
   var totalPages = Math.max(1, Math.ceil(n / state.rfmPageSize));
   state.rfmPage = Math.min(state.rfmPage, totalPages-1);
   var start = state.rfmPage * state.rfmPageSize;
-  var pageList = list.slice(start, start+state.rfmPageSize);
+  var pageList = sorted.slice(start, start+state.rfmPageSize);
 
   var tbody = document.getElementById('rfmTableBody');
   if(!pageList.length){
@@ -181,11 +211,13 @@ function renderCustomerAnalytics(){
       return '<tr><td class="rfm-cust-cell">'+escapeHtml(c.customer_id)+'</td><td class="tabular">'+(c.recency === null ? '—' : c.recency)+'</td><td class="tabular">'+c.frequency+'</td><td class="tabular">'+idr(c.monetary)+'</td></tr>';
     }).join('');
   }
-  document.getElementById('rfmTableDesc').textContent = n.toLocaleString('id-ID') + ' pelanggan teridentifikasi, diurutkan berdasarkan Monetary tertinggi';
+  document.getElementById('rfmSort').value = rfmSortKey;
+  document.getElementById('rfmTableDesc').textContent = n.toLocaleString('id-ID') + ' pelanggan teridentifikasi, diurutkan dari ' + RFM_SORT_LABEL[rfmSortKey].toLowerCase() + '.';
   document.getElementById('rfmPagerInfo').textContent = 'Halaman ' + (state.rfmPage+1) + ' dari ' + totalPages;
   document.getElementById('rfmPagerPrev').disabled = state.rfmPage <= 0;
   document.getElementById('rfmPagerNext').disabled = state.rfmPage >= totalPages-1;
 }
 
+document.getElementById('rfmSort').addEventListener('change', function(e){ rfmSortKey = e.target.value; state.rfmPage = 0; renderCustomerAnalytics(); });
 document.getElementById('rfmPagerPrev').addEventListener('click', function(){ state.rfmPage--; renderCustomerAnalytics(); });
 document.getElementById('rfmPagerNext').addEventListener('click', function(){ state.rfmPage++; renderCustomerAnalytics(); });

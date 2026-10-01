@@ -5,10 +5,7 @@ function render(){
   applyFilters();
   renderKPIs();
   renderForecast();
-  renderTopProducts();
-  renderPaymentChart();
-  renderTopProvinces();
-  renderStatusChart();
+  renderSalesAnalysis();
   renderProductAnalytics();
   renderNetIncome();
   renderTable();
@@ -646,86 +643,4 @@ function renderForecast(){
   renderRevenueChart('forecastViewChart', 'revenueForecastView', viewPlan);
   renderForecastEvaluation(viewPlan);
   renderForecastExtras(viewPlan);
-}
-
-function renderTopProducts(){
-  var base = OrderStatus.counted(state.filtered);
-  var map = {};
-  base.forEach(function(r){
-    var key = r.product || 'Tidak diketahui';
-    map[key] = (map[key] || 0) + r.subtotal;
-  });
-  var arr = Object.keys(map).map(function(k){ return {name:k, val:map[k]}; }).sort(function(a,b){ return b.val-a.val; }).slice(0,8);
-  var max = arr.length ? arr[0].val : 1;
-  var el = document.getElementById('topProducts');
-  if(!arr.length){ el.innerHTML = '<div class="kpi-delta">Tidak ada data produk.</div>'; return; }
-  el.innerHTML = arr.map(function(p){
-    var pct = Math.max(4, (p.val/max*100));
-    return '<div class="bar-row"><div class="name" title="'+escapeHtml(p.name)+'">'+escapeHtml(p.name)+'</div><div class="bar-track"><div class="bar-fill" style="width:'+pct+'%"></div></div><div class="bar-val">'+idrShort(p.val)+'</div></div>';
-  }).join('');
-}
-
-function renderTopProvinces(){
-  var orders = uniqueOrders(state.filtered);
-  var map = {};
-  orders.forEach(function(o){
-    var key = o.province || 'Tidak diketahui';
-    map[key] = (map[key] || 0) + 1;
-  });
-  var arr = Object.keys(map).map(function(k){ return {name:k, val:map[k]}; }).sort(function(a,b){ return b.val-a.val; }).slice(0,8);
-  var max = arr.length ? arr[0].val : 1;
-  var el = document.getElementById('topProvinces');
-  if(!arr.length){ el.innerHTML = '<div class="kpi-delta">Tidak ada data wilayah.</div>'; return; }
-  el.innerHTML = arr.map(function(p){
-    var pct = Math.max(4, (p.val/max*100));
-    return '<div class="bar-row"><div class="name" title="'+escapeHtml(p.name)+'">'+escapeHtml(p.name)+'</div><div class="bar-track"><div class="bar-fill" style="width:'+pct+'%; background:var(--amber);"></div></div><div class="bar-val">'+p.val+'</div></div>';
-  }).join('');
-}
-
-function renderPaymentChart(){
-  var orders = uniqueOrders(state.filtered);
-  var map = {};
-  orders.forEach(function(o){
-    var key = o.payment_method || 'Tidak diketahui';
-    map[key] = (map[key] || 0) + 1;
-  });
-  var labels = Object.keys(map);
-  var values = labels.map(function(k){ return map[k]; });
-  var palette = ['#2F6F4E','#C98A22','#B0473B','#5C6F64','#8FBFA3','#E2C68C','#D69C93','#A9B8A4'];
-  var ctx = document.getElementById('paymentChart').getContext('2d');
-  if(charts.payment) charts.payment.destroy();
-  var css = getComputedStyle(document.documentElement);
-  if(!labels.length){ return; }
-  charts.payment = new Chart(ctx, {
-    type: 'doughnut',
-    data: { labels: labels, datasets: [{ data: values, backgroundColor: palette, borderColor: css.getPropertyValue('--surface').trim(), borderWidth: 2 }] },
-    options: {
-      responsive:true, maintainAspectRatio:false, cutout:'62%',
-      plugins: { legend: { position:'right', labels:{boxWidth:10, font:{size:11}, color: css.getPropertyValue('--ink-muted').trim()} } }
-    }
-  });
-}
-
-function renderStatusChart(){
-  var orders = uniqueOrders(state.filtered);
-  var map = {};
-  orders.forEach(function(o){
-    var key = o.status || 'Tidak diketahui';
-    map[key] = (map[key] || 0) + 1;
-  });
-  var labels = Object.keys(map);
-  var values = labels.map(function(k){ return map[k]; });
-  var palette = labels.map(function(l){ return OrderStatus.isCompleted(l) ? '#2F6F4E' : (OrderStatus.isCancelled(l) ? '#B0473B' : '#C98A22'); });
-  var ctx = document.getElementById('statusChart').getContext('2d');
-  if(charts.status) charts.status.destroy();
-  var css = getComputedStyle(document.documentElement);
-  if(!labels.length){ return; }
-  charts.status = new Chart(ctx, {
-    type: 'doughnut',
-    data: { labels: labels, datasets: [{ data: values, backgroundColor: palette, borderColor: css.getPropertyValue('--surface').trim(), borderWidth: 2 }] },
-    options: {
-      responsive:true, maintainAspectRatio:false, cutout:'62%',
-      plugins: { legend: { position:'right', labels:{boxWidth:10, font:{size:11}, color: css.getPropertyValue('--ink-muted').trim()} } }
-    }
-  });
 }

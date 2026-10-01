@@ -271,23 +271,90 @@
 
       <!-- ============ VIEW: Analisis Penjualan ============ -->
       <section class="view-plane" id="view-sales" data-view-name="Analisis Penjualan">
-        <div class="panel">
-          <div class="panel-head"><div><h3>Produk terlaris</h3><div class="desc">Berdasarkan total pendapatan (Subtotal Pesanan), transaksi selesai pada filter aktif</div></div></div>
-          <div class="bar-list" id="topProducts"></div>
-        </div>
-        <div class="grid-2">
-          <div class="panel">
-            <div class="panel-head"><div><h3>Metode pembayaran</h3><div class="desc">Berdasarkan jumlah pesanan</div></div></div>
-            <div class="chart-box" style="height:230px;"><canvas id="paymentChart"></canvas></div>
+        <div class="panel" id="salesPanel">
+          <div class="panel-head">
+            <div>
+              <h3>Analisis Penjualan</h3>
+              <div class="desc">Ringkasan performa penjualan: tren, waktu ramai, produk terlaris, pembayaran, status pesanan, dan wilayah pembeli. Mengikuti filter status/provinsi yang aktif di atas.</div>
+            </div>
           </div>
-          <div class="panel">
-            <div class="panel-head"><div><h3>Status pesanan</h3><div class="desc">Selesai vs dibatalkan</div></div></div>
-            <div class="chart-box" style="height:230px;"><canvas id="statusChart"></canvas></div>
+          <div class="forecast-empty" id="salesEmpty">Belum ada data pesanan pada filter yang aktif.</div>
+          <div id="salesContent">
+            <div class="km-headline" id="salesHeadline"></div>
+            <div class="kpi-grid compact km-stats" id="salesKpis"></div>
+
+            <div class="sl-section">
+              <div class="rfm-subhead"><h4>Temuan utama</h4><div class="desc">Dihitung otomatis dari data, bukan opini. Gunakan sebagai titik awal untuk menggali lebih dalam.</div></div>
+              <div class="sl-findings" id="salesFindings"></div>
+            </div>
+
+            <div class="rfm-subpanel sl-section">
+              <div class="sl-head-row">
+                <div class="rfm-subhead">
+                  <h4>Tren penjualan harian</h4>
+                  <div class="desc" id="salesTrendNote">—</div>
+                </div>
+                <div class="horizon-tabs" id="salesTrendTabs">
+                  <button type="button" data-m="revenue" class="active">Pendapatan</button>
+                  <button type="button" data-m="orders">Pesanan</button>
+                </div>
+              </div>
+              <div class="chart-box" style="height:300px; min-width:0;"><canvas id="salesTrendChart"></canvas></div>
+            </div>
+
+            <div class="grid-2 sl-section sl-eq">
+              <div class="rfm-subpanel">
+                <div class="rfm-subhead"><h4>Pendapatan per hari dalam seminggu</h4><div class="desc">Batang hijau tua menandai hari dengan pendapatan tertinggi.</div></div>
+                <div class="chart-box" style="height:240px; min-width:0;"><canvas id="salesDowChart"></canvas></div>
+              </div>
+              <div class="rfm-subpanel">
+                <div class="rfm-subhead"><h4>Jumlah pesanan per jam</h4><div class="desc">Batang oranye menandai jam tersibuk. Berguna untuk mengatur waktu promosi dan jam layanan.</div></div>
+                <div id="salesHourWrap"><div class="chart-box" style="height:240px; min-width:0;"><canvas id="salesHourChart"></canvas></div></div>
+                <div class="state-empty" id="salesHourNote" style="display:none;">Data yang diunggah tidak memuat jam transaksi yang bervariasi, sehingga pola per jam tidak dapat ditampilkan.</div>
+              </div>
+            </div>
+
+            <div class="sl-section">
+              <div class="sl-head-row">
+                <div class="rfm-subhead"><h4>Produk terlaris</h4><div class="desc" id="salesProductsDesc">—</div></div>
+                <div class="horizon-tabs" id="salesProductTabs">
+                  <button type="button" data-m="revenue" class="active">Nilai penjualan</button>
+                  <button type="button" data-m="qty">Unit terjual</button>
+                </div>
+              </div>
+              <div class="sl-rank" id="salesProducts"></div>
+            </div>
+
+            <div class="grid-2 sl-section sl-eq">
+              <div class="rfm-subpanel">
+                <div class="rfm-subhead"><h4>Metode pembayaran</h4><div class="desc">Porsi berdasarkan jumlah pesanan.</div></div>
+                <div class="sl-donut"><div class="sl-donut-chart"><canvas id="salesPayChart"></canvas></div><div class="sl-legend" id="salesPayLegend"></div></div>
+              </div>
+              <div class="rfm-subpanel">
+                <div class="rfm-subhead"><h4>Status pesanan</h4><div class="desc">Hijau selesai, merah dibatalkan, kuning status lain.</div></div>
+                <div class="sl-donut"><div class="sl-donut-chart"><canvas id="salesStatusChart"></canvas></div><div class="sl-legend" id="salesStatusLegend"></div></div>
+              </div>
+            </div>
+
+            <div class="grid-2 sl-section sl-eq">
+              <div class="rfm-subpanel">
+                <div class="rfm-subhead"><h4>Provinsi asal pesanan</h4><div class="desc">8 provinsi dengan pesanan terbanyak.</div></div>
+                <div class="sl-rank" id="salesProvinces"></div>
+              </div>
+              <div class="rfm-subpanel">
+                <div class="rfm-subhead"><h4>Kota/kabupaten asal pesanan</h4><div class="desc">8 kota/kabupaten dengan pesanan terbanyak.</div></div>
+                <div class="sl-rank" id="salesCities"></div>
+              </div>
+            </div>
+
+            <div class="rfm-subpanel sl-section">
+              <div class="sl-head-row">
+                <div class="rfm-subhead"><h4>Sebaran nilai pesanan</h4><div class="desc">Jumlah pesanan menurut rentang total pembayaran. Menunjukkan apakah pembeli didominasi pesanan kecil atau besar.</div></div>
+                <div class="sl-stats" id="salesValueStats"></div>
+              </div>
+              <div class="chart-box" style="height:230px; min-width:0;"><canvas id="salesValueChart"></canvas></div>
+            </div>
           </div>
-        </div>
-        <div class="panel">
-          <div class="panel-head"><div><h3>Sebaran wilayah pembeli</h3><div class="desc">Provinsi dengan pesanan terbanyak</div></div></div>
-          <div class="bar-list" id="topProvinces"></div>
         </div>
       </section>
 
@@ -297,31 +364,55 @@
           <div class="panel-head">
             <div>
               <h3>Customer Analytics (RFM)</h3>
-              <div class="desc">Analisis pelanggan berdasarkan Recency (kebaruan transaksi terakhir), Frequency (jumlah transaksi), dan Monetary (total nilai transaksi) — dihitung dari data yang diunggah dan mengikuti filter status/provinsi yang aktif di atas.</div>
+              <div class="desc">Menilai pelanggan dari seberapa baru, seberapa sering, dan seberapa besar mereka berbelanja. Dihitung dari transaksi selesai pada data yang diunggah dan mengikuti filter status/provinsi yang aktif.</div>
             </div>
           </div>
           <div class="forecast-empty" id="rfmEmpty">Analisis RFM membutuhkan kolom identitas pelanggan.</div>
           <div id="rfmContent">
-            <div class="grid-2">
-              <div class="rfm-subpanel">
-                <div class="rfm-subhead">
-                  <h4>Frekuensi vs nilai transaksi pelanggan</h4>
-                  <div class="desc">Setiap bubble mewakili sekelompok pelanggan dengan jumlah transaksi (Frequency, sumbu mendatar) dan rentang nilai transaksi (Monetary, sumbu tegak) yang serupa. Semakin besar bubble, semakin banyak pelanggan pada kelompok tersebut — arahkan kursor untuk detail.</div>
-                </div>
-                <div class="chart-box" style="height:260px; min-width:0;"><canvas id="rfmScatterChart"></canvas></div>
-              </div>
-              <div class="rfm-subpanel">
-                <div class="rfm-subhead">
-                  <h4>Distribusi Recency pelanggan</h4>
-                  <div class="desc">Jumlah pelanggan berdasarkan lama sejak transaksi terakhirnya (hari).</div>
-                </div>
-                <div class="bar-list" id="rfmRecencyDist"></div>
+
+            <div class="km-guide">
+              <div class="km-guide-grid">
+                <div><b>Recency</b><span>Berapa hari sejak belanja terakhir. Makin kecil, pelanggan makin aktif.</span></div>
+                <div><b>Frequency</b><span>Berapa kali pelanggan bertransaksi. Makin besar, pelanggan makin sering kembali.</span></div>
+                <div><b>Monetary</b><span>Total nilai belanja pelanggan (Rp). Makin besar, kontribusinya makin tinggi.</span></div>
               </div>
             </div>
+
+            <div class="km-headline" id="rfmHeadline"></div>
+            <div class="kpi-grid compact km-stats" id="rfmStats"></div>
+
+            <div class="grid-2 km-section">
+              <div class="rfm-subpanel">
+                <div class="rfm-subhead">
+                  <h4>Frekuensi vs nilai belanja</h4>
+                  <div class="desc">Setiap bubble adalah sekelompok pelanggan dengan jumlah transaksi (sumbu mendatar) dan rentang nilai belanja (sumbu tegak) yang serupa. Bubble lebih besar dan lebih pekat berarti pelanggan lebih banyak. Arahkan kursor untuk detail.</div>
+                </div>
+                <div class="chart-box" style="height:280px; min-width:0;"><canvas id="rfmScatterChart"></canvas></div>
+              </div>
+              <div class="rfm-subpanel">
+                <div class="rfm-subhead">
+                  <h4>Kapan pelanggan terakhir berbelanja</h4>
+                  <div class="desc">Jumlah pelanggan menurut lama sejak transaksi terakhirnya. Batang hijau berarti masih aktif, batang merah berarti sudah lama tidak kembali.</div>
+                </div>
+                <div class="rfm-dist" id="rfmRecencyDist"></div>
+              </div>
+            </div>
+
             <div class="rfm-table-wrap">
-              <div class="rfm-subhead">
-                <h4>Tabel RFM per pelanggan</h4>
-                <div class="desc" id="rfmTableDesc">—</div>
+              <div class="rfm-table-head">
+                <div class="rfm-subhead">
+                  <h4>Tabel RFM per pelanggan</h4>
+                  <div class="desc" id="rfmTableDesc">—</div>
+                </div>
+                <label class="rfm-sort">
+                  <span>Urutkan</span>
+                  <select id="rfmSort">
+                    <option value="monetary">Monetary tertinggi</option>
+                    <option value="frequency">Frequency tertinggi</option>
+                    <option value="recency_asc">Recency terbaru</option>
+                    <option value="recency_desc">Recency terlama</option>
+                  </select>
+                </label>
               </div>
               <div class="table-scroll">
                 <table>
@@ -1130,6 +1221,7 @@
 <script src="/js/data/upload.js"></script>
 <script src="/js/core/records.js"></script>
 <script src="/js/sections/overview.js"></script>
+<script src="/js/sections/sales.js"></script>
 <script src="/js/sections/products.js"></script>
 <script src="/js/sections/netincome-export.js"></script>
 <script src="/js/sections/netincome.js"></script>
