@@ -1568,3 +1568,26 @@ th:last-child, td:last-child { padding-right: 16px; }
   grid-template-areas: "label label" "who who" "val val" "bar bar";
 }
 #insightGrid2 .bar-row.kk.kk-long .bar-val { justify-self: end; }
+
+/* ===== Revisi 7: Saran tindakan — daftar ringkas, detail muncul saat diklik ===== */
+.mba-fb-actions { display: flex; flex-direction: column; gap: 0; }
+.mba-fb-action {
+  position: relative; display: block; cursor: pointer;
+  padding: 13px 40px 13px 2px; margin: 0;
+  background: none; border: 0; border-top: 1px solid var(--border); border-radius: 0;
+  transition: background .15s ease;
+}
+.mba-fb-action:first-child { border-top: 0; }
+.mba-fb-action:hover .mba-fb-title { color: var(--brand); }
+.mba-fb-action:focus-visible { outline: 2px solid var(--brand); outline-offset: -2px; border-radius: var(--radius-sm); }
+.mba-fb-action .mba-fb-num { display: none; }
+.mba-fb-action .mba-fb-title { margin: 0; font-size: 13.5px; font-weight: 600; line-height: 1.45; color: var(--ink); transition: color .15s ease; }
+.mba-fb-action .mba-fb-desc { display: none; max-width: 72ch; margin-top: 6px; font-size: 12.5px; line-height: 1.65; color: var(--ink-muted); }
+.mba-fb-action.open .mba-fb-desc { display: block; }
+/* Panah buka/tutup */
+.mba-fb-action::after {
+  content: ""; position: absolute; right: 8px; top: 18px; width: 7px; height: 7px;
+  border-right: 1.6px solid var(--ink-muted); border-bottom: 1.6px solid var(--ink-muted);
+  transform: rotate(45deg); transition: transform .2s ease;
+}
+.mba-fb-action.open::after { transform: rotate(-135deg); top: 21px; }
