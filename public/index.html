@@ -1398,5 +1398,35 @@
   });
 })();
 </script>
+<script>
+// Saran tindakan (Market Basket): ketuk untuk menampilkan/menyembunyikan penjelasan
+(function () {
+  var box = document.getElementById('mbaFbActions');
+  if (!box) return;
+  function prep() {
+    box.querySelectorAll('.mba-fb-action:not([data-acc])').forEach(function (el) {
+      el.setAttribute('data-acc', '1');
+      el.setAttribute('role', 'button');
+      el.setAttribute('tabindex', '0');
+      el.setAttribute('aria-expanded', 'false');
+    });
+  }
+  function toggle(el) {
+    var open = el.classList.toggle('open');
+    el.setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
+  box.addEventListener('click', function (e) {
+    var el = e.target.closest('.mba-fb-action');
+    if (el && box.contains(el)) toggle(el);
+  });
+  box.addEventListener('keydown', function (e) {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    var el = e.target.closest('.mba-fb-action');
+    if (el && box.contains(el)) { e.preventDefault(); toggle(el); }
+  });
+  prep();
+  new MutationObserver(prep).observe(box, { childList: true });
+})();
+</script>
 </body>
 </html>
