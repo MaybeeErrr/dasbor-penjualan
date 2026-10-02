@@ -1485,46 +1485,109 @@ th:last-child, td:last-child { padding-right: 16px; }
 #insightGrid2 .bar-row .bar-track { grid-area: bar; height: 6px; background: var(--surface); }
 @media (max-width: 980px) { #insightGrid2 { grid-template-columns: 1fr; } }
 
-/* ===== Revisi 4: kartu metrik Produk & Periode / Pelanggan Kunci (rapi & profesional) ===== */
+/* ===== Revisi 6: Produk & Periode + Pelanggan Kunci (minimalis, daftar datar) =====
+   Tiap metrik: label (kiri) · angka (kanan) / keterangan / bar tipis. Dipisah garis halus, tanpa kotak. */
+#insightGrid2 { grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 14px; margin-bottom: 18px; }
+#insightGrid2 > .panel { padding: 18px 22px 20px; }
+#insightGrid2 #insightProductPeriod { flex: 0 0 auto; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 28px; row-gap: 0; }
+#insightGrid2 #insightCustomer { flex: 0 0 auto; display: grid; grid-template-columns: minmax(0, 1fr); row-gap: 0; }
+
 #insightGrid2 .bar-row.kk {
-  position: relative; overflow: hidden;
-  grid-template-columns: minmax(0, 1fr) auto;
-  grid-template-areas: "label label" "val who" "bar bar";
-  align-content: space-between; align-items: end; row-gap: 10px; column-gap: 20px;
-  padding: 16px 20px 18px 22px;
-  background: var(--surface-2); border: 1px solid var(--border);
-  box-shadow: var(--shadow-xs);
-  transition: border-color .2s ease, transform .2s ease;
+  --kk-accent: var(--brand);
+  flex: none; position: relative;
+  display: grid; grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas: "label label" "who val" "bar bar";
+  align-items: end; align-content: start;
+  row-gap: 6px; column-gap: 16px;
+  padding: 14px 0 18px;
+  background: none; border: 0; border-top: 1px solid var(--border); border-radius: 0; box-shadow: none;
+  overflow: visible;
 }
-#insightGrid2 .bar-row.kk::before {
-  content: ""; position: absolute; left: 0; top: 14px; bottom: 14px; width: 3px;
-  border-radius: 0 3px 3px 0; background: var(--brand); opacity: .85;
-}
-#insightGrid2 .bar-row.kk:hover { border-color: var(--brand); }
+#insightCustomer .bar-row.kk { --kk-accent: var(--blue); }
+#insightGrid2 .bar-row.kk::before { content: none; }
+#insightGrid2 .bar-row.kk:hover { border-color: var(--border); }
 #insightGrid2 .bar-row.kk .name { display: contents; }
+
 #insightGrid2 .kk-label {
-  grid-area: label; font-size: 11px; font-weight: 600; letter-spacing: .08em;
-  text-transform: uppercase; color: var(--ink-muted); line-height: 1.3;
+  grid-area: label; align-self: start; font-size: 12px; font-weight: 500;
+  letter-spacing: 0; text-transform: none; color: var(--ink-muted); line-height: 1.4;
 }
 #insightGrid2 .bar-row.kk .bar-val {
-  grid-area: val; align-self: center;
-  font-size: 28px; font-weight: 700; line-height: 1.1; letter-spacing: -0.02em;
-  font-variant-numeric: tabular-nums; color: var(--ink);
+  grid-area: val; justify-self: end; align-self: end;
+  font-size: 18px; font-weight: 700; line-height: 1.2; letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums; color: var(--ink); white-space: nowrap;
 }
-#insightGrid2 .kk-who {
-  grid-area: who; align-self: center; justify-self: end; text-align: right; min-width: 0; max-width: 100%;
-  font-size: 13px; font-weight: 600; color: var(--ink); line-height: 1.4;
-  overflow-wrap: anywhere;
-}
-/* Nama panjang (mis. nama produk): tampil penuh di baris sendiri, rata kiri, maks. 2 baris */
-#insightGrid2 .bar-row.kk.kk-long {
-  grid-template-columns: minmax(0, 1fr);
-  grid-template-areas: "label" "val" "who" "bar";
-}
+#insightGrid2 .kk-who,
 #insightGrid2 .bar-row.kk.kk-long .kk-who {
-  justify-self: stretch; text-align: left; font-weight: 500; font-size: 13px;
-  color: var(--ink-muted); line-height: 1.45;
+  grid-area: who; align-self: end; justify-self: stretch; text-align: left; min-width: 0;
+  font-size: 12px; font-weight: 400; line-height: 1.45; color: var(--ink-muted);
+  overflow-wrap: anywhere;
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
 }
-#insightGrid2 .bar-row.kk .bar-track { height: 6px; background: var(--surface); border-radius: 999px; }
-#insightGrid2 .bar-row.kk .bar-fill { border-radius: 999px; min-width: 6px; }
+#insightGrid2 .bar-row.kk .bar-track {
+  grid-area: bar; align-self: end; margin-top: 4px; height: 3px; background: var(--surface-2); border-radius: 999px;
+}
+#insightGrid2 .bar-row.kk .bar-fill { background: var(--kk-accent); border-radius: 999px; min-width: 3px; }
+
+/* Nama pelanggan: ikon kecil + teks tebal, tanpa kotak */
+#insightGrid2 #insightCustomer .bar-row.kk .kk-who {
+  display: flex; align-items: center; gap: 6px; font-weight: 600; font-size: 13px; color: var(--ink);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; -webkit-line-clamp: unset;
+}
+#insightGrid2 #insightCustomer .bar-row.kk .kk-who::before {
+  content: ""; flex: 0 0 13px; width: 13px; height: 13px; background: var(--kk-accent);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round'%3E%3Ccircle cx='8' cy='5.5' r='2.8'/%3E%3Cpath d='M2.5 14c0-3 2.4-4.8 5.5-4.8s5.5 1.8 5.5 4.8'/%3E%3C/svg%3E") center / contain no-repeat;
+          mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round'%3E%3Ccircle cx='8' cy='5.5' r='2.8'/%3E%3Cpath d='M2.5 14c0-3 2.4-4.8 5.5-4.8s5.5 1.8 5.5 4.8'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+@media (max-width: 980px) { #insightGrid2 { grid-template-columns: 1fr; } }
+@media (max-width: 560px) { #insightGrid2 #insightProductPeriod { grid-template-columns: minmax(0, 1fr); } }
+
+/* ===== Revisi 6: Frequent Itemsets — nama produk terbaca penuh ===== */
+#mbaItemsets { gap: 0; }
+#mbaItemsets .bar-row {
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas: "name val" "bar bar";
+  align-items: baseline; row-gap: 7px; column-gap: 16px;
+  padding: 12px 0 13px; border-top: 1px solid var(--border);
+}
+#mbaItemsets .bar-row:first-child { border-top: 0; padding-top: 2px; }
+#mbaItemsets .bar-row .name {
+  grid-area: name; white-space: normal; overflow: visible; text-overflow: clip;
+  font-size: 13.5px; font-weight: 500; line-height: 1.4; color: var(--ink);
+  overflow-wrap: anywhere;
+}
+#mbaItemsets .bar-row .bar-val {
+  grid-area: val; justify-self: end; min-width: 0;
+  font-size: 13.5px; font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+#mbaItemsets .bar-row .bar-track { grid-area: bar; height: 4px; background: var(--surface-2); border-radius: 999px; }
+#mbaItemsets .bar-row .bar-fill { border-radius: 999px; min-width: 3px; }
+
+/* Nama produk panjang: tampil penuh selebar kartu, angka tetap di kanan tepat di atas bar */
+#insightGrid2 .bar-row.kk.kk-long {
+  grid-template-areas: "label label" "who who" "val val" "bar bar";
+}
+#insightGrid2 .bar-row.kk.kk-long .bar-val { justify-self: end; }
+
+/* ===== Revisi 7: Saran tindakan — daftar ringkas, detail muncul saat diklik ===== */
+.mba-fb-actions { display: flex; flex-direction: column; gap: 0; }
+.mba-fb-action {
+  position: relative; display: block; cursor: pointer;
+  padding: 13px 40px 13px 2px; margin: 0;
+  background: none; border: 0; border-top: 1px solid var(--border); border-radius: 0;
+  transition: background .15s ease;
+}
+.mba-fb-action:first-child { border-top: 0; }
+.mba-fb-action:hover .mba-fb-title { color: var(--brand); }
+.mba-fb-action:focus-visible { outline: 2px solid var(--brand); outline-offset: -2px; border-radius: var(--radius-sm); }
+.mba-fb-action .mba-fb-num { display: none; }
+.mba-fb-action .mba-fb-title { margin: 0; font-size: 13.5px; font-weight: 600; line-height: 1.45; color: var(--ink); transition: color .15s ease; }
+.mba-fb-action .mba-fb-desc { display: none; max-width: 72ch; margin-top: 6px; font-size: 12.5px; line-height: 1.65; color: var(--ink-muted); }
+.mba-fb-action.open .mba-fb-desc { display: block; }
+/* Panah buka/tutup */
+.mba-fb-action::after {
+  content: ""; position: absolute; right: 8px; top: 18px; width: 7px; height: 7px;
+  border-right: 1.6px solid var(--ink-muted); border-bottom: 1.6px solid var(--ink-muted);
+  transform: rotate(45deg); transition: transform .2s ease;
+}
+.mba-fb-action.open::after { transform: rotate(-135deg); top: 21px; }
