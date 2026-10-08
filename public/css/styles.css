@@ -1414,7 +1414,6 @@ th:last-child, td:last-child { padding-right: 16px; }
 /* Cara perkiraan dibuat */
 .fc-two > .panel > .fc-steps { flex: 1; justify-content: space-between; margin-bottom: 16px; gap: 12px; }
 .fc-two > .panel > .fc-tips { margin-top: auto; }
-.fc-two > .panel > .fc-facts { flex: 1; justify-content: space-between; }
 
 /* Rincian harian: tabel menyesuaikan tinggi panel */
 .fc-two > .panel #fcDailyTable { flex: 1; display: flex; flex-direction: column; min-height: 0; }
@@ -1591,3 +1590,14 @@ th:last-child, td:last-child { padding-right: 16px; }
   transform: rotate(45deg); transition: transform .2s ease;
 }
 .mba-fb-action.open::after { transform: rotate(-135deg); top: 21px; }
+
+
+/* Kualitas data: kartu mini 2 kolom, rapat dan rata (tidak ditarik mengikuti tinggi panel sebelah) */
+.fc-two > .panel > .fc-facts { flex: 0 0 auto; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.fc-facts .fc-fact { flex-direction: column; justify-content: flex-start; gap: 4px; padding: 12px 14px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: color-mix(in srgb, var(--brand) 4%, var(--surface)); }
+.fc-facts .fc-fact:last-of-type { border-bottom: 1px solid var(--border); }
+.fc-facts .fc-fact span { font-size: 11.5px; line-height: 1.35; }
+.fc-facts .fc-fact b { text-align: left; font-size: 14.5px; font-variant-numeric: tabular-nums; line-height: 1.3; }
+.fc-facts .fc-fact:first-child { grid-column: 1 / -1; }
+.fc-facts .fc-gaps { grid-column: 1 / -1; margin-top: 0; }
+@media (max-width: 480px) { .fc-two > .panel > .fc-facts { grid-template-columns: 1fr; } .fc-facts .fc-fact:first-child { grid-column: auto; } }

@@ -122,7 +122,7 @@ document.getElementById('btnDemo').addEventListener('click', function(){
   Api.loadDemo().then(function(raw){
     state.activeDatasetId = null;
     state.preprocessing = null;
-    setActiveDatasetLabel(null);
+    DatasetsUI.setActiveLabel(null);
     setRecords(normalizeDemoRecords(raw), 'Data contoh — rekap pesanan Januari 2026 (pratinjau, tidak disimpan)');
   }).catch(function(err){ showError('Gagal memuat data contoh: ' + err.message); });
 });

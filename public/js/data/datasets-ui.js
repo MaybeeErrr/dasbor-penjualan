@@ -359,7 +359,7 @@ var DatasetsUI = (function(){
     }).catch(function(err){ console.error(err); setStatusPill(false, 'Gagal memuat daftar dataset (periksa koneksi)'); });
   });
 
-  return { refresh: refreshDatasets, renderList: renderList, switchTo: switchToDataset };
+  return { refresh: refreshDatasets, renderList: renderList, switchTo: switchToDataset, setActiveLabel: setActiveDatasetLabel };
 })();
 
 /* ---------------- Popup "Tambah dataset baru": pratinjau sebelum disimpan ---------------- */
