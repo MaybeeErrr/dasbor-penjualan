@@ -497,16 +497,27 @@ function renderForecastDataQuality(plan){
   if(!series.span){ fcHtml('fcDataQuality', '<div class="fc-empty-note">Belum ada data pada filter yang aktif.</div>'); return; }
   var first = series.labels[0], last = series.labels[series.labels.length - 1];
   function yr(k){ return parseDayKey(k).getFullYear(); }
+  var cover = series.span ? Math.round(series.validDays / series.span * 100) : 0;
+  var lvlDiff = model.avgDaily > 0 ? (model.level / model.avgDaily - 1) * 100 : null;
+  var lvlHint = lvlDiff === null ? 'Titik awal perkiraan: rata-rata beberapa hari valid terakhir.'
+    : 'Titik awal perkiraan, ' + Math.abs(Math.round(lvlDiff)) + '% ' + (lvlDiff >= 0 ? 'di atas' : 'di bawah') + ' rata-rata historis.';
+  var tone = 'good', verdict = 'Data memadai', verdictTxt = series.validDays + ' hari valid (' + cover + '% dari rentang) dan tidak ada data hilang, sehingga prediksi cukup dapat diandalkan.';
+  if(series.validDays < FORECAST_CFG.DOW_MIN_DAYS){
+    tone = 'warn'; verdict = 'Data masih terbatas'; verdictTxt = 'Baru ' + series.validDays + ' hari valid. Tambahkan data agar pola hari dan prediksi lebih stabil.';
+  } else if(series.missingDays){
+    tone = 'warn'; verdict = 'Data cukup, ada celah'; verdictTxt = series.missingDays + ' hari tidak tercatat. Prediksi tetap dibuat dari ' + series.validDays + ' hari valid.';
+  }
   var facts = [
-    ['Rentang data', fmtDayShort(first) + ' ' + yr(first) + ' – ' + fmtDayShort(last) + ' ' + yr(last)],
-    ['Hari tercakup', series.span + ' hari'],
-    ['Hari dipakai (valid)', series.validDays + ' hari'],
-    ['Data hilang', series.missingDays ? series.missingDays + ' hari dalam ' + series.missingRuns.length + ' rentang' : 'Tidak ada'],
-    ['Rata-rata harian historis', fmtForecastValue(model.avgDaily, metric, true)],
-    ['Level terbaru (dasar prediksi)', fmtForecastValue(model.level, metric, true)],
-    ['Pola hari dalam seminggu', model.useDow ? 'Dipakai' : 'Belum dipakai (butuh ≥ ' + FORECAST_CFG.DOW_MIN_DAYS + ' hari valid)']
+    ['Rentang data', fmtDayShort(first) + ' ' + yr(first) + ' – ' + fmtDayShort(last) + ' ' + yr(last), 'Periode penjualan yang dipakai, dari tanggal pertama sampai terakhir pada data.', true],
+    ['Hari tercakup', series.span + ' hari', 'Seluruh hari dalam rentang, termasuk hari tanpa transaksi.'],
+    ['Hari dipakai (valid)', series.validDays + ' hari', 'Hari yang benar-benar dihitung model (' + cover + '% dari rentang).'],
+    ['Data hilang', series.missingDays ? series.missingDays + ' hari dalam ' + series.missingRuns.length + ' rentang' : 'Tidak ada', series.missingDays ? 'Dianggap tidak tercatat, bukan penjualan nol.' : 'Tidak ada hari kosong beruntun, semua hari bisa dipakai.'],
+    ['Rata-rata harian historis', fmtForecastValue(model.avgDaily, metric, true), 'Rata-rata seluruh data, patokan untuk menilai perkiraan.'],
+    ['Level terbaru (dasar prediksi)', fmtForecastValue(model.level, metric, true), lvlHint],
+    ['Pola hari dalam seminggu', model.useDow ? 'Dipakai' : 'Belum dipakai (butuh ≥ ' + FORECAST_CFG.DOW_MIN_DAYS + ' hari valid)', model.useDow ? 'Hari ramai dan sepi (mis. Sabtu vs Selasa) ikut diperhitungkan.' : 'Semua hari diperlakukan sama sampai data cukup.']
   ];
-  var html = facts.map(function(f){ return '<div class="fc-fact"><span>' + escapeHtml(f[0]) + '</span><b>' + escapeHtml(f[1]) + '</b></div>'; }).join('');
+  var html = '<div class="fc-verdict ' + tone + '"><b>' + escapeHtml(verdict) + '</b><span>' + escapeHtml(verdictTxt) + '</span></div>' +
+    facts.map(function(f){ return '<div class="fc-fact' + (f[3] ? ' wide' : '') + '"><span>' + escapeHtml(f[0]) + '</span><b>' + escapeHtml(f[1]) + '</b><small>' + escapeHtml(f[2]) + '</small></div>'; }).join('');
   if(series.missingRuns.length){
     html += '<div class="fc-gaps"><div class="fc-gaps-title">Rentang data hilang</div>' + series.missingRuns.slice(0, 5).map(function(r){
       return '<div>' + escapeHtml(fmtDayShort(r.from) + ' – ' + fmtDayShort(r.to)) + ' <span class="fc-muted">(' + r.len + ' hari)</span></div>';

@@ -1594,10 +1594,21 @@ th:last-child, td:last-child { padding-right: 16px; }
 
 /* Kualitas data: kartu mini 2 kolom, jarak rata, mengisi tinggi panel */
 .fc-two > .panel > #fcDataQuality.fc-facts { flex: 1 1 auto; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; align-content: stretch; }
-#fcDataQuality.fc-facts .fc-fact { display: flex; flex-direction: column; justify-content: center; align-items: flex-start; gap: 5px; padding: 14px 16px; margin: 0; border: 1px solid var(--border); border-radius: var(--radius-sm); background: color-mix(in srgb, var(--brand) 5%, var(--surface)); }
+#fcDataQuality.fc-facts .fc-fact { display: flex; flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 4px; padding: 14px 16px; margin: 0; border: 1px solid var(--border); border-radius: var(--radius-sm); background: color-mix(in srgb, var(--brand) 5%, var(--surface)); }
 #fcDataQuality.fc-facts .fc-fact:last-of-type { border-bottom: 1px solid var(--border); }
 #fcDataQuality.fc-facts .fc-fact span { font-size: 11.5px; line-height: 1.35; color: var(--ink-muted); }
 #fcDataQuality.fc-facts .fc-fact b { text-align: left; font-size: 15px; line-height: 1.3; font-variant-numeric: tabular-nums; }
-#fcDataQuality.fc-facts .fc-fact:first-child { grid-column: 1 / -1; }
+#fcDataQuality.fc-facts .fc-fact.wide { grid-column: 1 / -1; }
+#fcDataQuality.fc-facts .fc-fact small { font-size: 11.5px; line-height: 1.5; color: var(--ink-muted); margin-top: 2px; }
+#fcDataQuality.fc-facts .fc-verdict { grid-column: 1 / -1; display: flex; flex-direction: column; gap: 3px; padding: 14px 16px; border-radius: var(--radius-sm); border-left: 3px solid var(--brand); background: color-mix(in srgb, var(--brand) 10%, var(--surface)); font-size: 12.5px; line-height: 1.55; }
+#fcDataQuality.fc-facts .fc-verdict b { font-size: 14px; }
+#fcDataQuality.fc-facts .fc-verdict span { color: var(--ink-muted); }
+#fcDataQuality.fc-facts .fc-verdict.warn { border-left-color: var(--amber); background: color-mix(in srgb, var(--amber) 10%, var(--surface)); }
 #fcDataQuality.fc-facts .fc-gaps { grid-column: 1 / -1; margin: 0; }
-@media (max-width: 480px) { .fc-two > .panel > #fcDataQuality.fc-facts { grid-template-columns: 1fr; } #fcDataQuality.fc-facts .fc-fact:first-child { grid-column: auto; } }
+@media (max-width: 480px) { .fc-two > .panel > #fcDataQuality.fc-facts { grid-template-columns: 1fr; } #fcDataQuality.fc-facts .fc-fact.wide { grid-column: auto; } }
+
+/* Cara perkiraan dibuat: tiap langkah membesar merata mengisi tinggi panel (tanpa celah kosong) */
+.fc-two > .panel > ol.fc-steps { flex: 1 1 auto; display: flex; flex-direction: column; justify-content: flex-start; margin-bottom: 16px; }
+.fc-two > .panel > .fc-steps li { flex: 1 1 auto; display: flex; flex-direction: column; justify-content: center; }
+.fc-two > .panel > .fc-steps li::before { top: 50%; transform: translateY(-50%); }
+.fc-two > .panel > .fc-tips { margin-top: 0; }
