@@ -524,6 +524,24 @@ function renderForecastDataQuality(plan){
     }).join('') + (series.missingRuns.length > 5 ? '<div class="fc-muted">dan ' + (series.missingRuns.length - 5) + ' rentang lainnya</div>' : '') + '</div>';
   }
   fcHtml('fcDataQuality', html);
+  renderForecastExample(plan);
+}
+
+function renderForecastExample(plan){
+  var model = plan.model, metric = plan.metric;
+  var lvl = fmtForecastValue(model.level, metric, true);
+  var body;
+  if(model.useDow && model.factors){
+    var f = model.factors;
+    var best = FC_DOW_ORDER.reduce(function(a, d){ return f[d] > f[a] ? d : a; }, FC_DOW_ORDER[0]);
+    var fac = f[best].toFixed(2).replace('.', ',');
+    body = '<div class="fc-ex-eq">' + escapeHtml(lvl) + ' × ' + fac + ' (' + FC_DAY_LONG[best] + ') ≈ ' + escapeHtml(fmtForecastValue(model.level * f[best], metric, true)) + '</div>' +
+      '<div class="fc-ex-note">Level terbaru dikalikan faktor hari. ' + FC_DAY_LONG[best] + ' adalah hari paling ramai pada data Anda, jadi perkiraannya di atas level rata-rata.</div>';
+  } else {
+    body = '<div class="fc-ex-eq">' + escapeHtml(lvl) + ' per hari</div>' +
+      '<div class="fc-ex-note">Pola hari belum dipakai, jadi semua hari diperkirakan sama dengan level terbaru.</div>';
+  }
+  fcHtml('fcExample', '<div class="fc-ex-label">Contoh dari data Anda</div>' + body);
 }
 
 function renderForecastDow(plan){

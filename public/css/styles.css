@@ -1607,8 +1607,12 @@ th:last-child, td:last-child { padding-right: 16px; }
 #fcDataQuality.fc-facts .fc-gaps { grid-column: 1 / -1; margin: 0; }
 @media (max-width: 480px) { .fc-two > .panel > #fcDataQuality.fc-facts { grid-template-columns: 1fr; } #fcDataQuality.fc-facts .fc-fact.wide { grid-column: auto; } }
 
-/* Cara perkiraan dibuat: tiap langkah membesar merata mengisi tinggi panel (tanpa celah kosong) */
-.fc-two > .panel > ol.fc-steps { flex: 1 1 auto; display: flex; flex-direction: column; justify-content: flex-start; margin-bottom: 16px; }
-.fc-two > .panel > .fc-steps li { flex: 1 1 auto; display: flex; flex-direction: column; justify-content: center; }
-.fc-two > .panel > .fc-steps li::before { top: 50%; transform: translateY(-50%); }
-.fc-two > .panel > .fc-tips { margin-top: 0; }
+/* Cara perkiraan dibuat: langkah berukuran wajar, lalu contoh dari data, lalu catatan; sisa tinggi diserap celah kecil di atas catatan */
+.fc-two > .panel > ol.fc-steps { flex: 0 0 auto; display: flex; flex-direction: column; justify-content: flex-start; gap: 10px; margin-bottom: 14px; }
+.fc-two > .panel > ol.fc-steps li { flex: 0 0 auto; display: block; }
+.fc-example { padding: 14px 16px; margin-bottom: 14px; border-radius: var(--radius-sm); border: 1px dashed color-mix(in srgb, var(--brand) 45%, var(--border)); background: color-mix(in srgb, var(--brand) 6%, var(--surface)); }
+.fc-example .fc-ex-label { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--brand); }
+.fc-example .fc-ex-eq { margin-top: 6px; font-size: 15px; font-weight: 600; line-height: 1.45; font-variant-numeric: tabular-nums; }
+.fc-example .fc-ex-note { margin-top: 4px; font-size: 11.5px; line-height: 1.5; color: var(--ink-muted); }
+.fc-two > .panel > .fc-tips { margin-top: auto; }
+.fc-example:empty { display: none; }
