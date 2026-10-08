@@ -1590,6 +1590,7 @@ th:last-child, td:last-child { padding-right: 16px; }
   transform: rotate(45deg); transition: transform .2s ease;
 }
 .mba-fb-action.open::after { transform: rotate(-135deg); top: 21px; }
+<<<<<<< HEAD
 
 
 /* Kualitas data: kartu mini 2 kolom, rapat dan rata (tidak ditarik mengikuti tinggi panel sebelah) */
@@ -1601,3 +1602,5 @@ th:last-child, td:last-child { padding-right: 16px; }
 .fc-facts .fc-fact:first-child { grid-column: 1 / -1; }
 .fc-facts .fc-gaps { grid-column: 1 / -1; margin-top: 0; }
 @media (max-width: 480px) { .fc-two > .panel > .fc-facts { grid-template-columns: 1fr; } .fc-facts .fc-fact:first-child { grid-column: auto; } }
+=======
+>>>>>>> b9d231febe3b2d1b47870a88eb028698628bad70
