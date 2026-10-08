@@ -1616,3 +1616,7 @@ th:last-child, td:last-child { padding-right: 16px; }
 .fc-example .fc-ex-note { margin-top: 4px; font-size: 11.5px; line-height: 1.5; color: var(--ink-muted); }
 .fc-two > .panel > .fc-tips { margin-top: auto; }
 .fc-example:empty { display: none; }
+
+/* Kotak contoh menyerap sisa tinggi panel agar tidak ada celah kosong */
+.fc-two > .panel > .fc-example { flex: 1 1 auto; display: flex; flex-direction: column; justify-content: center; margin-bottom: 16px; }
+.fc-two > .panel > .fc-tips { margin-top: 0; }
